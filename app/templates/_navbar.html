@@ -1,0 +1,43 @@
+<nav class="navbar" role="navigation" aria-label="main navigation">
+
+  <div class="navbar-brand", id="navbar_brand">
+
+    <a class="navbar-item" href="/">
+      <i class="fa-solid fa-utensils is-size-3"></i>
+      &nbsp;&nbsp;&nbsp;<span class="is-size-3">Coctione Libri</span>&nbsp;
+    </a>
+
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar_menu">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+
+  </div><!-- navbar-brand -->
+
+  {# if current_user.is_authenticated #}
+
+  <div class="navbar-menu" id="navbar_menu">
+
+    {# The *left* part of the menu, appearing right after navbar-brand #}
+    <div class="navbar-start">
+      <div class="navbar-item">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            <i class="fa-solid fa-ellipsis is-size-5"></i>
+          </a>
+          <div class="navbar-dropdown">
+          </div><!-- navbar-dropdown -->
+        </div><!-- navbar-item -->
+      </div><!-- navbar-item -->
+    </div>
+
+    {# The *right* part of the menu #}
+    <div class="navbar-end">
+    </div><!-- navbar-end -->
+
+  </div><!-- navbar-menu -->
+
+  {# endif #}
+
+</nav>

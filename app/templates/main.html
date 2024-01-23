@@ -1,0 +1,30 @@
+{% extends "__root.html" %}
+
+{% block content %}
+
+<!-- <div class="navbar-item"> -->
+  <div class="field has-addons">
+    <div class="control">
+      <input _="on htmx:afterRequest set my value to ''"
+	     class="input"
+	     hx-post="/search"
+	     hx-target="#table_items"
+	     name="search"
+	     placeholder="Search..."
+	     type="search"
+      >
+    </div>
+  </div>
+  <!-- </div> -->
+
+{# ################################################################################ #}
+{# Render the primary table of listings!                                            #}
+{# ################################################################################ #}
+<div class="table-container">
+  {% include "main/table.htmx" %}
+</div>
+
+{% endblock %}
+
+{% block js_local %}
+{% endblock %}

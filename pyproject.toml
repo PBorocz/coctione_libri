@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "Coctione Libri"
+version = "0.1.0"
+description = ""
+authors = ["Peter Borocz <680893+PBorocz@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "10"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.0"
+flask-htmx = "^0.3.2"
+flask-login = "^0.6.3"
+pydantic = "^2.5.3"
+python-dotenv = "^1.0.0"
+secure = "^0.3.0"
+pretty-errors = "^1.2.25"
+rich = "^13.7.0"
+mongoengine = "^0.27.0"
+
+# Using fork here https://github.com/idoshr/flask-mongoengine since regular mongoengine isn't being maintained anymore.
+# More context: https://stackoverflow.com/questions/76570896/importerror-cannot-import-name-jsonencoder-from-flask-json
+flask-mongoengine = {git = "https://github.com/idoshr/flask-mongoengine.git"}
+
+[tool.poetry.group.dev.dependencies]
+flask-debugtoolbar-mongo = "^0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# ##############################################################################
+# PoeThePoet
+# ##############################################################################
+[tool.poe]
+# verbosity = 0
+
+[tool.poe.tasks]
+import = "python ./app/cli/import_from_raindrop.py"
+
+[tool.poe.tasks.dev_run_local]
+interpreter = "fish"
+shell = """
+  set -x DB_ENV "local"
+  flask run --debug -h localhost -p 5001
+"""
+
+[tool.poe.tasks.dev_run_production]
+interpreter = "fish"
+shell = """
+  set -x DB_ENV "production"
+  flask run --debug -h localhost -p 5001
+"""

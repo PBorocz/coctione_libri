@@ -1,0 +1,90 @@
+{% if message %}
+  <h2>{{ message }} </h2>
+{% else %}
+  <table id="table_items" class="table is-bordered is-striped is-responsive is-hoverable is-size-6">
+    <caption>{{ caption }}</caption>
+    <thead style="font-family: 'Raleway', sans-serif;">
+      <tr class="has-background-grey-dark">
+
+	{# ######################## #}
+	{# (Date)Time               #}
+	{# ######################## #}
+	{# name attribute is available as f.request.args.get("Hx-Trigger-Name") #}
+        <th
+          scope="col"
+	  id="sort_datetime"
+	  hx-post="/sort"
+	  hx-target="#table_items"
+          class="has-text-white text-center has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
+        >
+          Date/Time
+        </th>
+
+	{# ######################## #}
+	{# Title        	    #}
+	{# ######################## #}
+        <th
+	  scope="col"
+	  id="sort_away"
+	  hx-post="/sort"
+	  hx-target="#table_items"
+	  class="has-text-white"
+	  style="cursor: pointer;"
+	>
+	  Title
+	</th>
+
+	{# ######################## #}
+	{# Tags         	    #}
+	{# ######################## #}
+        <th
+	  scope="col"
+	  id="sort_home"
+	  hx-post="/sort"
+	  hx-target="#table_items"
+	  class="has-text-white"
+	  style="cursor: pointer;"
+	>
+	  Tags
+	</th>
+
+        <th
+	  scope="col"
+	  id="sort_home"
+	  hx-post="/sort"
+	  hx-target="#table_items"
+	  class="has-text-white"
+	  style="cursor: pointer;"
+	>
+	</th>
+
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for document in documents %}
+        <tr style="background-color: white;">
+
+          <td class="has-text-centered"  style="vertical-align: middle;">
+            {{ document.created }}
+          </td>
+
+          <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+            {{ document.title }}
+          </td>
+
+          <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+            {{ document.tags|sort|join(", ") }}
+          </td>
+
+          <td class="has-text-centered" style="vertical-align: middle;">
+            <a href="/view/{{ document.id }}" target="_blank">
+	      <i class="fa-solid fa-file-pdf"></i>
+	    </a>
+          </td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
