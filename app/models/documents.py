@@ -8,6 +8,7 @@ from app.models.users import Users
 
 class Documents(me_.Document):
     """Coctioni-Libri Base Document."""
+
     # fmt: off
     user             = me_.ReferenceField(Users, required=True)            # FK to user
     title            = me_.StringField(max_length=120, required=True)      # Display title, eg. SomethingGoodToCook.pdf
@@ -19,4 +20,4 @@ class Documents(me_.Document):
     file_            = me_.FileField()                                     # GridFS link to actual pdf/file content.
     # fmt: on
 
-    meta = {'indexes': ["tags"]}
+    meta = {"indexes": ["tags"]}

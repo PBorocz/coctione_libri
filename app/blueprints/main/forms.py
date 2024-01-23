@@ -1,3 +1,4 @@
+"""."""
 import wtforms
 from flask_wtf import FlaskForm
 from wtforms import validators
@@ -7,7 +8,6 @@ from app.models.gem import convert_relative_to_absolute
 
 
 class DisplayPreferencesForm(FlaskForm):
-
     """Documentation for DisplayPreferencesForm."""
 
     sport = wtforms.SelectField(
@@ -67,6 +67,7 @@ class DisplayPreferencesForm(FlaskForm):
     )
 
     def __init__(self, *args, **kwargs):
+        """."""
         super().__init__(*args, **kwargs)
         from flask import current_app
         sports = current_app.config.get("SPORTS")
@@ -115,6 +116,8 @@ def get_date_selector_choices(user_tz):
 
 
 class SearchForm(FlaskForm):
+    """."""
+
     search = wtforms.StringField(
         "Search",
         render_kw={

@@ -9,8 +9,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
+
 class Users(me_.Document):
     """User model."""
+
     # fmt: off
     email         = me_.EmailField(required=True, unique=True)  # Model primary key, must be unique, eg. foo@bar.com
     user_id       = me_.StringField(required=True)              # Email hash (used as a "private" user_id on UI)
@@ -76,6 +78,7 @@ class Users(me_.Document):
 
         return cls(**kwargs)
 
+
 ################################################################################
 # Utility Methods
 ################################################################################
@@ -130,4 +133,4 @@ def delete_user(email: str) -> int:
         user = Users.objects.get(email=email)
     except Users.DoesNotExist:
         return 0
-    return user.delete()        # Returns the number of rows deleted
+    return user.delete()  # Returns the number of rows deleted

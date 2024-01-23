@@ -9,6 +9,7 @@ LOGGING_FILE = Path("/tmp/logging.txt")
 
 class LogFileFormatter(logging.Formatter):
     """."""
+
     def __init__(self) -> None:
         """."""
         super().__init__()

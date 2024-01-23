@@ -65,6 +65,7 @@ def list_():
     found = False
     for user in Users.objects():
         from pprint import pprint
+
         pprint(user.to_mongo().to_dict())
         found = True
     if not found:

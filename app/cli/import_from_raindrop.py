@@ -1,6 +1,5 @@
 """Run an import of a set of pdf's to our collection."""
 import argparse
-import logging as log
 import os
 import tomllib
 import warnings
@@ -26,8 +25,8 @@ def main(args: argparse.Namespace):
 
     import_()
 
-def import_():
 
+def import_():
     user = Users.objects.get(email="peter.borocz@gmail.com")
 
     # title = "aTitle"
@@ -50,7 +49,6 @@ def import_():
         raindrops = tomllib.load(fh_toml)
 
     for raindrop in raindrops.get("export"):
-
         path_pdf = Path(f"/Users/peter/Downloads/Raindrop/RaindropDownload/{raindrop['id']}.pdf")
         if not path_pdf.exists():
             continue
@@ -63,11 +61,10 @@ def import_():
         )
         if raindrop["tags"]:
             doc.tags = list(map(str.title, raindrop["tags"]))
-        with open(path_pdf, 'rb') as fd:
-            doc.file_.put(fd, content_type = 'application/pdf')
+        with open(path_pdf, "rb") as fd:
+            doc.file_.put(fd, content_type="application/pdf")
         doc.save()
         print(f"Saved {raindrop['id']}")
-
 
     ################################################################################
     # Cleanup: delete all *superfluous* gem's that have passed.

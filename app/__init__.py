@@ -1,7 +1,6 @@
 """Sole "Application" Creator Factory Method."""
 import logging as log
 import warnings
-from urllib.parse import urlparse
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -10,7 +9,6 @@ with warnings.catch_warnings():
 import flask_login
 from dotenv import load_dotenv
 from flask_mongoengine import MongoEngine
-from flask_htmx import HTMX
 from secure import Secure
 
 # from app.types.sd_stations import SDStations

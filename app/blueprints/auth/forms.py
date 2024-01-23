@@ -8,6 +8,7 @@ from app.models.users import query_user
 
 class LoginForm(FlaskForm):
     """."""
+
     email = wtforms.EmailField(
         "Email Address",
         validators=[validators.DataRequired(), validators.Email()],
@@ -27,6 +28,7 @@ class LoginForm(FlaskForm):
 
 class RegistrationForm(FlaskForm):
     """."""
+
     email = wtforms.EmailField(
         "Email Address",
         render_kw={

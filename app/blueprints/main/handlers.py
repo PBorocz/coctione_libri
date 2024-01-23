@@ -33,6 +33,7 @@ def main() -> Response:
 
     return f.render_template("main.html", **results)
 
+
 ################################################################################
 @bp.get("/view/<doc_id>")
 @fl.login_required
@@ -54,6 +55,7 @@ def main_view_pdf(doc_id: str) -> Response:
         download_name=f"{doc_id}.pdf",
         mimetype=doc.file_.content_type,
     )
+
 
 ################################################################################
 @bp.post("/search")

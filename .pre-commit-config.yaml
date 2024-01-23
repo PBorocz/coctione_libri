@@ -1,0 +1,20 @@
+fail_fast: true
+repos:
+- repo: https://github.com/hakancelikdev/unimport
+  rev: 1.1.0
+  hooks:
+  - id: unimport
+    args:
+    - --include-star-import
+    - --ignore-init
+    - --gitignore
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.1.7
+  hooks:
+    # Run the linter.
+    - id: ruff
+      args: [ --fix ]
+    # Run the formatter.
+    - id: ruff-format

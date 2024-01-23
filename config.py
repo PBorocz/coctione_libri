@@ -8,6 +8,7 @@ from app import constants as c
 
 class Config:
     """."""
+
     # Standard Flask variable..
     SECRET_KEY: bool = os.getenv("SECRET_KEY")
 
@@ -38,23 +39,24 @@ class Config:
 
     MONGODB_SETTINGS = [
         {
-            "host"  : os.getenv(f"DB_{DB_ENV.upper()}"),
-            "alias" : "default",
+            "host": os.getenv(f"DB_{DB_ENV.upper()}"),
+            "alias": "default",
         },
     ]
+
 
 ###############################################################################
 # Pretty-Errors Configuration
 # https://github.com/onelivesleft/PrettyErrors/
 ###############################################################################
 pretty_errors.configure(
-    filename_display    = pretty_errors.FILENAME_EXTENDED,
-    line_number_first   = True,
-    display_link        = True,
-    lines_before        = 5,
-    lines_after         = 2,
-    line_color          = pretty_errors.RED + "> " + pretty_errors.default_config.line_color,
-    code_color          = "  " + pretty_errors.default_config.line_color,
-    truncate_code       = True,
-    display_locals      = True,
+    filename_display=pretty_errors.FILENAME_EXTENDED,
+    line_number_first=True,
+    display_link=True,
+    lines_before=5,
+    lines_after=2,
+    line_color=pretty_errors.RED + "> " + pretty_errors.default_config.line_color,
+    code_color="  " + pretty_errors.default_config.line_color,
+    truncate_code=True,
+    display_locals=True,
 )
