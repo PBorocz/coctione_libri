@@ -1,0 +1,86 @@
+{% extends "__root.html" %}
+
+{% block content %}
+
+  <div class="container">
+    <p class="is-size-3">New User Registration</p>
+  </div>
+
+  <hr/>
+
+  <div class="container">
+
+    <form action="" method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <!-- Email -->
+      <div class="field is-horizontal">
+        <div class="field-label is-medium">
+          <label class="label">{{ form.email.label }}</label>
+        </div>
+        <div class="field-body">
+          <div class="control has-icons-left">
+            {{ form.email(size=32) }}
+            <span class="icon is-small is-left">
+              <i class="fa-solid fa-envelope"></i>
+            </span>
+            <span class="icon is-small is-right">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+            </span>
+          </div>
+          {% for error in form.email.errors %}
+            &nbsp;<p class="help is-danger">{{error}}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Password (and confirmation) -->
+      <div class="field is-horizontal">
+        <div class="field-label is-medium">
+          <label class="label">{{ form.password.label }}</label>
+        </div>
+        <div class="field-body">
+          <div class="control has-icons-left">
+            {{ form.password(size=64) }}
+            <span class="icon is-small is-left">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+          </div>
+          {% for error in form.password.errors %}
+            &nbsp;<p class="help is-danger">{{error}}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field is-horizontal">
+        <div class="field-label is-medium">
+          <label class="label">{{ form.password2.label }}</label>
+        </div>
+        <div class="field-body">
+          <div class="control has-icons-left">
+            {{ form.password2(size=64) }}
+            <span class="icon is-small is-left">
+              <i class="fa-solid fa-check"></i>
+            </span>
+          </div>
+          {% for error in form.password2.errors %}
+            &nbsp;<p class="help is-danger">{{error}}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field is-horizontal">
+        <div class="field-label is-medium">
+        </div>
+        <div class="field-body">
+          <div class="control is-primary">
+            {{ form.submit() }}
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+  </div><!-- div:container -->
+
+{% endblock %}

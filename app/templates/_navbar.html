@@ -15,29 +15,32 @@
 
   </div><!-- navbar-brand -->
 
-  {# if current_user.is_authenticated #}
+  {% if current_user.is_authenticated %}
 
   <div class="navbar-menu" id="navbar_menu">
 
-    {# The *left* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
+      {# The *left* part of the menu, appearing right after navbar-brand #}
       <div class="navbar-item">
         <div class="navbar-item has-dropdown is-hoverable">
           <a class="navbar-link">
             <i class="fa-solid fa-ellipsis is-size-5"></i>
           </a>
           <div class="navbar-dropdown">
+            <a class="navbar-item" href="{{ url_for('auth.logout') }}">
+              <i class="fa-solid fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
+            </a>
           </div><!-- navbar-dropdown -->
         </div><!-- navbar-item -->
       </div><!-- navbar-item -->
     </div>
 
-    {# The *right* part of the menu #}
     <div class="navbar-end">
+      {# The *right* part of the menu (if any ;-) #}
     </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
 
-  {# endif #}
+  {% endif %}
 
 </nav>

@@ -4,7 +4,7 @@ import logging as log
 from app.models import Documents
 
 
-def main(search: str = None) -> dict:
+def render_main(search: str = None) -> dict:
     return_ = {}
 
     if not search or search == "*":
@@ -14,6 +14,9 @@ def main(search: str = None) -> dict:
 
     # Any whitespace in our string to be split?
     if any(chr.isspace() for chr in search):
+
+        # Split and "title" the search terms to match those within the database.
+        l_search = list(map(str.title, search.split()))
 
         # Yes..."or" and "and" semantic between the elements provided??
 
@@ -28,13 +31,13 @@ def main(search: str = None) -> dict:
         from functools import reduce
         from operator import and_
         from mongoengine.queryset.visitor import Q
-        queries = [Q(tags=tag) for tag in search.split()]
+        queries = [Q(tags=tag) for tag in l_search]
         query = reduce(and_, queries)
         return_["documents"] = Documents.objects(query)
 
     else:
         # No, use as is..
-        return_["documents"] = Documents.objects(tags=search)
+        return_["documents"] = Documents.objects(tags=search.title())
 
     log.info(f"{len(return_['documents']):,d} matching documents found for {search=}")
     return return_

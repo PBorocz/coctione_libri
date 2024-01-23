@@ -11,7 +11,6 @@ import flask_login
 from dotenv import load_dotenv
 from flask_mongoengine import MongoEngine
 from flask_htmx import HTMX
-from mongoengine import connect
 from secure import Secure
 
 # from app.types.sd_stations import SDStations
@@ -24,9 +23,9 @@ import app.constants as c
 
 # htmx = HTMX()  # HTMX environment (for selected endpoints)
 secure_headers = Secure()  # Secure headers
-# login = flask_login.LoginManager()  # Login/authentication environment
-# login.login_message = None
-# login.login_view = "auth.login"
+login = flask_login.LoginManager()  # Login/authentication environment
+login.login_message = None
+login.login_view = "auth.login"
 
 
 def create_app(config_override=None, setup_logging=True, log_level: str | None = None):
@@ -68,7 +67,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
     # Initialise our extensions
     ################################################################################
     # htmx.init_app(application)
-    # login.init_app(application)
+    login.init_app(application)
     log.debug("Initialised extensions.")
 
     ################################################################################
@@ -81,8 +80,10 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
     ################################################################################
     # Finally, setup and register all our application blueprints
     ################################################################################
+    from app.blueprints.auth import bp as bp_auth
     from app.blueprints.main import bp as bp_main
 
+    application.register_blueprint(bp_auth)
     application.register_blueprint(bp_main)
 
     log.debug("Registered blueprints.")

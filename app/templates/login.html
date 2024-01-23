@@ -1,0 +1,92 @@
+{% extends "__root.html" %}
+
+{% block content %}
+
+  <div class="container">
+    <h1>
+      <p class="is-size-3">Login</p>
+    </h1>
+  </div>
+
+  <hr/>
+
+  <div class="container">
+
+    <form action="" method="post" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="field is-horizontal">
+
+        <div class="field-label is-medium">
+          <label class="label">{{ form.email.label }}</label>
+        </div>
+
+        <div class="field-body">
+          <div class="control has-icons-left has-icons-right">
+            {{ form.email(size=32) }}
+            <span class="icon is-small is-left">
+              <i class="fa-solid fa-envelope"></i>
+            </span>
+            <span class="icon is-small is-right">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+            </span>
+          </div>
+          {% for error in form.email.errors %}
+            &nbsp;<p class="help is-danger">{{error}}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field is-horizontal">
+
+        <div class="field-label is-medium">
+          <label class="label">{{ form.password.label }}</label>
+        </div>
+
+        <div class="field-body">
+          <div class="control has-icons-left has-icons-right">
+            {{ form.password(size=64) }}
+            <span class="icon is-small is-left">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+          </div>
+          {% for error in form.password.errors %}
+            &nbsp;<p class="help is-danger">{{error}}</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field is-horizontal">
+
+        <div class="field-label is-medium">
+          <label class="label">{{ form.remember_me.label }}</label>
+        </div>
+
+        <div class="field-body">
+          <div class="control">
+            {{ form.remember_me() }}
+          </div>
+        </div>
+      </div>
+
+      <div class="field is-horizontal">
+        <div class="field-label">
+        </div>
+        <div class="field-body">
+          <div class="control is-primary">
+            {{ form.submit() }}
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+  </div>
+
+  <hr/>
+
+  <div class="container">
+    <p>New User? <a href="{{ url_for('auth.register') }}">Register...</a></p>
+  </div>
+
+{% endblock %}

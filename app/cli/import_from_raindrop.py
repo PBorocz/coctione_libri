@@ -24,11 +24,11 @@ def main(args: argparse.Namespace):
     app = create_app(setup_logging=False)
     app.app_context().push()
 
-    go()
+    import_()
 
-def go():
+def import_():
 
-    user, created = Users.get_or_create(email='peter@example.com', first_name='Peter', last_name='Borocz')
+    user = Users.objects.get(email="peter.borocz@gmail.com")
 
     # title = "aTitle"
     # if not (doc := Documents.objects(title=title)):
@@ -62,7 +62,7 @@ def go():
             raindrop_created=raindrop["created"],
         )
         if raindrop["tags"]:
-            doc.tags = raindrop["tags"]
+            doc.tags = list(map(str.title, raindrop["tags"]))
         with open(path_pdf, 'rb') as fd:
             doc.file_.put(fd, content_type = 'application/pdf')
         doc.save()
