@@ -5,15 +5,11 @@ from app.models.documents import Documents
 
 
 def render_main(search: str | None = None) -> dict:
-    return_ = {}
-
     if not search or search == "*":
-        return_["documents"] = Documents.objects()
-        log.info(f"{len(return_['documents']):,d} documents found.")
-        return return_
+        documents = Documents.objects()
+        log.info(f"{len(documents):,d} documents found.")
 
-    # Any whitespace in our string to be split?
-    if any(chr.isspace() for chr in search):
+    elif any(chr.isspace() for chr in search):
         # Split and "title" the search terms to match those within the database.
         l_search = list(map(str.title, search.split()))
 
@@ -21,7 +17,7 @@ def render_main(search: str | None = None) -> dict:
 
         ########################################
         # For an "or" semantic:
-        # return_["documents"] = Documents.objects(tags__in=search.split())
+        # documents = Documents.objects(tags__in=search.split())
         ########################################
 
         ########################################
@@ -34,11 +30,18 @@ def render_main(search: str | None = None) -> dict:
 
         queries = [Q(tags=tag) for tag in l_search]
         query = reduce(and_, queries)
-        return_["documents"] = Documents.objects(query)
+        documents = Documents.objects(query)
 
     else:
         # No, use as is..
-        return_["documents"] = Documents.objects(tags=search.title())
+        documents = Documents.objects(tags=search.title())
 
-    log.info(f"{len(return_['documents']):,d} matching documents found for {search=}")
+    # Sort!
+    documents_sorted = sorted(documents, key=lambda doc: (doc.rating if doc.rating else "", doc.title), reverse=True)
+
+    return_ = {
+        "documents": documents_sorted,
+    }
+
+    log.info(f"{len(documents):,d} matching documents found for {search=}")
     return return_

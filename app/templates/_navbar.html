@@ -19,8 +19,8 @@
 
   <div class="navbar-menu" id="navbar_menu">
 
+    {# The *left* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
-      {# The *left* part of the menu, appearing right after navbar-brand #}
       <div class="navbar-item">
         <div class="navbar-item has-dropdown is-hoverable">
           <a class="navbar-link">
@@ -35,8 +35,23 @@
       </div><!-- navbar-item -->
     </div>
 
+    {# The *right* part of the menu (if any ;-) #}
     <div class="navbar-end">
-      {# The *right* part of the menu (if any ;-) #}
+      <div class="navbar-item">
+	<div class="field">
+	  <div class="control wider-input">
+	    <input _="on htmx:afterRequest set my value to ''"
+		   name="search"
+		   class="input"
+		   type="search"
+		   hx-post="/search"
+		   hx-target="#table_documents"
+		   placeholder="Search..."
+		   autofocus
+	    >
+	  </div>
+	</div>
+      </div>
     </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->

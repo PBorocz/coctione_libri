@@ -21,7 +21,9 @@
 
       <style>
        {# Have to define this here for Jinja to pick up the environment! #}
+
        .watermark::after {content: "{{ config.DB_ENVIRONMENT }}"; display: block; }
+       .wider-input {width: 500px; } /* Adjust this value based on your needs */
 
        {% block extra_css %}
        {# Any optional/page-specific css goes here. #}

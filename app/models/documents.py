@@ -7,11 +7,13 @@ from app.models.users import Users
 
 
 class Documents(me_.Document):
+
     """Coctioni-Libri Base Document."""
 
     # fmt: off
     user             = me_.ReferenceField(Users, required=True)            # FK to user
     title            = me_.StringField(max_length=120, required=True)      # Display title, eg. SomethingGoodToCook.pdf
+    rating           = me_.StringField(max_length=5)                       # Rating as string of *'s, e.g. "***"
     created          = me_.DateTimeField(default=datetime.utcnow)          # Date stamp when created in Raindrop!
     updated          = me_.DateTimeField()                                 # When last updated (usually from CLI)
     tags             = me_.SortedListField(me_.StringField(max_length=50)) # List of tags in "Titled" display format)

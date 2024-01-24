@@ -11,7 +11,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)  # Ignore arning 
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models import Documents, Users
+from app.models.documents import Documents
+from app.models.users import Users
 
 
 def main(args: argparse.Namespace):
@@ -23,7 +24,21 @@ def main(args: argparse.Namespace):
     app = create_app(setup_logging=False)
     app.app_context().push()
 
-    import_()
+    if args.action == "import":
+        import_()
+    elif args.action == "delete":
+        delete_()
+
+
+def delete_():
+    user = Users.objects.get(email="peter.borocz@gmail.com")
+    count = 0
+    for doc in Documents.objects(user=user):
+        doc.file_.delete()
+        doc.delete()
+        count += 1
+
+    print(f"Deleted {count} Documents.")
 
 
 def import_():
@@ -36,13 +51,6 @@ def import_():
     #     with open(path_pdf, 'rb') as fd:
     #         doc.file_.put(fd, content_type = 'application/pdf')
     #     doc.save()
-
-    # Clean out the database
-    # Documents.objects().delete() # CAN'T USE THIS AS IT LEAVES THE UNDERLYING FILES!
-    # Use this instead:
-    # for doc in Documents.objects:
-    #     doc.file_.delete()
-    #     doc.delete()
 
     path_toml = Path("/Users/peter/Downloads/raindrop_export_2024-01-20T09:54:50.423627")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
@@ -60,10 +68,19 @@ def import_():
             raindrop_created=raindrop["created"],
         )
         if raindrop["tags"]:
-            doc.tags = list(map(str.title, raindrop["tags"]))
+            all_tags = list(map(str.title, raindrop["tags"]))
+
+            doc.tags = [tag for tag in all_tags if "*" not in tag]
+
+            tags_rating = [tag for tag in all_tags if "*" in tag]
+            if tags_rating:
+                doc.rating = tags_rating[0]
+
         with open(path_pdf, "rb") as fd:
             doc.file_.put(fd, content_type="application/pdf")
+
         doc.save()
+
         print(f"Saved {raindrop['id']}")
 
     ################################################################################
@@ -235,9 +252,17 @@ if __name__ == "__main__":
         help="Specific file to import, e.g. recipes.toml",
     )
 
+    parser.add_argument(
+        "-a",
+        "--action",
+        help="Action to be performed, ie. import (default), delete",
+        default="import",
+    )
+
     ARGS = parser.parse_args()
 
     # Validate..
     assert ARGS.database in ("production", "local")
+    assert ARGS.action in ("import", "delete")
 
     main(ARGS)

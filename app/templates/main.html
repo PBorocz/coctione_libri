@@ -2,19 +2,6 @@
 
 {% block content %}
 
-<div class="field">
-  <div class="control is-full">
-    <input _="on htmx:afterRequest set my value to ''"
-	   class="input"
-	   hx-post="/search"
-	   hx-target="#table_documents"
-	   name="search"
-	   placeholder="Search..."
-	   type="search"
-    >
-  </div>
-</div>
-
 {# Render the primary table of listings!                                            #}
 <div class="table-container">
   {% include "main/table.htmx" %}

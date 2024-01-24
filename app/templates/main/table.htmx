@@ -8,17 +8,16 @@
       <tr class="has-background-grey-dark">
 
 	{# ######################## #}
-	{# (Date)Time               #}
+	{# Rating                   #}
 	{# ######################## #}
-	{# name attribute is available as f.request.args.get("Hx-Trigger-Name") #}
         <th
           scope="col"
-	  id="sort_datetime"
+	  id="sort_rating"
 	  hx-post="/sort"
 	  hx-target="#table_documents"
-          class="has-text-white text-center has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
+          class="has-text-white has-text-centered has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
         >
-          Date/Time
+          Rating
         </th>
 
 	{# ######################## #}
@@ -67,7 +66,7 @@
         <tr style="background-color: white;">
 
           <td class="has-text-centered"  style="vertical-align: middle;">
-            {{ document.created }}
+            {{ document.rating | default("", true) }}
           </td>
 
           <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
