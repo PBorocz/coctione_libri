@@ -33,6 +33,75 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 # ##############################################################################
+# Ruff world!
+# ##############################################################################
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+ignore = [
+  "D100",    # Ok, I hate the 'Missing docstring in public module'   message, sue me!
+  "D102",    # Ok, I hate the 'Missing docstring in public method'   "
+  "D101",    # Ok, I hate the 'Missing docstring in public class'    "
+  "D103",    # Ok, I hate the 'Missing docstring in public function' "
+  "D104",    # Ok, I hate the 'Missing docstring in public package'  "
+  "D105",    # Ok, I hate the 'Missing docstring in magic method'    "
+  "D107",    # Ok, I hate the 'Missing docstring in __init__ method' "
+  "D211",    # Get rid of conflict with D203
+  "D213",    # Get rid of conflict with D212 (leaving D212 active.)
+  "E402",    # Get rid of message about imports not being at the top (need for flask blueprints)
+  "F401",    # Allows for imports without use (e.g. __init__.py)
+  "RUF012",  # Something to do with default values on bunnet class variables not being typed.
+  "COM812",  # OBO of ruff format but not sure where this is an issue.
+]
+select = [
+  # Which Ruff suites are we running?
+  # (presented in order from the Ruff documentation page)
+  "F",                          # Pyflakes
+  "E", "W",                     # Pycodestyle (Errors and Warnings respectively)
+  "C90",                        # Mccabe
+  "I",                          # Isort
+  "D",                          # Pydocstyle
+  "UP",                         # pyupgrade
+  "N",                          # pep8-naming
+  "YTT",                        # flake8-2020
+  # "ANN",                      # flake8-annotations (ie. type annotations!)
+  # "S",                        # flake8-bandit
+  # "BLE",                      # flake8-blind-except
+  # "FBT",                      # flake8-boolean-trap
+  "B",                          # flake8-bugbear
+  # "A",                        # flake8-builtins (NO! We use "id" as an attribute, sue me...)
+  "C4",                         # flake8-comprehensions
+  "T10",                        # flake8-debugger
+  # "EM",                       # flake8-errmsg
+  # "ISC",                      # flake8-implicit-str-concat
+  # "ICN",                      # flake8-import-conventions
+  # "T20",                      # flake8-print (NO! Removes all print statements!!)
+  # "PT",                       # flake8-pytest-style
+  "Q",                          # flake8-quotes
+  # "RET",                      # flake8-return
+  # "SIM",                      # flake8-simplify
+  # "TID",                      # flake8-tidy-imports
+  # "ARG",                      # flake8-unused-arguments
+  # "DTZ",                      # flake8-datetimez
+  # "ERA",                      # eradicate
+  # "PD",                       # pandas-vet
+  # "PGH",                      # pygrep-hooks
+  "PLC", "PLE", "PLR", "PLW",   # pylint
+  # "PIE",                      # flake8-pie
+  "COM",                        # flake8-commas
+  "RUF",                        # Ruff-specific rules
+]
+
+[tool.ruff.mccabe]
+max-complexity = 12
+
+[tool.ruff.per-file-ignores]
+"config.py" = [
+  "N802",  # We want all Config properties to be uppercase (even if from a methoc)
+  "N805",  # We have classmethods defined that use 'cls' as arg, not 'self'!
+]
+
+# ##############################################################################
 # PoeThePoet
 # ##############################################################################
 [tool.poe]

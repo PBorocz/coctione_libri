@@ -1,10 +1,10 @@
 """Main/home view, essentially the master table itself."""
 import logging as log
 
-from app.models import Documents
+from app.models.documents import Documents
 
 
-def render_main(search: str = None) -> dict:
+def render_main(search: str | None = None) -> dict:
     return_ = {}
 
     if not search or search == "*":
@@ -29,6 +29,7 @@ def render_main(search: str = None) -> dict:
         ########################################
         from functools import reduce
         from operator import and_
+
         from mongoengine.queryset.visitor import Q
 
         queries = [Q(tags=tag) for tag in l_search]

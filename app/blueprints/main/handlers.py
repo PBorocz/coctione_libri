@@ -2,18 +2,18 @@
 import logging as log
 from io import BytesIO
 
-import flask_login as fl
+import flask_login
 from flask import send_file
 from flask.wrappers import Response
 
 from app.blueprints.main import bp
 from app.blueprints.main.render import render_main
-from app.models import Documents
+from app.models.documents import Documents
 
 
 ################################################################################
 @bp.get("/")
-@fl.login_required
+@flask_login.login_required
 def main() -> Response:
     """Render our main page on a full refresh.
 
@@ -36,7 +36,7 @@ def main() -> Response:
 
 ################################################################################
 @bp.get("/view/<doc_id>")
-@fl.login_required
+@flask_login.login_required
 def main_view_pdf(doc_id: str) -> Response:
     """Render a pdf."""
     import flask as f
@@ -59,7 +59,7 @@ def main_view_pdf(doc_id: str) -> Response:
 
 ################################################################################
 @bp.post("/search")
-@fl.login_required
+@flask_login.login_required
 def main_post_search() -> Response:
     """Render the results table based on a *SEARCH* request."""
     import flask as f

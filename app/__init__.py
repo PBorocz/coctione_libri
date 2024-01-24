@@ -11,15 +11,10 @@ from dotenv import load_dotenv
 from flask_mongoengine import MongoEngine
 from secure import Secure
 
-# from app.types.sd_stations import SDStations
-# from app.types.search import search_factory
-# from app.types.sport_s import Sports
-
 load_dotenv(verbose=True)
 
 import app.constants as c
 
-# htmx = HTMX()  # HTMX environment (for selected endpoints)
 secure_headers = Secure()  # Secure headers
 login = flask_login.LoginManager()  # Login/authentication environment
 login.login_message = None
@@ -50,40 +45,45 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
     # own logging configurations!)
     ################################################################################
     if setup_logging:
+        # What level?
         if log_level:
             level = log_level
         else:
             level = log.INFO if application.config.get("PRODUCTION") else log.DEBUG
+
+        # Let basicConfig do all the heavy lifting for us...
         log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 
         # See all inbound requests for local/development environment (but not in production)
         log.getLogger("werkzeug").disabled = False if application.config.get("PRODUCTION") else True
 
-    log.debug("Created application object.")
+        log.debug("setup logging environment.")
+
+    log.debug(f"created application object ({application.debug=})")
 
     ################################################################################
     # Initialise our extensions
     ################################################################################
-    # htmx.init_app(application)
     login.init_app(application)
-    log.debug("Initialised extensions.")
+    log.debug("initialised extensions.")
 
     ################################################################################
     # Connect and setup our database environment.
     ################################################################################
     db = MongoEngine()
     db.init_app(application)
-    log.debug(f"Connected to MongoDB -> {application.config.get('DB_ENV').upper()}")
+    log.debug(f"connected to MongoDB -> {application.config.get('DB_ENV').upper()}")
 
     ################################################################################
     # Finally, setup and register all our application blueprints
     ################################################################################
-    from app.blueprints.auth import bp as bp_auth
-    from app.blueprints.main import bp as bp_main
+    from app.blueprints.auth import bp as blueprint_auth
+    from app.blueprints.main import bp as blueprint_main
 
-    application.register_blueprint(bp_auth)
-    application.register_blueprint(bp_main)
+    application.register_blueprint(blueprint_auth)
+    application.register_blueprint(blueprint_main)
 
-    log.debug("Registered blueprints.")
+    log.debug("registered blueprints.")
 
+    log.debug("setup done, ready to go!...")
     return application

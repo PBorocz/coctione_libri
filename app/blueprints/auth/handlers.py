@@ -20,11 +20,9 @@ def is_safe_url(target):
     return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
 
 
-################################################################################
-# Create "secure" environment...
-################################################################################
 @bp.after_request
 def set_secure_headers(response):
+    """Best practice: default to a 'Secure' environment."""
     secure_headers.framework.flask(response)
     return response
 
@@ -38,6 +36,7 @@ def load_user(user_id):
 @bp.get("/logout")
 @flask_login.login_required
 def logout():
+    """Logout the current user and go back to main (unless next provided)."""
     import flask as f
 
     flask_login.logout_user()
@@ -73,7 +72,7 @@ def login():
         if not is_safe_url(next_):
             return f.abort(400)
 
-        # f.flash("You were successfully logged in.")
+        f.flash("You were successfully logged in.")
         return f.redirect(next_ or f.url_for("main.main"))
 
     # First time in, render the login page
@@ -82,6 +81,7 @@ def login():
 
 @bp.route("/register", methods=["GET", "POST"])
 def register():
+    """Register a new user, redirect to main/home page if successful."""
     import flask as f
 
     form = RegistrationForm()
@@ -97,6 +97,6 @@ def register():
             f.flash("Congratulations, you are now a registered user!", "is-primary")
             return f.redirect(f.url_for("main.main"))
         except mongoengine.NotUniqueError:
-            f.flash("Sorry, unable to create new user as that email address has already been used!")
+            f.flash("Sorry, that email address has already been used! Please try another one.")
 
     return f.render_template("register.html", title="Register", form=form)
