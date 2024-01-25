@@ -6,84 +6,96 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import flask as f
 
-import flask_login
-from dotenv import load_dotenv
+from dynaconf import FlaskDynaconf
+from flask_debugtoolbar import DebugToolbarExtension
+from flask_login import LoginManager
 from flask_mongoengine import MongoEngine
-from secure import Secure
-
-load_dotenv(verbose=True)
 
 import app.constants as c
-
-secure_headers = Secure()  # Secure headers
-login = flask_login.LoginManager()  # Login/authentication environment
-login.login_message = None
-login.login_view = "auth.login"
 
 
 def create_app(config_override=None, setup_logging=True, log_level: str | None = None):
     application = f.Flask(__name__, template_folder="templates")
+    log.debug("...created application object")
 
-    if config_override:
-        config = config_override
-    else:
-        # Import here instead of above to allow for pytest environment to
-        # stuff vars into the environment *before* we configure the
-        # application.
-        from config import Config
+    with application.app_context():
+        ################################################################################
+        # Get configuration
+        ################################################################################
+        dynaconf = FlaskDynaconf()
+        dynaconf.init_app(application)
+        production = True if application.config.get("ENV").casefold() == "production" else False
+        development = not production
+        log.debug("...configured configuration environment -> {application.config.get('ENV')}")
 
-        config = Config()
+        ################################################################################
+        # If requested, setup Logging and default log level (DEBUG here locally,  INFO
+        # for production usage) There are cases where we call create_app NOT part of
+        # wsgi, eg. testing, cli etc. in those cases, we don't want to step on their
+        # own logging configurations!)
+        ################################################################################
+        if setup_logging:
+            level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
+            log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 
-    application.config.from_object(config)
+            # See all inbound requests for local/development environment (but not in production)
+            log.getLogger("werkzeug").disabled = False if production else True
 
-    application.debug = not application.config.get("PRODUCTION")
+            log.debug(f"...setup logging environment -> '{log.getLevelName(log.getLogger().getEffectiveLevel())}'")
 
-    ################################################################################
-    # If requested, setup Logging and default log level (DEBUG here locally,  INFO
-    # for production usage) There are cases where we call create_app NOT part of
-    # wsgi, eg. testing, cli etc. in those cases, we don't want to step on their
-    # own logging configurations!)
-    ################################################################################
-    if setup_logging:
-        # What level?
-        if log_level:
-            level = log_level
-        else:
-            level = log.INFO if application.config.get("PRODUCTION") else log.DEBUG
+        ################################################################################
+        # Initialise our login/authentication extension
+        ################################################################################
+        login = LoginManager()  # Login/authentication environment
+        login.login_message = None
+        login.login_view = "auth.login"
+        login.init_app(application)
 
-        # Let basicConfig do all the heavy lifting for us...
-        log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
+        @login.user_loader
+        def load_user(user_id):
+            """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
+            from app.models.users import query_user
 
-        # See all inbound requests for local/development environment (but not in production)
-        log.getLogger("werkzeug").disabled = False if application.config.get("PRODUCTION") else True
+            return query_user(user_id=user_id)
 
-        log.debug("setup logging environment.")
+        log.debug("...initialised extension: flask_login")
 
-    log.debug(f"created application object ({application.debug=})")
+        ################################################################################
+        # Configure extensions (if necessary)
+        ################################################################################
+        if development:
+            toolbar = DebugToolbarExtension()
+            toolbar.init_app(application)
 
-    ################################################################################
-    # Initialise our extensions
-    ################################################################################
-    login.init_app(application)
-    log.debug("initialised extensions.")
+            application.config["DEBUG_TB_PANELS"] = [
+                "flask_debugtoolbar.panels.timer.TimerDebugPanel",
+                "flask_debugtoolbar.panels.headers.HeaderDebugPanel",
+                "flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel",
+                "flask_debugtoolbar.panels.template.TemplateDebugPanel",
+                "flask_debugtoolbar.panels.logger.LoggingPanel",
+            ]
+            log.debug("...initialised extension: flask_debug_toolbar")
 
-    ################################################################################
-    # Connect and setup our database environment.
-    ################################################################################
-    db = MongoEngine()
-    db.init_app(application)
-    log.debug(f"connected to MongoDB -> {application.config.get('DB_ENV').upper()}")
+        ################################################################################
+        # Connect and setup our database environment.
+        ################################################################################
+        db = MongoEngine()
+        application.config["MONGODB_SETTINGS"] = [
+            {"host": application.config["mongo_db"], "alias": "default"},
+        ]
+        db.init_app(application)
+        log.debug(f"...connected to MongoDB -> '{application.config['mongo_db'][0:40]}'")
 
-    ################################################################################
-    # Finally, setup and register all our application blueprints
-    ################################################################################
-    from app.blueprints.auth import bp as blueprint_auth
-    from app.blueprints.main import bp as blueprint_main
+        ################################################################################
+        # Finally, setup and register all our application blueprints
+        ################################################################################
+        from app.blueprints.auth import bp as blueprint_auth
+        from app.blueprints.main import bp as blueprint_main
 
-    application.register_blueprint(blueprint_auth)
-    application.register_blueprint(blueprint_main)
+        application.register_blueprint(blueprint_auth)
+        application.register_blueprint(blueprint_main)
 
-    log.debug("registered blueprints.")
+        log.debug("...registered blueprints")
 
-    log.debug("setup done, ready to go!...")
+        log.debug("setup done, ready to go!...")
     return application

@@ -14,7 +14,6 @@ flask-login = "^0.6.3"
 pydantic = "^2.5.3"
 python-dotenv = "^1.0.0"
 secure = "^0.3.0"
-pretty-errors = "^1.2.25"
 rich = "^13.7.0"
 mongoengine = "^0.27.0"
 
@@ -25,6 +24,8 @@ wtforms = "^3.1.2"
 flask-wtf = "^1.2.1"
 email-validator = "^2.1.0.post1"
 gunicorn = "^21.2.0"
+dynaconf = "^3.2.4"
+flask-debugtoolbar = "^0.14.1"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"
@@ -110,17 +111,18 @@ max-complexity = 12
 
 [tool.poe.tasks]
 import = "python ./app/cli/import_from_raindrop.py"
+dynaconf_list = "dynaconf -i config.settings list"
 
 [tool.poe.tasks.dev_run_local]
 interpreter = "fish"
 shell = """
-  set -x DB_ENV "local"
-  flask run --debug -h localhost -p 5001
+  set -x FLASK_ENV "development"
+  flask run --debug --host localhost --port 5001
 """
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"
 shell = """
-  set -x DB_ENV "production"
-  flask run --debug -h localhost -p 5001
+  set -x FLASK_ENV "production"
+  flask run --debug --host localhost --port 5001
 """

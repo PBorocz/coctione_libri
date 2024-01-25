@@ -21,8 +21,7 @@
 
       <style>
        {# Have to define this here for Jinja to pick up the environment! #}
-
-       .watermark::after {content: "{{ config.DB_ENVIRONMENT }}"; display: block; }
+       .watermark::after {content: "{{ config.ENV|title }}"; display: block; }
        .wider-input {width: 500px; } /* Adjust this value based on your needs */
 
        {% block extra_css %}
@@ -36,7 +35,7 @@
   </head>
 
   <body>
-    <div class="watermark">watermark</div>
+    <div class="watermark"></div>
 
     <section class="section">
 

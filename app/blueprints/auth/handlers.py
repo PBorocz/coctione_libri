@@ -5,8 +5,8 @@ from urllib.parse import urljoin, urlparse
 
 import flask_login
 import mongoengine
+from secure import Secure
 
-from app import login, secure_headers
 from app.blueprints.auth import bp
 from app.blueprints.auth.forms import LoginForm, RegistrationForm
 from app.models.users import Users, query_user
@@ -23,14 +23,8 @@ def is_safe_url(target):
 @bp.after_request
 def set_secure_headers(response):
     """Best practice: default to a 'Secure' environment."""
-    secure_headers.framework.flask(response)
+    Secure().framework.flask(response)
     return response
-
-
-@login.user_loader
-def load_user(user_id):
-    """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
-    return query_user(user_id=user_id)
 
 
 @bp.get("/logout")

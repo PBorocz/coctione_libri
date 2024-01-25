@@ -1,0 +1,13 @@
+[default]
+session_cookie_secure=true
+remember_cookie_secure=true
+
+[development]
+flask_debug=true
+log_level="debug"
+debug_tb_enabled=true
+debug_tb_intercept_redirects=false
+
+[production]
+flask_debug=false
+log_level="info"
