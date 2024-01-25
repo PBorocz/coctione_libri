@@ -24,6 +24,7 @@ flask-mongoengine = {git = "https://github.com/idoshr/flask-mongoengine.git"}
 wtforms = "^3.1.2"
 flask-wtf = "^1.2.1"
 email-validator = "^2.1.0.post1"
+gunicorn = "^21.2.0"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"

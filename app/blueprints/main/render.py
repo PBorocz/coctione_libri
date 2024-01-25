@@ -39,9 +39,8 @@ def render_main(search: str | None = None) -> dict:
     # Sort!
     documents_sorted = sorted(documents, key=lambda doc: (doc.rating if doc.rating else "", doc.title), reverse=True)
 
-    return_ = {
+    log.info(f"{len(documents):,d} matching documents found for {search=}")
+
+    return {
         "documents": documents_sorted,
     }
-
-    log.info(f"{len(documents):,d} matching documents found for {search=}")
-    return return_
