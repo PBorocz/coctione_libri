@@ -11,7 +11,7 @@
     <meta name="author" content="Peter Borocz">
 
     {# FIXME #}
-    <!-- <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}"> -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
     {% block css %}
       {# Primary CSS framework #}
@@ -20,9 +20,11 @@
       <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
       <style>
-       {# Have to define this here for Jinja to pick up the environment! #}
-       .watermark::after {content: "{{ config.ENV|title }}"; display: block; }
-       .wider-input {width: 500px; } /* Adjust this value based on your needs */
+       {% if config.ENV %}
+          {# Have to define this here for Jinja to pick up the environment! #}
+          .watermark::after {content: "{{ config.ENV|title }}"; display: block; }
+       {% endif %}
+       .search_control_width {width: 500px; } /* Adjust this value based on your needs */
 
        {% block extra_css %}
        {# Any optional/page-specific css goes here. #}
@@ -68,7 +70,7 @@
       {# navbar burger behaviour #}
       <script type="text/javascript">
 
-        document.addEventListener('DOMContentLoaded', () => {
+       document.addEventListener('DOMContentLoaded', () => {
 
          // Get all "navbar-burger" elements
          const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
@@ -96,11 +98,15 @@
       </script>
 
       {% block js_local %}
-        {# Any page-specific JS can be populated here! #}
+      {# Any page-specific JS can be populated here! #}
       {% endblock %}
 
-    {% endblock %}
+      {% endblock %}
 
   </body>
-
+  <footer class="footer py-1 has-text-centered">
+    <div class="content">
+      <content class="is-size-7">Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
+    </div>
+  </footer>
 </html>

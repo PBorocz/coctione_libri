@@ -107,11 +107,12 @@ max-complexity = 12
 # PoeThePoet
 # ##############################################################################
 [tool.poe]
-# verbosity = 0
+verbosity = 2
 
 [tool.poe.tasks]
 import = "python ./app/cli/import_from_raindrop.py"
 dynaconf_list = "dynaconf -i config.settings list"
+build_css = "sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 
 [tool.poe.tasks.dev_run_local]
 interpreter = "fish"

@@ -31,15 +31,15 @@ def render_main(search: str | None = None) -> dict:
         queries = [Q(tags=tag) for tag in l_search]
         query = reduce(and_, queries)
         documents = Documents.objects(query)
+        log.info(f"{len(documents):,d} matching documents found for {search=}")
 
     else:
         # No, use as is..
         documents = Documents.objects(tags=search.title())
+        log.info(f"{len(documents):,d} matching documents found for {search=}")
 
     # Sort!
     documents_sorted = sorted(documents, key=lambda doc: (doc.rating if doc.rating else "", doc.title), reverse=True)
-
-    log.info(f"{len(documents):,d} matching documents found for {search=}")
 
     return {
         "documents": documents_sorted,

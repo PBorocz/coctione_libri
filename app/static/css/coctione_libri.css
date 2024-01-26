@@ -1,5 +1,6 @@
 @charset "UTF-8";
 @import url(https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,600,700);
+@import url(https://fonts.bunny.net/css?family=inter:400,600,700);
 .watermark {
   position: fixed;
   z-index: 1;
@@ -344,7 +345,7 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: "Atkinson Hyperlegible";
+  font-family: "Inter";
 }
 
 code,
@@ -9180,15 +9181,15 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
 }
 
 .is-family-primary {
-  font-family: "Atkinson Hyperlegible" !important;
+  font-family: "Inter" !important;
 }
 
 .is-family-secondary {
-  font-family: "Atkinson Hyperlegible", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
 }
 
 .is-family-sans-serif {
-  font-family: "Atkinson Hyperlegible", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
 }
 
 .is-family-monospace {
@@ -10302,4 +10303,4 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
   padding: 3rem 1.5rem 6rem;
 }
 
-/*# sourceMappingURL=optimus_ludos.css.map */
+/*# sourceMappingURL=coctione_libri.css.map */
