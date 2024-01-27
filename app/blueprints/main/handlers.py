@@ -2,19 +2,19 @@
 import logging as log
 from io import BytesIO
 
-from flask import send_file
+from flask import current_app, send_file
 from flask.wrappers import Response
 from flask_login import login_required
 
 from app.blueprints.main import bp
-from app.blueprints.main.render import render_main
+from app.blueprints.main.operations import get_all_documents, get_search_documents
 from app.models.documents import Documents
 
 
 ################################################################################
 @bp.get("/")
 @login_required
-def main() -> Response:
+def render_main() -> Response:
     """Render our main page on a full refresh.
 
     Get our query & display parameters from:
@@ -27,7 +27,10 @@ def main() -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    results = render_main()
+    results = {"documents": get_all_documents()}
+
+    # Set caption based on environment
+    results["caption"] = "Development" if current_app.config["development"] else ""
 
     log.info("*" * 80)
 
@@ -35,9 +38,32 @@ def main() -> Response:
 
 
 ################################################################################
+@bp.post("/search")
+@login_required
+def render_search() -> Response:
+    """Render just the results table based on a *SEARCH* request."""
+    import flask as f
+
+    search_term_s = f.request.form["search"]
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /search ['{search_term_s}']")
+
+    if not search_term_s or search_term_s == "*":
+        # Sometimes a "search" is not a "search" after all!
+        documents = get_all_documents()
+    else:
+        documents = get_search_documents(search_term_s)
+
+    log.info("*" * 80)
+    return f.render_template("main/table.htmx", documents=documents)
+
+
+################################################################################
 @bp.get("/view/<doc_id>")
 @login_required
-def main_view_pdf(doc_id: str) -> Response:
+def render_view_doc(doc_id: str) -> Response:
     """Render a pdf."""
     import flask as f
 
@@ -55,22 +81,3 @@ def main_view_pdf(doc_id: str) -> Response:
         download_name=f"{doc_id}.pdf",
         mimetype=doc.file_.content_type,
     )
-
-
-################################################################################
-@bp.post("/search")
-@login_required
-def main_post_search() -> Response:
-    """Render the results table based on a *SEARCH* request."""
-    import flask as f
-
-    search_term = f.request.form["search"]
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /search ['{search_term}']")
-
-    results = render_main(search=search_term)
-
-    log.info("*" * 80)
-    return f.render_template("main/table.htmx", **results)

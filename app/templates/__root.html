@@ -20,9 +20,9 @@
       <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
       <style>
-       {% if config.ENV %}
-          {# Have to define this here for Jinja to pick up the environment! #}
-          .watermark::after {content: "{{ config.ENV|title }}"; display: block; }
+       {% if caption %}
+       {# Have to define this here for Jinja to pick up the environment! #}
+       .watermark::after {content: "{{ caption|title }}"; display: block; }
        {% endif %}
        .search_control_width {width: 500px; } /* Adjust this value based on your needs */
 

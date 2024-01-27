@@ -24,8 +24,10 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         ################################################################################
         dynaconf = FlaskDynaconf()
         dynaconf.init_app(application)
-        production = True if application.config.get("ENV").casefold() == "production" else False
-        development = not production
+
+        # Set our environmen
+        application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
+        application.config["development"] = not application.config["production"]
         log.debug("...configured configuration environment -> {application.config.get('ENV')}")
 
         ################################################################################
@@ -39,7 +41,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
             log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 
             # See all inbound requests for local/development environment (but not in production)
-            log.getLogger("werkzeug").disabled = False if production else True
+            log.getLogger("werkzeug").disabled = False if application.config["production"] else True
 
             log.debug(f"...setup logging environment -> '{log.getLevelName(log.getLogger().getEffectiveLevel())}'")
 
@@ -63,7 +65,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         ################################################################################
         # Configure extensions (if necessary)
         ################################################################################
-        if development:
+        if application.config["development"]:
             toolbar = DebugToolbarExtension()
             toolbar.init_app(application)
 
