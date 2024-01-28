@@ -22,7 +22,7 @@
       <style>
        {% if caption %}
        {# Have to define this here for Jinja to pick up the environment! #}
-       .watermark::after {content: "{{ caption|title }}"; display: block; }
+       .watermark::after {content: "{{ watermark|title }}"; display: block; }
        {% endif %}
        .search_control_width {width: 500px; } /* Adjust this value based on your needs */
 

@@ -36,7 +36,16 @@ def get_search_documents(search: str) -> QuerySet:
 def _search_by_title(search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
     partials: QuerySet = Documents.objects(title__icontains=search).only("id")
-    log.info(f"{len(partials):,d} matching documents found for {search=}")
+    if partials:
+        log.info(f"{len(partials):,d} documents matched against 'title'")
+    return [doc.id for doc in partials]
+
+
+def _search_by_source(search: str) -> list[ObjectId]:
+    """Search all documents by "source"."""
+    partials: QuerySet = Documents.objects(source__icontains=search).only("id")
+    if partials:
+        log.info(f"{len(partials):,d} documents matched against 'source'")
     return [doc.id for doc in partials]
 
 
@@ -65,12 +74,14 @@ def _search_by_tag(search: str) -> list[ObjectId]:
         queries: list[Q] = [Q(tags=tag) for tag in l_search]
         query: QCombination = reduce(and_, queries)
         partials: QuerySet = Documents.objects(query).only("id")
-        log.info(f"{len(partials):,d} matching documents found for {search=}")
+        if partials:
+            log.info(f"{len(partials):,d} documents matched against multiple search terms")
 
     else:
         # No, use as is..
         partials: QuerySet = Documents.objects(tags=search.title()).only("id")
-        log.info(f"{len(partials):,d} matching documents found for {search=}")
+        if partials:
+            log.info(f"{len(partials):,d} documents matched against single search")
 
     return [doc.id for doc in partials]
 
@@ -79,8 +90,8 @@ def _search_by_tag(search: str) -> list[ObjectId]:
 # Utility methods
 ################################################################################
 def _sort(documents: list[Documents]) -> list[Documents]:
-    """Return a sorted list of documents provided: rating and then by title."""
-    return sorted(documents, key=lambda doc: (doc.rating if doc.rating else "", doc.title), reverse=True)
+    """Return a sorted list of documents provided: quality and then by title."""
+    return sorted(documents, key=lambda doc: (-doc.quality if doc.quality else 0, doc.title))
 
 
 # Do an "auto" lookup of all search methods so we don't have to manually maintain a list...

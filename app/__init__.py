@@ -28,7 +28,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         # Set our environmen
         application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
         application.config["development"] = not application.config["production"]
-        log.debug("...configured configuration environment -> {application.config.get('ENV')}")
+        log.debug(f"...configured configuration environment -> {application.config.get('ENV')}")
 
         ################################################################################
         # If requested, setup Logging and default log level (DEBUG here locally,  INFO

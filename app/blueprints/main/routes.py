@@ -27,14 +27,18 @@ def render_main() -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    results = {"documents": get_all_documents()}
+    documents = get_all_documents()
 
     # Set caption based on environment
-    results["caption"] = "Development" if current_app.config["development"] else ""
+    watermark = "Development" if current_app.config["development"] else ""
 
     log.info("*" * 80)
 
-    return f.render_template("main.html", **results)
+    return f.render_template(
+        "main.html",
+        documents=documents,
+        watermark=watermark,
+    )
 
 
 ################################################################################
@@ -57,7 +61,7 @@ def render_search() -> Response:
         documents = get_search_documents(search_term_s)
 
     log.info("*" * 80)
-    return f.render_template("main/table.htmx", documents=documents)
+    return f.render_template("main_table.htmx", documents=documents, search=search_term_s)
 
 
 ################################################################################
