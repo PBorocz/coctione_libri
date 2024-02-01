@@ -46,20 +46,6 @@
 	  </th>
 
 	  {# ######################## #}
-	  {# Source        	    #}
-	  {# ######################## #}
-          <th
-	    scope="col"
-	    id="sort_away"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
-	    class="has-text-white"
-	    style="cursor: pointer;"
-	  >
-	    Source
-	  </th>
-
-	  {# ######################## #}
 	  {# Tags         	    #}
 	  {# ######################## #}
           <th
@@ -71,6 +57,20 @@
 	    style="cursor: pointer;"
 	  >
 	    Tags
+	  </th>
+
+	  {# ######################## #}
+	  {# Source        	    #}
+	  {# ######################## #}
+          <th
+	    scope="col"
+	    id="sort_away"
+	    hx-post="/sort"
+	    hx-target="#table_documents"
+	    class="has-text-white"
+	    style="cursor: pointer;"
+	  >
+	    Source
 	  </th>
 
 	</tr>
@@ -85,17 +85,22 @@
             </td>
 
             <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+              <a href="/edit/{{ document.id }}" target="_blank">
+		<span class="icon is-small is-right">
+		  <img width="25" height="25" src="https://img.icons8.com/sf-ultralight/25/pencil-tip.png" alt="pencil-tip"/>
+		</span>
+	      </a>
               <a href="/view/{{ document.id }}" target="_blank">
 		{{ document.title }}
 	      </a>
             </td>
 
             <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
-              {{ document.source | default("", true) }}
+              {{ document.tags|sort|join(", ") }}
             </td>
 
             <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
-              {{ document.tags|sort|join(", ") }}
+              {{ document.source | default("", true) }}
             </td>
 
           </tr>

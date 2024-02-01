@@ -8,6 +8,7 @@ from app.models.users import Users
 
 
 class Rating(Enum):
+    ZER = 0
     ONE = 1
     TWO = 2
     THR = 3
@@ -57,8 +58,8 @@ class Documents(me_.Document):
     # "Recipe"-specific fields..
     notes            = me_.StringField()                                   # General document "notes" in Markdown format
     dates_cooked     = me_.EmbeddedDocumentListField("History")            # List of "cooked" dates and notes
-    quality          = me_.IntField(min_value=1, max_value=5, choices=[e.value for e in Rating]) # Quality rating
-    complexity       = me_.IntField(min_value=1, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
+    quality          = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
+    complexity       = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
 
     # fmt: on
 

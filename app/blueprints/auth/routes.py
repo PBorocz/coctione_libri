@@ -37,7 +37,7 @@ def logout():
     next_ = f.request.args.get("next")
     if not is_safe_url(next_):
         return f.abort(400)
-    return f.redirect(next_ or f.url_for("main.main"))
+    return f.redirect(next_ or f.url_for("auth.login"))
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -46,7 +46,7 @@ def login():
     import flask as f
 
     if flask_login.current_user.is_authenticated:
-        return f.redirect(f.url_for("main.main"))
+        return f.redirect(f.url_for("main.render_main"))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -67,7 +67,7 @@ def login():
             return f.abort(400)
 
         f.flash("You were successfully logged in.")
-        return f.redirect(next_ or f.url_for("main.main"))
+        return f.redirect(next_ or f.url_for("main.render_main"))
 
     # First time in, render the login page
     return f.render_template("login.html", title="Sign In", form=form)
