@@ -76,3 +76,11 @@ class Documents(me_.Document):
         if self.complexity:
             return Rating(self.complexity)
         return None
+
+    def source_choices(self):
+        docs = Documents.objects(source__ne=None).only("source")
+        sources = sorted({doc.source for doc in docs})
+        choices = [["", ""]]
+        choices.extend([[source, source] for source in sources])
+        print("QUERIED!")
+        return choices

@@ -89,6 +89,11 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         log.debug(f"...connected to MongoDB -> '{application.config['mongo_db'][0:40]}'")
 
         ################################################################################
+        # Setup static resources..
+        ################################################################################
+        # application.config["SOURCES"] = Sources.factory()
+
+        ################################################################################
         # Finally, setup and register all our application blueprints
         ################################################################################
         from app.blueprints.auth import bp as blueprint_auth

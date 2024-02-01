@@ -14,23 +14,23 @@
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
     {% block css %}
-      {# Primary CSS framework #}
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css') }}"/>
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
+    {# Primary CSS framework #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
-      <style>
-       .search_control_width {width: 500px; } /* We want to force the search bar a little wider than Bulma wants. */
-       {% if caption %}
-       {# Have to define this here for Jinja to pick up the environment! #}
-       .watermark::after {content: "{{ watermark|title }}"; display: block; }
-       {% endif %}
+    <style>
+     .search_control_width {width: 500px; } /* We want to force the search bar a little wider than Bulma wants. */
+     {% if caption %}
+     {# Have to define this here for Jinja to pick up the environment! #}
+     .watermark::after {content: "{{ watermark|title }}"; display: block; }
+     {% endif %}
 
-       {% block extra_css %}
-       {# Any optional/page-specific css goes here. #}
-       {% endblock %}
+     {% block extra_css %}
+     {# Any optional/page-specific css goes here. #}
+     {% endblock %}
 
-      </style>
+    </style>
 
     {% endblock %}
 
@@ -47,18 +47,21 @@
 
       <main>
         {% block content %}
-          {# CORE CONTENT GOES HERE! #}
+        {# CORE CONTENT GOES HERE! #}
         {% endblock %}
       </main>
 
       {% block footer %}
-        {# Any optional footer go here. #}
+      {# Any optional footer go here. #}
       {% endblock %}
 
     </section>
 
     {# Le javascript: Keep at the end of the document for faster page load #}
     {% block javascript %}
+
+      {# Setup our FontAwesome environment #}
+      <script src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
 
       {# htmx & hyperscript libraries #}
       <script defer src="https://unpkg.com/htmx.org@latest"></script> {# As of last update: 1.9.9 #}
@@ -101,10 +104,4 @@
       {% endblock %}
 
   </body>
-  <hr/>
-  <footer class="footer py-1 has-text-centered">
-    <div class="content">
-      <content class="is-size-8">Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
-    </div>
-  </footer>
 </html>

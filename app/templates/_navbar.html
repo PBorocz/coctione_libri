@@ -35,29 +35,31 @@
 	      <img width="15" height="15" src="https://img.icons8.com/ios-filled/50/logout-rounded.png" alt="logout-rounded"/>
               &nbsp;&nbsp;Logout
             </a>
-          </div><!-- navbar-dropdown -->
-        </div><!-- navbar-item -->
-      </div><!-- navbar-item -->
+          </div>
+        </div>
+      </div>
     </div>
 
-    {# The *right* part of the menu (if any ;-) #}
-    <div class="navbar-end">
-      <div class="navbar-item">
-	<div class="field">
-	  <div class="control search_control_width">
-	    <input _="on htmx:afterRequest set my value to ''"
-		   name="search"
-		   class="input"
-		   type="search"
-		   hx-post="/search"
-		   hx-target="#table_documents"
-		   placeholder="Search..."
-		   autofocus
-	    >
+    {# The *right* part of the menu, ie. SEARCH! (unless not requested ;-) #}
+    {% if not no_search %}
+      <div class="navbar-end">
+        <div class="navbar-item">
+	  <div class="field">
+	    <div class="control search_control_width">
+	      <input _="on htmx:afterRequest set my value to ''"
+	  	     name="search"
+	  	     class="input"
+		     type="search"
+		     hx-post="/search"
+		     hx-target="#table_documents"
+		     placeholder="Search..."
+		     autofocus
+	      >
+	    </div>
 	  </div>
-	</div>
-      </div>
-    </div><!-- navbar-end -->
+        </div>
+      </div><!-- navbar-end -->
+    {% endif %}
 
   </div><!-- navbar-menu -->
 

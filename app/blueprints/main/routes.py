@@ -103,35 +103,85 @@ def render_edit_doc(doc_id: str) -> Response:
     form = forms.DocumentEditForm(
         source=document.source,
         title=document.title,
+        quality=document.quality,
+        complexity=document.complexity,
+        url_=document.url_,
         notes=document.notes,
     )
 
-    log.info("*" * 80)
+    # Get the list of source choices from the DB..
+    form.source.choices = Documents().source_choices()
+    if form.source.choices:
+        form.source.default = form.source.choices[0][0]
 
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
             return f.redirect(f.url_for("main.render_main"))
 
-        save_doc = False
-        if form.title.data and form.title.data.casefold() != document.title:
-            # user = update_user(fl.current_user, "email", form.email.data)
-            document.title = form.title.data
-            save_doc = True
-            msg = f"Title was updated to {form.title.data}"
-            f.flash(msg, "is-primary")
-            log.info(msg)
-
-        if form.quality.data and form.quality.data.casefold() != document.quality:
-            # user = update_user(fl.current_user, "email", form.email.data)
-            document.quality = int(form.quality.data)
-            save_doc = True
-            msg = f"Quality was updated to a {form.quality.data}"
-            f.flash(msg, "is-primary")
-            log.info(msg)
-
-        if save_doc:
+        document: Documents | None = update_doc_from_form(form, document)
+        if document:
             document.save()
+        else:
+            log.info("Ok, nothing changed...nothing done")
+            log.info("*" * 80)
 
         return f.redirect(f.url_for("main.render_main"))
 
-    return f.render_template("edit.html", title="Edit Document", form=form)
+    log.info("*" * 80)
+    return f.render_template("edit.html", title="Edit Document", form=form, no_search=True)
+
+
+def update_doc_from_form(form, document) -> Documents | None:
+    """Update the document attributes from the respective form, returning the doc if changed."""
+    form_document_attrs = (
+        (None, "title"),
+        (None, "notes"),
+        (None, "source"),
+        (None, "url_"),
+        ("to_int", "quality"),
+        ("to_int", "complexity"),
+    )
+
+    save_doc = False
+    for conversion, attr in form_document_attrs:
+        curr_value = getattr(document, attr)  # Value in the current document, ie. in db.
+        form_value = getattr(form, attr).data  # Value coming back from the form.
+        if conversion == "to_int":
+            form_value = int(form_value)
+
+        ################################################################################
+        # Case 1: Have both a form_value and current document value
+        #         -> Check for match and update if necessary
+        ################################################################################
+        if form_value and curr_value:
+            if form_value != curr_value:
+                save_doc = True
+                setattr(document, attr, form_value)
+                log.info(f"{attr=} was updated to {form_value} (from {curr_value})")
+
+        ################################################################################
+        # Case 2: Have a new form_value but not current document value
+        #         -> Update document with new value.
+        ################################################################################
+        elif form_value and not curr_value:
+            save_doc = True
+            setattr(document, attr, form_value)
+            log.info(f"{attr=} was newly set to {form_value}")
+
+        ################################################################################
+        # Case 3: Don't have a new form_value but do have a current document value
+        #         -> Update document value to None.
+        ################################################################################
+        elif not form_value and curr_value:
+            save_doc = True
+            setattr(document, attr, None)
+            log.info(f"{attr=} was cleared")
+
+        # Case 4: Don't have a new form_value and don't have a current document value
+        #         -> Do Nothing!
+        else:
+            assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
+
+    if save_doc:
+        return document
+    return None

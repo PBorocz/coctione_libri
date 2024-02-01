@@ -2,13 +2,15 @@ import wtforms
 from flask_wtf import FlaskForm
 from wtforms import validators
 
+from app.models.documents import Rating
+
 RATING_CHOICES = [
+    [5, Rating.FIV],
+    [4, Rating.FOR],
+    [3, Rating.THR],
+    [2, Rating.TWO],
+    [1, Rating.ONE],
     [0, ""],
-    [5, "*****"],
-    [4, "****"],
-    [3, "***"],
-    [2, "**"],
-    [1, "*"],
 ]
 
 
@@ -23,13 +25,9 @@ class DocumentEditForm(FlaskForm):
         validators=[validators.DataRequired()],
     )
 
-    source = wtforms.StringField(
+    source = wtforms.SelectField(
         "Source",
-        render_kw={
-            "class": "input",
-            "type": "text",
-            "placeholder": "eg. NYT",
-        },
+        choices=[],  # Will be populate when the form is instantiated
     )
 
     notes = wtforms.TextAreaField(
@@ -44,9 +42,22 @@ class DocumentEditForm(FlaskForm):
 
     quality = wtforms.SelectField(
         "Quality",
-        default=RATING_CHOICES[0][0],
+        default=RATING_CHOICES[-1][0],
         choices=RATING_CHOICES,
-        # validators=[validators.DataRequired()],
+    )
+
+    complexity = wtforms.SelectField(
+        "Complexity",
+        default=RATING_CHOICES[-1][0],
+        choices=RATING_CHOICES,
+    )
+
+    url_ = wtforms.URLField(
+        "Link",
+        render_kw={
+            "class": "input",
+            "type": "text",
+        },
     )
 
     ################################################################################

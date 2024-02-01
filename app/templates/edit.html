@@ -2,84 +2,112 @@
 
 {% block content %}
 
-  <div class="container">
+<hr/>
 
-    <!-- Page title -->
-    <div class="divider is-left is-size-5">Edit Document</div>
+<form action="" method="post" novalidate>
+  {{ form.hidden_tag() }}
 
-    <form action="" method="post" novalidate>
-      {{ form.hidden_tag() }}
-
-      <!-- Email Field -->
-      <div class="field is-horizontal">
-        <div class="field-label is-medium">
-          <label class="label">{{ form.title.label }}</label>
-        </div>
-        <div class="field-body">
-          <div class="control">
-            {{ form.title(size=64) }}
-          </div>
-          {% for error in form.title.errors %}
-          &nbsp;<p class="help is-danger">{{error}}</p>
-          {% endfor %}
-        </div>
+  <!-- Title Field -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.title.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+        {{ form.title(size=64, autofocus="") }}
       </div>
-
-      <!-- Source -->
-      <div class="field is-horizontal">
-        <div class="field-label is-medium">
-          <label class="label">{{ form.source.label }}</label>
-        </div>
-        <div class="field-body">
-          <div class="control">
-            <div class="select">
-              {{ form.source }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quality Rating -->
-      <div class="field is-horizontal">
-        <div class="field-label is-medium">
-          <label class="label">{{ form.quality.label }}</label>
-        </div>
-        <div class="field-body">
-          <div class="control">
-            <div class="select">
-              {{ form.quality }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notes -->
-      <div class="field is-horizontal">
-        <div class="field-label is-medium">
-          <label class="label">{{ form.notes.label }}</label>
-        </div>
-        <div class="field-body">
-          <div class="control">
-            {{ form.notes }}
-          </div>
-        </div>
-      </div>
-
-      <br/>
-
-      <div class="field is-horizontal">
-        <div class="field-label is-medium"></div>
-        <div class="field-body">
-          <div class="control is-primary">{{ form.submit(class="button is-link") }}</div>
-          &nbsp;
-          &nbsp;
-          &nbsp;
-          <div class="control is-secondary">{{ form.cancel(class="button is-link is-light") }}</div>
-        </div>
-      </div>
-
-    </form>
-
+      {% for error in form.title.errors %}
+      &nbsp;<p class="help is-danger">{{error}}</p>
+      {% endfor %}
+    </div>
   </div>
+
+  <!-- Source -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.source.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+        <div class="select">
+          {{ form.source }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- Quality Rating -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.quality.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+        <div class="select">
+          {{ form.quality }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complexity Rating -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.complexity.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+        <div class="select">
+          {{ form.complexity }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.url_.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-link">
+        {{ form.url_ }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.notes.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+        {{ form.notes }}
+      </div>
+    </div>
+  </div>
+
+  <br/>
+
+  <div class="field is-horizontal">
+    <div class="field-label is-medium"></div><!-- Need this!!! -->
+    <div class="field-body">
+      <div class="control is-primary">
+	{{ form.submit(class="button is-link") }}
+      </div>
+      &nbsp;
+      &nbsp;
+      <div class="control is-secondary">
+	{{ form.cancel(class="button is-link is-light") }}
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<!-- </div> -->
 
 {% endblock %}

@@ -5,9 +5,9 @@
     <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
       {% if documents %}
 	{% if search %}
-	  {{ documents|length }} Documents matched
+	  {{ documents|length }} Recipes matched
 	{% else %}
-	  {{ documents|length }} Total Documents
+	  {{ documents|length }} Total Recipes
 	{% endif %}
       {% else %}
 	Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
@@ -19,7 +19,7 @@
 	<tr class="has-background-grey-dark">
 
 	  {# ######################## #}
-	  {# Quality                   #}
+	  {# Quality                  #}
 	  {# ######################## #}
           <th
             scope="col"
@@ -28,11 +28,24 @@
 	    hx-target="#table_documents"
             class="has-text-white has-text-centered has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
           >
-            Quality
+            Q
           </th>
 
 	  {# ######################## #}
-	  {# Title        	    #}
+	  {# Quality                  #}
+	  {# ######################## #}
+          <th
+            scope="col"
+	    id="sort_quality"
+	    hx-post="/sort"
+	    hx-target="#table_documents"
+            class="has-text-white has-text-centered has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
+          >
+            C
+          </th>
+
+	  {# ######################## #}
+	  {# Title        	      #}
 	  {# ######################## #}
           <th
 	    scope="col"
@@ -46,7 +59,7 @@
 	  </th>
 
 	  {# ######################## #}
-	  {# Tags         	    #}
+	  {# Tags         	      #}
 	  {# ######################## #}
           <th
 	    scope="col"
@@ -60,7 +73,7 @@
 	  </th>
 
 	  {# ######################## #}
-	  {# Source        	    #}
+	  {# Source        	      #}
 	  {# ######################## #}
           <th
 	    scope="col"
@@ -84,8 +97,12 @@
               {{ document.quality_enum | default("", true) }}
             </td>
 
+            <td class="has-text-centered"  style="vertical-align: middle;">
+              {{ document.complexity_enum | default("", true) }}
+            </td>
+
             <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
-              <a href="/edit/{{ document.id }}" target="_blank">
+              <a href="/edit/{{ document.id }}" target="edit">
 		<span class="icon is-small is-right">
 		  <img width="25" height="25" src="https://img.icons8.com/sf-ultralight/25/pencil-tip.png" alt="pencil-tip"/>
 		</span>
