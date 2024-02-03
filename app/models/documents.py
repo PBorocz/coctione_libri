@@ -78,9 +78,9 @@ class Documents(me_.Document):
         return None
 
     def source_choices(self):
+        """Return the current list of sources across all documents as a Choice list."""
+        choices = [["", ""]]  # Choices are a list of lists..
         docs = Documents.objects(source__ne=None).only("source")
         sources = sorted({doc.source for doc in docs})
-        choices = [["", ""]]
         choices.extend([[source, source] for source in sources])
-        print("QUERIED!")
         return choices

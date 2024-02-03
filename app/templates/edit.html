@@ -4,7 +4,7 @@
 
 <hr/>
 
-<form action="" method="post" novalidate>
+<form action="" method="post" enctype="multipart/form-data" novalidate>
   {{ form.hidden_tag() }}
 
   <!-- Title Field -->
@@ -14,11 +14,36 @@
     </div>
     <div class="field-body">
       <div class="control">
-        {{ form.title(size=64, autofocus="") }}
+        {{ form.title(autofocus="") }}
       </div>
       {% for error in form.title.errors %}
       &nbsp;<p class="help is-danger">{{error}}</p>
       {% endfor %}
+    </div>
+  </div>
+
+  <!-- File -->
+  <div id="file-upload" class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.file_.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <div class="file has-name is-primary">
+            <label class="file-label">
+	      {{ form.file_ }}
+              <span class="file-cta">
+                <span class="file-icon"><i class="fas fa-upload"></i></span>
+                <!-- {# <span class="file-label">Call to action text, eg. "Choose a File:"</span> #} -->
+              </span>
+              <span id="file-name" class="file-name is-large">
+		{{ form.file_.filename }}
+	      </span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -98,8 +123,6 @@
       <div class="control is-primary">
 	{{ form.submit(class="button is-link") }}
       </div>
-      &nbsp;
-      &nbsp;
       <div class="control is-secondary">
 	{{ form.cancel(class="button is-link is-light") }}
       </div>

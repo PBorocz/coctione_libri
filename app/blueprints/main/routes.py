@@ -5,6 +5,7 @@ from io import BytesIO
 from flask import current_app, send_file
 from flask.wrappers import Response
 from flask_login import login_required
+from werkzeug.utils import secure_filename
 
 from app.blueprints.main import bp, forms
 from app.blueprints.main.operations import get_all_documents, get_search_documents
@@ -100,11 +101,14 @@ def render_edit_doc(doc_id: str) -> Response:
 
     document = Documents.objects(id=doc_id)[0]
 
+    form_complexity = 0 if document.complexity is None else document.complexity
+    form_quality = 0 if document.quality is None else document.quality
+
     form = forms.DocumentEditForm(
         source=document.source,
         title=document.title,
-        quality=document.quality,
-        complexity=document.complexity,
+        quality=form_quality,
+        complexity=form_complexity,
         url_=document.url_,
         notes=document.notes,
     )
@@ -114,16 +118,27 @@ def render_edit_doc(doc_id: str) -> Response:
     if form.source.choices:
         form.source.default = form.source.choices[0][0]
 
+    # Pass the filename into the form field as well for display
+    form.file_.filename = document.file_.filename
+
+    # Is the form we recieved on a POST valid?
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
             return f.redirect(f.url_for("main.render_main"))
 
-        document: Documents | None = update_doc_from_form(form, document)
-        if document:
+        # First handle all simple attributes of the document:
+        document, save = update_doc_from_form(form, document)
+
+        # Now, let's see if we got a new file to upload
+        file = f.request.files["file_"]
+        if file:
+            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
+            log.info(f"Saving a new file...{filename=}!")
+            document.file_.replace(file, content_type="application/pdf")
+            save = True
+
+        if save:
             document.save()
-        else:
-            log.info("Ok, nothing changed...nothing done")
-            log.info("*" * 80)
 
         return f.redirect(f.url_for("main.render_main"))
 
@@ -131,7 +146,7 @@ def render_edit_doc(doc_id: str) -> Response:
     return f.render_template("edit.html", title="Edit Document", form=form, no_search=True)
 
 
-def update_doc_from_form(form, document) -> Documents | None:
+def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:
     """Update the document attributes from the respective form, returning the doc if changed."""
     form_document_attrs = (
         (None, "title"),
@@ -183,5 +198,5 @@ def update_doc_from_form(form, document) -> Documents | None:
             assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
 
     if save_doc:
-        return document
-    return None
+        return document, True
+    return document, False

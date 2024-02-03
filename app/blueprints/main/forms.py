@@ -10,7 +10,7 @@ RATING_CHOICES = [
     [3, Rating.THR],
     [2, Rating.TWO],
     [1, Rating.ONE],
-    [0, ""],
+    [0, Rating.ZER],
 ]
 
 
@@ -42,13 +42,13 @@ class DocumentEditForm(FlaskForm):
 
     quality = wtforms.SelectField(
         "Quality",
-        default=RATING_CHOICES[-1][0],
+        # default=RATING_CHOICES[-1][0],
         choices=RATING_CHOICES,
     )
 
     complexity = wtforms.SelectField(
         "Complexity",
-        default=RATING_CHOICES[-1][0],
+        # default=RATING_CHOICES[-1][0],
         choices=RATING_CHOICES,
     )
 
@@ -57,6 +57,15 @@ class DocumentEditForm(FlaskForm):
         render_kw={
             "class": "input",
             "type": "text",
+        },
+    )
+
+    file_ = wtforms.FileField(
+        "File",
+        render_kw={
+            "id": "file_",
+            "class": "file-input",
+            "script": "on change put me.files[0].name into #file-name",
         },
     )
 

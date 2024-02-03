@@ -57,7 +57,6 @@ def import_():
         if raindrop["type"] != "RaindropType.document":
             non_documents.append(raindrop)
             continue
-        continue
 
         if not path_pdf.exists():
             print(f'\nSkipping: {raindrop.get("file").get("name")}')
@@ -72,29 +71,30 @@ def import_():
     pprint(dict(sources))
 
     # Write out the documents that still have to be converted
-    with open(path_toml / Path("recipes_non_documents.toml"), "wb") as fh_toml:
-        tomli_w.dump({"links": non_documents}, fh_toml)
-    print(f"Wrote {len(non_documents)} non-document entries to recipes_non_documents.toml")
+    if False:
+        with open(path_toml / Path("recipes_non_documents.toml"), "wb") as fh_toml:
+            tomli_w.dump({"links": non_documents}, fh_toml)
+        print(f"Wrote {len(non_documents)} non-document entries to recipes_non_documents.TOML")
 
-    # Write out the links that still have to be converted
-    first_letters = {doc["title"][0] for doc in non_documents}
-    with open(path_toml / Path("recipes_non_documents.html"), "w") as fh_html:
-        fh_html.write("<html>\n")
-        fh_html.write("<body>\n")
+        # Write out the links that still have to be converted
+        first_letters = {doc["title"][0] for doc in non_documents}
+        with open(path_toml / Path("recipes_non_documents.html"), "w") as fh_html:
+            fh_html.write("<html>\n")
+            fh_html.write("<body>\n")
 
-        for first_letter in sorted(first_letters):
-            fh_html.write(f"<p>{first_letter}</p>\n")
-            fh_html.write("<ul>\n")
-            for raindrop in sorted(non_documents, key=lambda doc: doc["title"]):
-                title = raindrop["title"]
-                if title[0] != first_letter:
-                    continue
-                url = raindrop["link"]
-                fh_html.write(f'<li><a href="{url}" target="_blank">{title}</a><br/></li>\n')
-            fh_html.write("</ul>\n")
-        fh_html.write("</body>\n")
-        fh_html.write("</html>\n")
-    print(f"Wrote {len(non_documents)} non-document entries to recipes_non_documents.html")
+            for first_letter in sorted(first_letters):
+                fh_html.write(f"<p>{first_letter}</p>\n")
+                fh_html.write("<ul>\n")
+                for raindrop in sorted(non_documents, key=lambda doc: doc["title"]):
+                    title = raindrop["title"]
+                    if title[0] != first_letter:
+                        continue
+                    url = raindrop["link"]
+                    fh_html.write(f'<li><a href="{url}" target="_blank">{title}</a><br/></li>\n')
+                fh_html.write("</ul>\n")
+            fh_html.write("</body>\n")
+            fh_html.write("</html>\n")
+        print(f"Wrote {len(non_documents)} non-document entries to recipes_non_documents.HTML")
 
 
 def __import_raindrop(user, raindrop: dict) -> str:
@@ -126,7 +126,8 @@ def __import_raindrop(user, raindrop: dict) -> str:
 
     # Save the new "document"
     with open(raindrop["__path_pdf"], "rb") as fd:
-        doc.file_.put(fd, content_type="application/pdf")
+        filename = raindrop.get("file").get("name") + ".pdf"
+        doc.file_.put(fd, filename=filename, content_type="application/pdf")
     doc.save()
 
     print("•", end="", flush=True)

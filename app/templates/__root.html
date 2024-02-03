@@ -20,8 +20,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
     <style>
-     .search_control_width {width: 500px; } /* We want to force the search bar a little wider than Bulma wants. */
-     {% if caption %}
+      .search_control_width {width: 500px; } /* We want to force the search bar a little wider than Bulma wants. */
+
+      .field.is-horizontal .field-body .control {width: 50%; overflow: auto;}
+
+      {% if caption %}
      {# Have to define this here for Jinja to pick up the environment! #}
      .watermark::after {content: "{{ watermark|title }}"; display: block; }
      {% endif %}
