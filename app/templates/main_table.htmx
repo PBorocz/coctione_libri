@@ -19,6 +19,16 @@
 	<tr class="has-background-grey-dark">
 
 	  {# ######################## #}
+	  {# Edit                     #}
+	  {# ######################## #}
+          <th scope="col"></th>
+
+	  {# ######################## #}
+	  {# Cooked                   #}
+	  {# ######################## #}
+          <th scope="col"></th>
+
+	  {# ######################## #}
 	  {# Quality                  #}
 	  {# ######################## #}
           <th
@@ -94,6 +104,22 @@
           <tr style="background-color: white;">
 
             <td class="has-text-centered"  style="vertical-align: middle;">
+              <a href="/edit/{{ document.id }}">
+		<span class="icon is-small is-right">
+		  <i class="fa-solid fa-pen-to-square is-size-6"></i>
+		</span>
+	      </a>
+            </td>
+
+            <td class="has-text-centered"  style="vertical-align: middle;">
+              <a href="/edit/{{ document.id }}">
+		<span class="icon is-small is-right">
+		  <i class="fa-solid fa-fire is-size-6"></i>
+		</span>
+	      </a>
+            </td>
+
+            <td class="has-text-centered"  style="vertical-align: middle;">
               {{ document.quality_enum | default("", true) }}
             </td>
 
@@ -102,12 +128,7 @@
             </td>
 
             <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
-              <a href="/edit/{{ document.id }}" target="edit">
-		<span class="icon is-small is-right">
-		  <img width="25" height="25" src="https://img.icons8.com/sf-ultralight/25/pencil-tip.png" alt="pencil-tip"/>
-		</span>
-	      </a>
-              <a href="/view/{{ document.id }}" target="_blank">
+              <a href="/view/{{ document.id }}">
 		{{ document.title }}
 	      </a>
             </td>

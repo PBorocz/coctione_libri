@@ -41,7 +41,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
             log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 
             # See all inbound requests for local/development environment (but not in production)
-            log.getLogger("werkzeug").disabled = False if application.config["production"] else True
+            log.getLogger("werkzeug").disabled = True if application.config["production"] else False
 
             log.debug(f"...setup logging environment -> '{log.getLevelName(log.getLogger().getEffectiveLevel())}'")
 
