@@ -1,8 +1,14 @@
 {% if message %}
   <h2>{{ message }} </h2>
 {% else %}
-  <table id="table_documents" class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth">
-    <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
+  <table
+    id="table_documents"
+    class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth table-sort table-arrows no-class-infer"
+  >
+    <caption
+      style="caption-side: top; text-align: left;"
+      class="is-family-monospace"
+    >
       {% if documents %}
 	{% if search %}
 	  {{ documents|length }} Recipes matched
@@ -21,34 +27,26 @@
 	  {# ######################## #}
 	  {# Edit                     #}
 	  {# ######################## #}
-          <th scope="col"></th>
-
-	  {# ######################## #}
-	  {# Cooked                   #}
-	  {# ######################## #}
-          <th scope="col"></th>
+          <th
+	    scope="col"
+	    class="disable-sort"
+	  ></th>
 
 	  {# ######################## #}
 	  {# Quality                  #}
 	  {# ######################## #}
           <th
             scope="col"
-	    id="sort_quality"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
             class="has-text-white has-text-centered has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
           >
             Q
           </th>
 
 	  {# ######################## #}
-	  {# Quality                  #}
+	  {# Complexity               #}
 	  {# ######################## #}
           <th
             scope="col"
-	    id="sort_quality"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
             class="has-text-white has-text-centered has-tooltip-arrow has-tooltip-bottom has-tooltip-info"
           >
             C
@@ -59,11 +57,7 @@
 	  {# ######################## #}
           <th
 	    scope="col"
-	    id="sort_away"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
 	    class="has-text-white"
-	    style="cursor: pointer;"
 	  >
 	    Title
 	  </th>
@@ -73,11 +67,7 @@
 	  {# ######################## #}
           <th
 	    scope="col"
-	    id="sort_home"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
 	    class="has-text-white"
-	    style="cursor: pointer;"
 	  >
 	    Tags
 	  </th>
@@ -87,11 +77,7 @@
 	  {# ######################## #}
           <th
 	    scope="col"
-	    id="sort_away"
-	    hx-post="/sort"
-	    hx-target="#table_documents"
 	    class="has-text-white"
-	    style="cursor: pointer;"
 	  >
 	    Source
 	  </th>
@@ -111,33 +97,31 @@
 	      </a>
             </td>
 
-            <td class="has-text-centered"  style="vertical-align: middle;">
-              <a href="/edit/{{ document.id }}">
-		<span class="icon is-small is-right">
-		  <i class="fa-solid fa-fire is-size-6"></i>
-		</span>
-	      </a>
+            <td class="has-text-centered" style="vertical-align: middle;" data-sort="{{ document.quality }}">
+              {{ document.quality | default(0, true) }}
+	      {% if document.quality %}
+		{{ document.quality_enum }}
+	      {% endif %}
             </td>
 
-            <td class="has-text-centered"  style="vertical-align: middle;">
-              {{ document.quality_enum | default("", true) }}
+            <td class="has-text-centered" style="vertical-align: middle;" data-sort="{{ document.complexity }}">
+              {{ document.complexity | default(0, true) }}
+	      {% if document.complexity %}
+		{{ document.complexity_enum }}
+	      {% endif %}
             </td>
 
-            <td class="has-text-centered"  style="vertical-align: middle;">
-              {{ document.complexity_enum | default("", true) }}
-            </td>
-
-            <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+            <td style="vertical-align: middle;">
               <a href="/view/{{ document.id }}">
 		{{ document.title }}
 	      </a>
             </td>
 
-            <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+            <td style="vertical-align: middle;">
               {{ document.tags|sort|join(", ") }}
             </td>
 
-            <td class="has-tooltip-arrow has-tooltip-right has-tooltip-info" style="vertical-align: middle;">
+            <td style="vertical-align: middle;">
               {{ document.source | default("", true) }}
             </td>
 

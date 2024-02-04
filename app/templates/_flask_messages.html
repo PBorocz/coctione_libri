@@ -1,0 +1,31 @@
+{# Flask flashed messages.. #}
+
+{% with error_messages = get_flashed_messages(category_filter=["is-danger"]) %}
+  {% with success_messages = get_flashed_messages(category_filter=["is-primary"]) %}
+
+    {% if error_messages or success_messages %}
+      <div class="notification">
+        <button class="delete"></button>
+    {% endif %}
+
+    {% if success_messages %}
+      {% for message in success_messages %}
+        <span class="has-background-success-light">{{ message }}</span>
+        <br/>
+      {% endfor %}
+    {% endif %}
+
+    {% if error_messages %}
+      {% for message in error_messages %}
+        <span class="has-background-danger-light">{{ message }}</span>
+        <br/>
+      {% endfor %}
+    {% endif %}
+
+    {% if error_messages or success_messages %}
+      </div>
+      <br/>
+    {% endif %}
+
+  {% endwith %}
+{% endwith %}

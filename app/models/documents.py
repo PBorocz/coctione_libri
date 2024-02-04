@@ -77,6 +77,11 @@ class Documents(me_.Document):
             return Rating(self.complexity)
         return None
 
+    @property
+    def cooked(self):
+        """Return number of times we've cooked this."""
+        return len(self.dates_cooked)
+
     def source_choices(self):
         """Return the current list of sources across all documents as a Choice list."""
         choices = [["", ""]]  # Choices are a list of lists..
