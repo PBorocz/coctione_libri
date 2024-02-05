@@ -20,6 +20,17 @@
   transition: opacity 500ms ease-in;
 }
 
+.search_control_width {
+  max-width: 500px;
+  min-width: 200px;
+  width: 500px;
+}
+
+.field.is-horizontal .field-body .control {
+  width: 50%;
+  overflow: auto;
+}
+
 /*! bulma.io v0.9.4 | MIT License | github.com/jgthms/bulma */
 /* Bulma Utilities */
 .pagination-previous,

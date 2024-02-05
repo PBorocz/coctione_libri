@@ -2,6 +2,7 @@
 import logging as log
 from io import BytesIO
 
+import flask_login as fl
 from flask import current_app, send_file
 from flask.wrappers import Response
 from flask_login import login_required
@@ -77,15 +78,42 @@ def render_view_doc(doc_id: str) -> Response:
     log.info(f"{f.request.method.upper()} /")
 
     document = Documents.objects(id=doc_id)[0]
-    file_contents = document.file_.read()
+    if document.file_:
+        file_contents = document.file_.read()
+        log.info(f"{len(file_contents)=}")
 
-    log.info(f"{len(file_contents)=}")
+        return send_file(
+            BytesIO(file_contents),
+            download_name=f"{doc_id}.pdf",
+            mimetype=document.file_.content_type,
+        )
+    elif document.url_:
+        f.redirect(document.url_)
+    else:
+        log.error("Sorry, document without either PDF file OR a link?")
 
-    return send_file(
-        BytesIO(file_contents),
-        download_name=f"{doc_id}.pdf",
-        mimetype=document.file_.content_type,
-    )
+    return f.redirect(f.url_for("main.render_main"))
+
+
+################################################################################
+@bp.get("/delete/<doc_id>")
+@login_required
+def render_delete_doc(doc_id: str) -> Response:
+    """Delete a document."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+
+    document = Documents.objects(id=doc_id)[0]
+
+    if document.file_:
+        document.file_.delete()
+
+    document.delete()
+
+    return f.redirect(f.url_for("main.render_main"))
 
 
 ################################################################################
@@ -130,8 +158,7 @@ def render_edit_doc(doc_id: str) -> Response:
         document, save = update_doc_from_form(form, document)
 
         # Now, let's see if we got a new file to upload
-        file = f.request.files["file_"]
-        if file:
+        if file := f.request.files["file_"]:
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             log.info(f"Saving a new file...{filename=}!")
             document.file_.replace(file, content_type="application/pdf")
@@ -143,7 +170,64 @@ def render_edit_doc(doc_id: str) -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("edit.html", title="Edit Document", form=form, no_search=True)
+    return f.render_template("document_edit.html", title="Edit Document", form=form, no_search=True)
+
+
+################################################################################
+@bp.route("/add", methods=["POST", "GET"])
+@login_required
+def render_add_doc() -> Response:
+    """Create a *new* Document."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+
+    form = forms.DocumentEditForm()
+
+    # Get the list of source choices from the DB..
+    form.source.choices = Documents().source_choices()
+    if form.source.choices:
+        form.source.default = form.source.choices[0][0]
+
+    # Is the form we recieved on a POST valid?
+    if form.validate_on_submit():
+        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+            return f.redirect(f.url_for("main.render_main"))
+
+        # First handle all simple attributes of the document:
+        document = add_doc_from_form(form)
+
+        # Now let's see if we got a new file to upload along with it.
+        if file := f.request.files["file_"]:
+            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
+            log.info(f"Saving a new file...{filename=}!")
+            document.file_.replace(file, content_type="application/pdf")
+            document.save()
+
+        return f.redirect(f.url_for("main.render_main"))
+
+    log.info("*" * 80)
+    return f.render_template("document_add.html", title="Add Document", form=form, no_search=True)
+
+
+def add_doc_from_form(form) -> tuple[Documents, bool]:
+    """Add (and return) a *new* document from the respective form."""
+    # fmt: off
+    document = Documents(
+        user       = fl.current_user,  # Required
+        title      = form.title.data,  # "
+        source     = form.source.data          if form.source     else None,
+        url_       = form.url_.data            if form.url_       else None,
+        notes      = form.notes.data           if form.notes      else None,
+        quality    = int(form.quality.data)    if form.quality    else None,
+        complexity = int(form.complexity.data) if form.complexity else None,
+    )
+    # fmt: on
+    document.save()
+
+    return document
 
 
 def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:

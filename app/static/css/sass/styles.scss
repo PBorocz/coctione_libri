@@ -27,4 +27,15 @@ $family-primary: "Inter";
     transition: opacity 500ms ease-in;
 }
 
+.search_control_width { // We want to force the search bar a little wider than Bulma wants.
+    max-width: 500px;
+    min-width: 200px;
+    width: 500px;
+}
+
+.field.is-horizontal .field-body .control { // Only way to get things to right-align correctly on new/edit dialog pages?
+    width: 50%;
+    overflow: auto;
+}
+
 @import "../lib/bulma-0.9.4/bulma.sass";

@@ -25,7 +25,7 @@
 	<tr class="has-background-grey-dark">
 
 	  {# ######################## #}
-	  {# Edit                     #}
+	  {# Edit?                    #}
 	  {# ######################## #}
           <th
 	    scope="col"
@@ -82,6 +82,14 @@
 	    Source
 	  </th>
 
+	  {# ######################## #}
+	  {# Delete?                  #}
+	  {# ######################## #}
+          <th
+	    scope="col"
+	    class="disable-sort"
+	  ></th>
+
 	</tr>
       </thead>
 
@@ -91,8 +99,8 @@
 
             <td class="has-text-centered"  style="vertical-align: middle;">
               <a href="/edit/{{ document.id }}">
-		<span class="icon is-small is-right">
-		  <i class="fa-solid fa-pen-to-square is-size-6"></i>
+		<span class="icon is-small is-right is-size-6">
+		  ✏<i class="fa-solid fa-pen-to-square"></i>
 		</span>
 	      </a>
             </td>
@@ -123,6 +131,14 @@
 
             <td style="vertical-align: middle;">
               {{ document.source | default("", true) }}
+            </td>
+
+            <td class="has-text-centered"  style="vertical-align: middle;">
+	      <a href="/delete/{{ document.id }}">
+		<span class="icon is-small is-right is-size-6">
+		  −<i class="fa-solid fa-pen-to-square"></i>
+		</span>
+	      </a>
             </td>
 
           </tr>

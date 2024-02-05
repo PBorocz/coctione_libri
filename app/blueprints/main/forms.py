@@ -42,13 +42,13 @@ class DocumentEditForm(FlaskForm):
 
     quality = wtforms.SelectField(
         "Quality",
-        # default=RATING_CHOICES[-1][0],
+        default=RATING_CHOICES[-1][0],
         choices=RATING_CHOICES,
     )
 
     complexity = wtforms.SelectField(
         "Complexity",
-        # default=RATING_CHOICES[-1][0],
+        default=RATING_CHOICES[-1][0],
         choices=RATING_CHOICES,
     )
 
