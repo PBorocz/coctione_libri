@@ -1,7 +1,8 @@
-# PERSONAL FILES:
+# PERSONAL/LOCAL FILES:
 .env
 .envrc
 .secrets.*
+__data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

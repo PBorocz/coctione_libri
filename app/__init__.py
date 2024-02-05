@@ -31,16 +31,14 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         log.debug(f"...configured configuration environment -> {application.config.get('ENV')}")
 
         ################################################################################
-        # If requested, setup Logging and default log level (DEBUG here locally,  INFO
-        # for production usage) There are cases where we call create_app NOT part of
-        # wsgi, eg. testing, cli etc. in those cases, we don't want to step on their
-        # own logging configurations!)
+        # Setup Logging and default log level if requested. There are cases where we
+        # call create_app NOT part of wsgi, eg. testing, cli etc. hence, the override.
         ################################################################################
         if setup_logging:
             level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
             log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 
-            # See all inbound requests for local/development environment (but not in production)
+            # See *all* inbound requests for local/development environment (but not in production)
             log.getLogger("werkzeug").disabled = True if application.config["production"] else False
 
             log.debug(f"...setup logging environment -> '{log.getLevelName(log.getLogger().getEffectiveLevel())}'")

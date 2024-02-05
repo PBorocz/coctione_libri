@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Run either delete or import of a set of pdf's to our collection."""
 import argparse
 import os
@@ -23,8 +24,10 @@ def main(args: argparse.Namespace):
     os.environ["DB_ENV"] = args.database
     app = create_app(setup_logging=False)
     with app.app_context():
-        if args.action == "import":
-            import_()
+        if args.action == "import_existing_pdfs":
+            import_existing_pdfs()
+        elif args.action == "import_new_pdfs":
+            import_new_pdfs()
         elif args.action == "delete":
             delete_()
 
@@ -40,10 +43,49 @@ def delete_():
     print(f"Deleted {count} Documents.")
 
 
-def import_():
+def import_new_pdfs():
     user = Users.objects.get(email="peter.borocz@gmail.com")
 
-    path_toml = Path("/Users/peter/Downloads/raindrop_export_2024-01-20T09:54:50.423627")
+    path_toml = Path("__data/RaindropPDF-New")
+    with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
+        raindrops = tomllib.load(fh_toml)
+
+    raindrops = {str(raindrop.get("id")): raindrop for raindrop in raindrops.get("links")}
+
+    sources = defaultdict(int)
+    print("Importing..", end="")
+
+    for path_pdf in path_toml.glob("*.pdf"):
+        pieces = path_pdf.name.split("|")
+        length = 3
+        if len(pieces) != length:
+            print(f"Invalid pdf name: {path_pdf}")
+            continue
+        (id, _, source) = pieces
+
+        if id not in raindrops:
+            print(f"Can't find pdf id in raindrops: {id}")
+            continue
+
+        raindrop = raindrops[id]
+
+        raindrop["file_name"] = path_pdf.name
+        raindrop["source"] = source.replace(".pdf", "")
+        raindrop["__path_pdf"] = path_pdf
+
+        __import_raindrop(user, raindrop)
+
+        sources[raindrop["source"]] += 1
+
+    print()
+    print(f"Imported {sum(list(sources.values()))} total files from the following sources:")
+    pprint(dict(sources))
+
+
+def import_existing_pdfs():
+    user = Users.objects.get(email="peter.borocz@gmail.com")
+
+    path_toml = Path("__data/RaindropPDF-Existing")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
         raindrops = tomllib.load(fh_toml)
 
@@ -51,7 +93,7 @@ def import_():
     non_documents = []
     print("Importing..", end="")
     for raindrop in raindrops.get("export"):
-        path_pdf = Path(f"/Users/peter/Downloads/Raindrop/RaindropDownload/{raindrop['id']}.pdf")
+        path_pdf = path_toml / Path(f"{raindrop['id']}.pdf")
 
         # Filter down to only entries for whom we ALREADY have pdfs
         if raindrop["type"] != "RaindropType.document":
@@ -63,15 +105,22 @@ def import_():
             continue
 
         raindrop["__path_pdf"] = path_pdf
-        source = __import_raindrop(user, raindrop)
-        sources[source] += 1
+
+        name = raindrop.get("file").get("name")
+        if "|" in name:
+            raindrop["title"], raindrop["source"] = name.split("|")
+            sources[raindrop["source"]] += 1
+        else:
+            raindrop["title"] = name
+
+        __import_raindrop(user, raindrop)
 
     print()
     print(f"Imported {sum(list(sources.values()))} total files from the following sources:")
     pprint(dict(sources))
 
     # Write out the documents that still have to be converted
-    if False:
+    if True:
         with open(path_toml / Path("recipes_non_documents.toml"), "wb") as fh_toml:
             tomli_w.dump({"links": non_documents}, fh_toml)
         print(f"Wrote {len(non_documents)} non-document entries to recipes_non_documents.TOML")
@@ -99,21 +148,16 @@ def import_():
 
 def __import_raindrop(user, raindrop: dict) -> str:
     # Parse name<|source> -> name, source
-    name = raindrop.get("file").get("name")
-    if "|" in name:
-        title, source = name.split("|")
-    else:
-        title, source = name, None
 
     doc = Documents(
         user=user,
-        title=title,
+        title=raindrop["title"],
         mimetype="application/pdf",
         raindrop_id=raindrop["id"],
         raindrop_created=raindrop["created"],
     )
-    if source:
-        doc.source = source
+    if "source" in raindrop:
+        doc.source = raindrop["source"]
 
     if raindrop["tags"]:
         all_tags = list(map(str.title, raindrop["tags"]))
@@ -126,13 +170,10 @@ def __import_raindrop(user, raindrop: dict) -> str:
 
     # Save the new "document"
     with open(raindrop["__path_pdf"], "rb") as fd:
-        filename = raindrop.get("file").get("name") + ".pdf"
-        doc.file_.put(fd, filename=filename, content_type="application/pdf")
+        doc.file_.put(fd, filename=raindrop.get("__path_pdf").name, content_type="application/pdf")
     doc.save()
 
     print("•", end="", flush=True)
-
-    return source
 
 
 if __name__ == "__main__":
@@ -161,7 +202,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-a",
         "--action",
-        help="Action to be performed, ie. import (default), delete",
+        help="Action to be performed, ie. import_existing_pdfs, import_new_pdfs, delete",
         default="import",
     )
 
@@ -169,6 +210,6 @@ if __name__ == "__main__":
 
     # Validate..
     assert ARGS.database in ("production", "local")
-    assert ARGS.action in ("import", "delete")
+    assert ARGS.action.startswith("import") or ARGS.action.startswith("delete")
 
     main(ARGS)
