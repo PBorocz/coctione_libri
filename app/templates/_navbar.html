@@ -3,7 +3,7 @@
   <div class="navbar-brand", id="navbar_brand">
 
     <a class="navbar-item" href="/">
-      <i class="fa-solid fa-utensils is-size-3"></i>
+      <i class="fa-solid fa-kitchen-set is-size-3"></i>
       &nbsp;&nbsp;&nbsp;
       <span class="is-size-3">Coctione Libri</span>
       &nbsp;
@@ -29,30 +29,33 @@
     {% if not no_search %}
     <div class="navbar-end">
       <div class="navbar-item">
+	<div class="field">
+	  <div class="control search_control_width">
+	    <input _="on htmx:afterRequest set my value to ''"
+	  	   name="search"
+	  	   class="input"
+		   type="search"
+		   hx-post="/search"
+		   hx-target="#table_documents"
+		   placeholder="Search..."
+		   autofocus
+	    >
+	  </div>
+	</div>
+      </div>
+      <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('main.render_add_doc') }}">
-	  <span class="is-size-2">+</span>
-	  <i class="fa-solid fa-arrow-right-from-bracket is-size-6"></i>
+	  <i class="fa-solid fa-plus is-size-4"></i>
 	</a>
       </div>
       <div class="navbar-item">
-	  <div class="field">
-	    <div class="control search_control_width">
-	      <input _="on htmx:afterRequest set my value to ''"
-	  	     name="search"
-	  	     class="input"
-		     type="search"
-		     hx-post="/search"
-		     hx-target="#table_documents"
-		     placeholder="Search..."
-		     autofocus
-	      >
-	    </div>
-	  </div>
-        </div>
+	<a class="navbar-item" href="{{ url_for('main.manage_tags') }}">
+	  <i class="fa-solid fa-tags is-size-4"></i>
+	</a>
+      </div>
 	<div class="navbar-item">
 	  <a class="navbar-item" href="{{ url_for('auth.logout') }}">
-	    <span class="is-size-2">⊖</span>
-	    <i class="fa-solid fa-arrow-right-from-bracket is-size-6"></i>
+	    <i class="fa-solid fa-arrow-right-from-bracket is-size-4"></i>
 	  </a>
 	</div>
       </div><!-- navbar-end -->

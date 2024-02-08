@@ -10,7 +10,6 @@
     <meta name="description" content="Coctione Libri PDF Library">
     <meta name="author" content="Peter Borocz">
 
-    {# FIXME #}
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
     {% block css %}
@@ -20,7 +19,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
     <style>
-     {% if caption %}
+     {% if watermark %}
      {# Have to define this here for Jinja to pick up the environment! #}
      .watermark::after {content: "{{ watermark|title }}"; display: block; }
      {% endif %}
@@ -36,17 +35,18 @@
   </head>
 
   <body>
+
     <div class="watermark"></div>
 
     <section class="section">
-
-      {% include "_navbar.html" %}
-
-      {# include "_messages.html" #}
-
+      {% include "_navbar.html"   %}
+      {% include "_messages.html" %}
       <main>
+
+	<hr/>
+
         {% block content %}
-        {# CORE CONTENT GOES HERE! #}
+        {# CORE content goes here! #}
         {% endblock %}
       </main>
 

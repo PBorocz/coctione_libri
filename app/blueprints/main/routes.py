@@ -1,5 +1,6 @@
 """Core Application Routes."""
 import logging as log
+from datetime import datetime
 from io import BytesIO
 
 import flask_login as fl
@@ -9,7 +10,7 @@ from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from app.blueprints.main import bp, forms
-from app.blueprints.main.operations import get_all_documents, get_search_documents
+from app.blueprints.main.operations import get_all_documents, get_all_tags, get_search_documents
 from app.models.documents import Documents
 
 
@@ -17,12 +18,7 @@ from app.models.documents import Documents
 @bp.get("/")
 @login_required
 def render_main() -> Response:
-    """Render our main page on a full refresh.
-
-    Get our query & display parameters from:
-    - Cookies
-    - If not available, selected view (for now, the default one).
-    """
+    """Render our main page on a full refresh."""
     import flask as f
 
     log.info("")
@@ -41,6 +37,70 @@ def render_main() -> Response:
         documents=documents,
         watermark=watermark,
     )
+
+
+################################################################################
+@bp.route("/tags", methods=["GET"])
+@login_required
+def manage_tags() -> Response:
+    """Render our tag management page."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    tags = get_all_tags()
+    log.info("*" * 80)
+    return f.render_template("tags.html", tags=tags)
+
+
+################################################################################
+@bp.route("/tag/edit", methods=["GET"])
+@login_required
+def render_tag_edit() -> Response:
+    """Return our tag editor form for a single tag table cell."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    tag = f.request.values.get("name")
+    log.info(f"{tag=}")
+    log.info("*" * 80)
+    return f.render_template("tag_edit.htmx", tag=tag)
+
+
+################################################################################
+@bp.route("/tag/delete", methods=["DELETE"])
+@login_required
+def delete_tag() -> Response:
+    """Delete the specified tag and return to the tag management page."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    tag = f.request.values.get("name")
+    log.info(f"To be deleted: {tag=}")
+    log.info("*" * 80)
+    return "", 200
+
+
+################################################################################
+@bp.route("/tag/update", methods=["PUT"])
+@login_required
+def render_tag_update() -> Response:
+    """Process a potentially updated tag value and display the entry with the new value."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    tag_original = f.request.form.get("tag_original")
+    tag_edited = f.request.form.get("tag_edited")
+    log.info(f"{tag_original=} -> {tag_edited=}")
+    log.info("*" * 80)
+    return f.render_template("tag_display.htmx", tag=tag_edited)
 
 
 ################################################################################
@@ -282,5 +342,6 @@ def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:
             assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
 
     if save_doc:
+        document.updated = datetime.utcnow()
         return document, True
     return document, False

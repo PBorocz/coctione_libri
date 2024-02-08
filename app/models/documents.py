@@ -51,8 +51,8 @@ class Documents(me_.Document):
     mimetype         = me_.StringField(default="application/pdf")          # Mimetype associated with the file type.
     raindrop_created = me_.DateTimeField()                                 # Original creation date in Raindrop
     raindrop_id      = me_.IntField()                                      # Original ID in Raindrop
-    tags             = me_.SortedListField(me_.StringField(max_length=50)) # List of tags in "Titled" display format)
-    updated          = me_.DateTimeField()                                 # When last updated (usually from CLI)
+    tags             = me_.SortedListField(me_.StringField(max_length=50)) # List of tags in "Titled" display format
+    updated          = me_.DateTimeField()                                 # When doc was last "touched"
     url_             = me_.URLField()                                      # Originating URL associated with the doc.
 
     # "Recipe"-specific fields..

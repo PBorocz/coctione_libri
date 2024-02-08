@@ -2,11 +2,11 @@
 @import url(https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,600,700);
 @import url(https://fonts.bunny.net/css?family=inter:400,600,700);
 
-// $family-sans-serif: "Atkinson Hyperlegible", sans-serif;
-// $family-primary: "Atkinson Hyperlegible";
+$family-sans-serif: "Atkinson Hyperlegible", sans-serif;
+$family-primary: "Atkinson Hyperlegible";
 
-$family-sans-serif: "Inter", sans-serif;
-$family-primary: "Inter";
+// $family-sans-serif: "Inter", sans-serif;
+// $family-primary: "Inter";
 
 .watermark {
     position: fixed;
@@ -15,7 +15,7 @@ $family-primary: "Inter";
     left: 50%;
     opacity: 0.5;
     font-size: 7em;
-    font-weight: bold;
+    font-weight: 100;
     text-align: center;
     color: #ff0000;
     transform: translate(-50%, -50%) rotate(-45deg);
@@ -27,6 +27,10 @@ $family-primary: "Inter";
     transition: opacity 500ms ease-in;
 }
 
+tr.htmx-swapping td {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
 .search_control_width { // We want to force the search bar a little wider than Bulma wants.
     max-width: 500px;
     min-width: 200px;
