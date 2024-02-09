@@ -1,0 +1,34 @@
+{% extends "__root.html" %}
+
+{% block content %}
+
+<div class="columns is-mobile is-multiline is-vcentered is-centered">
+  <div class="column is-half is-offset-one-quarter">
+    <div class="table-container">
+      <table
+	id="table_tags"
+	class="table is-responsive table-sort table-arrows"
+      >
+	<thead>
+	  <tr class="has-background-grey-dark">
+            <th scope="col" class="has-text-centered has-text-white">Tag</th>
+            <th scope="col" class="has-text-centered has-text-white">Count</th>
+            <th scope="col" class="has-text-centered has-text-white disable-sort">Actions</th>
+	  </tr>
+	</thead>
+
+	<tbody>
+	  {% for tag, count in tags %}
+	  {% include "tags/partials/display_a_tag.html" %}
+	  {% endfor %}
+	</tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

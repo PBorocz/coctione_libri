@@ -51,7 +51,7 @@ def manage_tags() -> Response:
     log.info(f"{f.request.method.upper()} /")
     tags = get_all_tags()
     log.info("*" * 80)
-    return f.render_template("tags.html", tags=tags)
+    return f.render_template("tags/tags.html", tags=tags)
 
 
 ################################################################################
@@ -67,7 +67,7 @@ def render_tag_edit() -> Response:
     tag = f.request.values.get("name")
     log.info(f"{tag=}")
     log.info("*" * 80)
-    return f.render_template("tag_edit.htmx", tag=tag)
+    return f.render_template("tags/partials/edit.html", tag=tag)
 
 
 ################################################################################
@@ -87,7 +87,7 @@ def delete_tag() -> Response:
 
 
 ################################################################################
-@bp.route("/tag/update", methods=["PUT"])
+@bp.post("/tag/update")
 @login_required
 def render_tag_update() -> Response:
     """Process a potentially updated tag value and display the entry with the new value."""
@@ -96,11 +96,20 @@ def render_tag_update() -> Response:
     log.info("")
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
-    tag_original = f.request.form.get("tag_original")
     tag_edited = f.request.form.get("tag_edited")
-    log.info(f"{tag_original=} -> {tag_edited=}")
+    tag_original = f.request.form.get("tag_original")
+    action = f.request.values.get("action")
+    log.info(f"{action=}")
+
+    if action == "save":
+        tag_return = tag_edited
+        log.info(f"Updating {tag_original=} -> {tag_edited=}")
+    elif action == "cancel":
+        tag_return = tag_original
+        log.info(f"Keeping {tag_original=}")
+
     log.info("*" * 80)
-    return f.render_template("tag_display.htmx", tag=tag_edited)
+    return f.render_template("tags/partials/display_a_tag.html", tag=tag_return)
 
 
 ################################################################################
@@ -123,7 +132,7 @@ def render_search() -> Response:
         documents = get_search_documents(search_term_s)
 
     log.info("*" * 80)
-    return f.render_template("main_table.htmx", documents=documents, search=search_term_s)
+    return f.render_template("main/partials/main_table.html", documents=documents, search=search_term_s)
 
 
 ################################################################################
@@ -230,7 +239,7 @@ def render_edit_doc(doc_id: str) -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("document_edit.html", title="Edit Document", form=form, no_search=True)
+    return f.render_template("main/edit.html", title="Edit Document", form=form, no_search=True)
 
 
 ################################################################################
@@ -269,7 +278,7 @@ def render_add_doc() -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("document_add.html", title="Add Document", form=form, no_search=True)
+    return f.render_template("main/add.html", title="Add Document", form=form, no_search=True)
 
 
 def add_doc_from_form(form) -> tuple[Documents, bool]:
