@@ -96,11 +96,24 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         ################################################################################
         from app.blueprints.auth import bp as blueprint_auth
         from app.blueprints.main import bp as blueprint_main
+        from app.blueprints.tags import bp as blueprint_tags
 
         application.register_blueprint(blueprint_auth)
         application.register_blueprint(blueprint_main)
+        application.register_blueprint(blueprint_tags)
 
         log.debug("...registered blueprints")
+
+        ################################################################################
+        # Add our "context processers"
+        ################################################################################
+        @application.context_processor
+        def inject_watermark():
+            if application.config["development"]:
+                return {"watermark": "Development"}
+            return {}
+
+        log.debug("...defined context processors")
 
         log.debug("setup done, ready to go!...")
     return application

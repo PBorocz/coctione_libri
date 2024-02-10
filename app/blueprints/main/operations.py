@@ -1,7 +1,6 @@
 """Main/home view, essentially the master table itself, either all or from search."""
 import logging as log
 import sys
-from collections import defaultdict
 from collections.abc import Callable
 
 from bson.objectid import ObjectId
@@ -29,16 +28,6 @@ def get_search_documents(search: str) -> QuerySet:
     log.info(f"{len(documents):,d} documents found.")
 
     return _sort(documents)
-
-
-def get_all_tags() -> list[str]:
-    """Return a sorted list of all current tags (ie. those attached to documents)."""
-    tags = defaultdict(int)
-    for document in Documents.objects().only("tags"):
-        for tag in document.tags:
-            tags[tag] += 1
-    log.info(f"{len(tags):,d} unique tags found.")
-    return list(tags.items())
 
 
 ################################################################################

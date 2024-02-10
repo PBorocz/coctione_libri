@@ -4,13 +4,13 @@ from datetime import datetime
 from io import BytesIO
 
 import flask_login as fl
-from flask import current_app, send_file
+from flask import send_file
 from flask.wrappers import Response
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from app.blueprints.main import bp, forms
-from app.blueprints.main.operations import get_all_documents, get_all_tags, get_search_documents
+from app.blueprints.main.operations import get_all_documents, get_search_documents
 from app.models.documents import Documents
 
 
@@ -27,89 +27,9 @@ def render_main() -> Response:
 
     documents = get_all_documents()
 
-    # Set caption based on environment
-    watermark = "Development" if current_app.config["development"] else ""
-
     log.info("*" * 80)
 
-    return f.render_template(
-        "main.html",
-        documents=documents,
-        watermark=watermark,
-    )
-
-
-################################################################################
-@bp.route("/tags", methods=["GET"])
-@login_required
-def manage_tags() -> Response:
-    """Render our tag management page."""
-    import flask as f
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /")
-    tags = get_all_tags()
-    log.info("*" * 80)
-    return f.render_template("tags/tags.html", tags=tags)
-
-
-################################################################################
-@bp.route("/tag/edit", methods=["GET"])
-@login_required
-def render_tag_edit() -> Response:
-    """Return our tag editor form for a single tag table cell."""
-    import flask as f
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /")
-    tag = f.request.values.get("name")
-    log.info(f"{tag=}")
-    log.info("*" * 80)
-    return f.render_template("tags/partials/edit.html", tag=tag)
-
-
-################################################################################
-@bp.route("/tag/delete", methods=["DELETE"])
-@login_required
-def delete_tag() -> Response:
-    """Delete the specified tag and return to the tag management page."""
-    import flask as f
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /")
-    tag = f.request.values.get("name")
-    log.info(f"To be deleted: {tag=}")
-    log.info("*" * 80)
-    return "", 200
-
-
-################################################################################
-@bp.post("/tag/update")
-@login_required
-def render_tag_update() -> Response:
-    """Process a potentially updated tag value and display the entry with the new value."""
-    import flask as f
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /")
-    tag_edited = f.request.form.get("tag_edited")
-    tag_original = f.request.form.get("tag_original")
-    action = f.request.values.get("action")
-    log.info(f"{action=}")
-
-    if action == "save":
-        tag_return = tag_edited
-        log.info(f"Updating {tag_original=} -> {tag_edited=}")
-    elif action == "cancel":
-        tag_return = tag_original
-        log.info(f"Keeping {tag_original=}")
-
-    log.info("*" * 80)
-    return f.render_template("tags/partials/display_a_tag.html", tag=tag_return)
+    return f.render_template("main/main.html", documents=documents)
 
 
 ################################################################################
