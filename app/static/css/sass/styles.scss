@@ -32,9 +32,9 @@ tr.htmx-swapping td {
   transition: opacity 1s ease-out;
 }
 .search_control_width { // We want to force the search bar a little wider than Bulma wants.
-    max-width: 500px;
+    max-width: 400px;
     min-width: 200px;
-    width: 500px;
+    width: 400px;
 }
 
 .field.is-horizontal .field-body .control { // Only way to get things to right-align correctly on new/edit dialog pages?

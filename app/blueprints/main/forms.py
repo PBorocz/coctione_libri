@@ -1,3 +1,4 @@
+"""."""
 import wtforms
 from flask_wtf import FlaskForm
 from wtforms import validators
@@ -12,6 +13,29 @@ RATING_CHOICES = [
     [1, Rating.ONE],
     [0, Rating.ZER],
 ]
+
+
+class TagListField(wtforms.StringField):
+
+    """Stringfield for a list of separated tags."""
+
+    def __init__(self, label="", validators=None, separator=",", **kwargs):
+        """Construct a new field.
+
+        :param label: The label of the field.
+        :param validators: A sequence of validators to call when validate is called.
+        :param separator: The separator that splits the individual tags.
+        """
+        super().__init__(label, validators, **kwargs)
+        self.separator = separator
+        self.data = []
+
+    def _value(self):
+        return self.separator.join(self.data) if self.data else ""
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = [x.strip().title() for x in valuelist[0].split(self.separator)]
 
 
 class DocumentEditForm(FlaskForm):
@@ -29,6 +53,8 @@ class DocumentEditForm(FlaskForm):
         "Source",
         choices=[],  # Will be populate when the form is instantiated
     )
+
+    tags = TagListField("Tags")
 
     notes = wtforms.TextAreaField(
         "Notes",

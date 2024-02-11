@@ -26,9 +26,9 @@ tr.htmx-swapping td {
 }
 
 .search_control_width {
-  max-width: 500px;
+  max-width: 400px;
   min-width: 200px;
-  width: 500px;
+  width: 400px;
 }
 
 .field.is-horizontal .field-body .control {

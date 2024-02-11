@@ -2,9 +2,57 @@
 
 {% block content %}
 
+<!-- Bulma Modal -->
+<div id="confirm-modal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Confirm Delete</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body">
+      Are you sure you want to delete this recipe?
+    </section>
+    <footer class="modal-card-foot">
+      <button id="confirm-button" class="button is-danger">Confirm</button>
+      <button id="cancel-button" class="button">Cancel</button>
+    </footer>
+  </div>
+</div>
+
 {# Render the primary table of listings! #}
 <div class="table-container">
   {% include "main/partials/main_table.html" %}
 </div>
+
+{% endblock %}
+{% block js_local %}
+
+<script type="text/javascript">
+ var links = document.querySelectorAll('.confirm-beforehand');
+ var modal = document.getElementById('confirm-modal');
+ var confirmButton = document.getElementById('confirm-button');
+ var currentLink;  // to store currently clicked link tag
+
+ links.forEach(function(link) {
+   link.onclick = function(event) {
+     event.preventDefault();
+     modal.classList.add('is-active');
+     currentLink = link;
+   }
+ });
+
+ document.getElementById('cancel-button').onclick = function() {
+   modal.classList.remove('is-active');
+ }
+
+ confirmButton.onclick = function() {
+   // Perform the action here, then close the modal
+   modal.classList.remove('is-active');
+   // Then redirect to the link's href
+   window.location.href = currentLink.href;
+ }
+
+</script>
 
 {% endblock %}

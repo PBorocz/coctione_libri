@@ -85,7 +85,7 @@ def render_view_doc(doc_id: str) -> Response:
 
 
 ################################################################################
-@bp.get("/delete/<doc_id>")
+@bp.route("/delete/<doc_id>", methods=["GET"])
 @login_required
 def render_delete_doc(doc_id: str) -> Response:
     """Delete a document."""
@@ -116,6 +116,7 @@ def render_edit_doc(doc_id: str) -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
+    # Get the document we're going to be editing...
     document = Documents.objects(id=doc_id)[0]
 
     form_complexity = 0 if document.complexity is None else document.complexity
@@ -128,6 +129,7 @@ def render_edit_doc(doc_id: str) -> Response:
         complexity=form_complexity,
         url_=document.url_,
         notes=document.notes,
+        tags=document.tags,
     )
 
     # Get the list of source choices from the DB..
@@ -159,7 +161,7 @@ def render_edit_doc(doc_id: str) -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("main/edit.html", title="Edit Document", form=form, no_search=True)
+    return f.render_template("main/add_edit.html", title="Edit Document", form=form, no_search=True)
 
 
 ################################################################################
@@ -198,7 +200,7 @@ def render_add_doc() -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("main/add.html", title="Add Document", form=form, no_search=True)
+    return f.render_template("main/add_edit.html", title="Add Document", form=form, no_search=True)
 
 
 def add_doc_from_form(form) -> tuple[Documents, bool]:
@@ -226,6 +228,7 @@ def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:
         (None, "notes"),
         (None, "source"),
         (None, "url_"),
+        (None, "tags"),
         ("to_int", "quality"),
         ("to_int", "complexity"),
     )

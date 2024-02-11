@@ -20,11 +20,11 @@ def manage_tags() -> Response:
     log.info(f"{f.request.method.upper()} /")
     tags = get_all_tags()
     log.info("*" * 80)
-    return f.render_template("tags/tags.html", tags=tags)
+    return f.render_template("tags/tags.html", tags=tags, no_search=True)
 
 
 ################################################################################
-@bp.route("/tag/edit", methods=["GET"])
+@bp.get("/tag/edit")
 @login_required
 def render_tag_edit() -> Response:
     """Return our tag editor form for a single tag table cell."""
@@ -76,7 +76,6 @@ def render_tag_update() -> Response:
         update_tag(tag_old, tag_new)
     elif action == "cancel":
         tag_return = tag_old
-        log.info(f"Keeping {tag_old=}")
 
     log.info("*" * 80)
 
