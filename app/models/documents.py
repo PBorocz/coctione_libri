@@ -16,7 +16,7 @@ class Rating(Enum):
     FIV = 5
 
     def __str__(self):
-        return "•" * self.value
+        return "★" * self.value  # "•"
 
 
 class History(me_.EmbeddedDocument):
@@ -53,7 +53,7 @@ class Documents(me_.Document):
     raindrop_id      = me_.IntField()                                      # Original ID in Raindrop
     tags             = me_.SortedListField(me_.StringField(max_length=50)) # List of tags in "Titled" display format
     updated          = me_.DateTimeField()                                 # When doc was last "touched"
-    url_             = me_.URLField()                                      # Originating URL associated with the doc.
+    url_             = me_.StringField(max_length=2038)                    # Originating URL associated with the doc.
 
     # "Recipe"-specific fields..
     notes            = me_.StringField()                                   # General document "notes" in Markdown format

@@ -15,7 +15,7 @@
         {{ form.title(autofocus="") }}
       </div>
       {% for error in form.title.errors %}
-      &nbsp;<p class="help is-danger">{{error}}</p>
+      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
       {% endfor %}
     </div>
   </div>
@@ -26,14 +26,14 @@
       <label class="label">{{ form.file_.label }}</label>
     </div>
     <div class="field-body">
-      <div class="field">
-        <div class="control">
+      <div class="control">
+        <div class="field">
           <div class="file has-name is-primary">
             <label class="file-label">
 	      {{ form.file_ }}
               <span class="file-cta">
+                <span class="file-label">Upload</span>&nbsp;
                 <span class="file-icon"><i class="fas fa-upload"></i></span>
-                <!-- {# <span class="file-label">Call to action text, eg. "Choose a File:"</span> #} -->
               </span>
               <span id="file-name" class="file-name is-large">
 		{{ form.file_.filename }}
@@ -42,6 +42,9 @@
           </div>
         </div>
       </div>
+      {% for error in form.file_.errors %}
+      &nbsp;<p class="help is-danger is-left is-size-5" style="vertical-align: middle;">{{error}}</p>
+      {% endfor %}
     </div>
   </div>
 
@@ -71,7 +74,7 @@
         {{ form.tags(class="input") }}
       </div>
       {% for error in form.tags.errors %}
-      &nbsp;<p class="help is-danger">{{error}}</p>
+      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
       {% endfor %}
     </div>
   </div>
@@ -113,6 +116,9 @@
       <div class="control is-link">
         {{ form.url_ }}
       </div>
+      {% for error in form.url_.errors %}
+      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
+      {% endfor %}
     </div>
   </div>
 

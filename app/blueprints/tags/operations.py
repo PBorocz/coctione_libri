@@ -12,7 +12,7 @@ def get_all_tags() -> list[str]:
         for tag in document.tags:
             tags[tag] += 1
     log.info(f"{len(tags):,d} unique tags found.")
-    return list(tags.items())
+    return sorted(tags.items())
 
 
 def get_tag_count(tag: str) -> int:

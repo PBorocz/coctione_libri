@@ -223,20 +223,20 @@ def render_add_doc() -> Response:
 
     form = forms.DocumentEditForm()
 
-    # Get the list of source choices from the DB..
+    if form.cancel.data:  # If cancel button is clicked, the form.cancel.data will be True and we're done!
+        return f.redirect(f.url_for("main.render_main"))
+
+    # Get the list of source choices from the DB
     form.source.choices = Documents().source_choices()
     if form.source.choices:
         form.source.default = form.source.choices[0][0]
 
     # Is the form we recieved on a POST valid?
     if form.validate_on_submit():
-        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
-            return f.redirect(f.url_for("main.render_main"))
-
         # First handle all simple attributes of the document:
         document = add_doc_from_form(form)
 
-        # Now let's see if we got a new file to upload along with it.
+        # Now let's see if we got a new file to upload along with it (we may not)
         if file := f.request.files["file_"]:
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             log.info(f"Saving a new file...{filename=}!")

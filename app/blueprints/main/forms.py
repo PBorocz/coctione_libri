@@ -1,7 +1,7 @@
 """."""
 import wtforms
 from flask_wtf import FlaskForm
-from wtforms import validators
+from wtforms import ValidationError, validators
 
 from app.models.documents import Rating
 
@@ -46,7 +46,9 @@ class DocumentEditForm(FlaskForm):
             "type": "text",
             "placeholder": "eg. A Really Good Recipe",
         },
-        validators=[validators.DataRequired()],
+        validators=[
+            validators.DataRequired(message="Sorry, this field is required."),
+        ],
     )
 
     source = wtforms.SelectField(
@@ -84,6 +86,10 @@ class DocumentEditForm(FlaskForm):
             "class": "input",
             "type": "text",
         },
+        validators=[
+            validators.Optional(),
+            validators.URL(message="Sorry, this isn't a valid URL."),
+        ],
     )
 
     file_ = wtforms.FileField(
@@ -105,3 +111,13 @@ class DocumentEditForm(FlaskForm):
         "Cancel",
         render_kw={"class": "button is-link is-light", "formnovalidate": True},
     )
+
+    def validate_file_(self, field):
+        """Validate that either File or URL are required."""
+        if not field.data and not self.url_.data:
+            raise ValidationError("Sorry, if a File isn't provided, a Link must be.")
+
+    def validate_url_(self, field):
+        """Validate that either File or URL are required."""
+        if not field.data and not self.file_.data:
+            raise ValidationError("Sorry, if a Link isn't provided, a File must be.")

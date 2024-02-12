@@ -1,13 +1,6 @@
 @charset "UTF-8";
 @import url(https://fonts.bunny.net/css?family=atkinson-hyperlegible:400,600,700);
 @import url(https://fonts.bunny.net/css?family=inter:400,600,700);
-.watermark {
-  font-size: 7em;
-  font-weight: 100;
-  text-align: center;
-  color: #ff0000;
-}
-
 .htmx-indicator {
   opacity: 0;
   transition: opacity 500ms ease-in;
