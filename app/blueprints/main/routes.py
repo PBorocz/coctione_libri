@@ -4,20 +4,22 @@ from datetime import datetime
 from io import BytesIO
 
 import flask_login as fl
-from flask import send_file
+from flask import make_response, send_file
 from flask.wrappers import Response
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 
+from app import constants as c
 from app.blueprints.main import bp, forms
 from app.blueprints.main.operations import get_all_documents, get_search_documents
+from app.models.cookies import Cookies
 from app.models.documents import Documents
 
 
 ################################################################################
 @bp.get("/")
 @login_required
-def render_main() -> Response:
+def render_main(template="main/main.html") -> Response:
     """Render our main page on a full refresh."""
     import flask as f
 
@@ -25,11 +27,50 @@ def render_main() -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    documents = get_all_documents()
+    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
+    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, f.request)
+
+    # Query the documents (and sort by last sort field/dir if we have one)
+    documents, sort_state = get_all_documents(cookies)
+
+    # Render our template, set our cookie and we're done!
+    template = f.render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
+    response: Response = make_response(template)
+    response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
 
     log.info("*" * 80)
+    return response
 
-    return f.render_template("main/main.html", documents=documents)
+
+################################################################################
+@bp.get("/sort")
+@login_required
+def render_table_sorted(template="main/partials/table.html") -> Response:
+    """Re-render our main table based on a new sort field and/or direction."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+
+    # Make sure we're coming in from an HTMX call..
+    assert "Hx-Trigger" in f.request.headers
+    trigger = f.request.headers.get("Hx-Trigger")
+    log.info(f"Hx-Trigger:{trigger}")
+
+    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
+    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, f.request, update_sort=True)
+
+    # Query all the documents and sort based on our state requested.
+    documents, sort_state = get_all_documents(cookies)
+
+    # Render our template, set our cookie and we're done!
+    template = f.render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
+    response: Response = make_response(template)
+    response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
+
+    log.info("*" * 80)
+    return response
 
 
 ################################################################################
@@ -47,12 +88,17 @@ def render_search() -> Response:
 
     if not search_term_s or search_term_s == "*":
         # Sometimes a "search" is not a "search" after all!
-        documents = get_all_documents()
+        documents, sort_state = get_all_documents()
     else:
-        documents = get_search_documents(search_term_s)
+        documents, sort_state = get_search_documents(search_term_s)
 
     log.info("*" * 80)
-    return f.render_template("main/partials/main_table.html", documents=documents, search=search_term_s)
+    return f.render_template(
+        "main/partials/main_table.html",
+        documents=documents,
+        sort_state=sort_state,
+        search=search_term_s,
+    )
 
 
 ################################################################################

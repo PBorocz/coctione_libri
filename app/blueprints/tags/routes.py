@@ -82,4 +82,4 @@ def render_tag_update() -> Response:
     # Irrespective of whether or not we did an update, we still need to redisplay the count as well:
     tag_count = get_tag_count(tag_return)
 
-    return f.render_template("tags/partials/tag_row.html", tag=tag_return, count=tag_count)
+    return f.render_template("tags/partials/tr.html", tag=tag_return, count=tag_count)

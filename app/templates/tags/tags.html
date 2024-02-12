@@ -7,7 +7,7 @@
 <div class="columns is-mobile is-multiline is-vcentered is-centered">
   <div class="column is-half is-offset-one-quarter">
     <div class="table-container">
-      <table id="table_tags" class="table is-responsive table-sort table-arrows">
+      <table id="table_tags" class="table is-responsive table-arrows">
 
 	<thead>
 	  <tr class="has-background-grey-dark">
@@ -19,7 +19,7 @@
 
 	<tbody>
 	  {% for tag, count in tags %}
-	  {% include "tags/partials/tag_row.html" %}
+	  {% include "tags/partials/tr.html" %}
 	  {% endfor %}
 	</tbody>
 

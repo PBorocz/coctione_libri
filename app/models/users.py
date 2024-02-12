@@ -11,6 +11,7 @@ PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
 class Users(me_.Document):
+
     """User model."""
 
     # fmt: off

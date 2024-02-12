@@ -22,12 +22,14 @@
 
 {# Render the primary table of listings! #}
 <div class="table-container">
-  {% include "main/partials/main_table.html" %}
+  {% include "main/partials/table.html" %}
 </div>
 
 {% endblock %}
-{% block js_local %}
 
+
+{# Delete confirmation support code #}
+{% block js_local %}
 <script type="text/javascript">
  var links = document.querySelectorAll('.confirm-beforehand');
  var modal = document.getElementById('confirm-modal');
@@ -49,6 +51,7 @@
  confirmButton.onclick = function() {
    // Perform the action here, then close the modal
    modal.classList.remove('is-active');
+
    // Then redirect to the link's href
    window.location.href = currentLink.href;
  }

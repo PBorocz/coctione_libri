@@ -7,17 +7,19 @@ from bson.objectid import ObjectId
 from mongoengine.queryset.queryset import QuerySet
 from mongoengine.queryset.visitor import QCombination
 
+from app import constants as c
+from app.models.cookies import Cookies
 from app.models.documents import Documents
 
 
-def get_all_documents() -> QuerySet:
+def get_all_documents(cookies: Cookies) -> tuple[list[Documents], dict]:
     """Return *all* documents."""
     documents = Documents.objects()
     log.info(f"{len(documents):,d} documents found.")
-    return _sort(documents)
+    return _sort(documents, cookies)
 
 
-def get_search_documents(search: str) -> QuerySet:
+def get_search_documents(search: str) -> tuple[list[Documents], dict]:
     """Return any documents matching the search term(s)."""
     ids = set()
     for search_method in SEARCH_METHODS:
@@ -89,13 +91,51 @@ def _search_by_tag(search: str) -> list[ObjectId]:
 ################################################################################
 # Utility methods
 ################################################################################
-def _sort(documents: list[Documents]) -> list[Documents]:
-    """Return a sorted list of documents provided: quality and then by title."""
-    return sorted(documents, key=lambda doc: (-doc.quality if doc.quality else 0, doc.title))
+def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents], dict]:
+    """Return both a sorted list of documents by current cookies and sort-indicator status."""
+    sort_field = cookies.sort_field
+    sort_ascending = True if cookies.sort_dir == c.SORT_ASCENDING else False
+
+    # fmt: off
+    if sort_ascending:
+        sort_lambdas = {
+            "complexity" : lambda doc: (doc.complexity  is None, doc.complexity),
+            "quality"    : lambda doc: (doc.quality     is None, doc.quality),
+            "source"     : lambda doc: (doc.source      is None, doc.source),
+            "tags"       : lambda doc: (doc.tags_as_str is None, doc.tags_as_str),
+            "title"      : lambda doc:  doc.title,
+        }
+    else:
+        sort_lambdas = {
+            "complexity" : lambda doc: (doc.complexity  is not None, doc.complexity),
+            "quality"    : lambda doc: (doc.quality     is not None, doc.quality),
+            "source"     : lambda doc: (doc.source      is not None, doc.source),
+            "tags"       : lambda doc: (doc.tags_as_str is not None, doc.tags_as_str),
+            "title"      : lambda doc:  doc.title,
+        }
+    # fmt: on
+
+    if not (sort_lambda := sort_lambdas.get(sort_field)):
+        log.error(f"Sorry, ran into a case where cookies.sort_field is unrecognized? '{sort_field}'")
+        sort_lambda = sort_lambdas.get("title")
+
+    # Sort indicator is a dict keyed by the respective sort column with the right icon to
+    # display This allows us to render the sort up/down arrow for EACH field (as
+    # {{ sort_indicators.aField }}) and only the column that matches the key field will
+    # actually have it's arrow displayed.
+    if sort_ascending:
+        sort_state = {sort_field: '<span class="icon is-size-6"><i class="fa-solid fa-sort-up"></i></span>'}
+    else:
+        sort_state = {sort_field: '<span class="icon is-size-6"><i class="fa-solid fa-sort-down"></i></span>'}
+
+    # Apply sort direction..
+    sorted_kwargs = {} if sort_ascending else {"reverse": True}
+
+    return sorted(documents, key=sort_lambda, **sorted_kwargs), sort_state
 
 
-# Do an "auto" lookup of all search methods so we don't have to manually maintain a list...
 def _find_search_methods(module: str, prefix: str) -> list[Callable]:
+    """Do an "auto" lookup of all search methods so we don't have to manually maintain a list."""
     return [getattr(module, obj) for obj in dir(module) if callable(getattr(module, obj)) and obj.startswith(prefix)]
 
 

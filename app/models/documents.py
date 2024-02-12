@@ -78,6 +78,13 @@ class Documents(me_.Document):
         return None
 
     @property
+    def tags_as_str(self):
+        if not self.tags:
+            return None
+        normalised = [tag.lower() for tag in sorted(self.tags)]
+        return ",".join(normalised)
+
+    @property
     def cooked(self):
         """Return number of times we've cooked this."""
         return len(self.dates_cooked)

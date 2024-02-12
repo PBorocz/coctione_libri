@@ -19,15 +19,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 
     <style>
-     {% if watermark %}
-     {# Have to define this here for Jinja to pick up the environment! #}
-     .watermark::after {content: "{{ watermark|title }}"; display: block; }
-     {% endif %}
-
      {% block extra_css %}
      {# Any optional/page-specific css goes here. #}
      {% endblock %}
-
     </style>
 
     {% endblock %}
@@ -66,9 +60,6 @@
       {# htmx & hyperscript libraries #}
       <script defer src="https://unpkg.com/htmx.org@latest"></script> {# As of last update: 1.9.9 #}
       <script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
-
-      {# table sorting : https://github.com/LeeWannacott/table-sort-js?tab=readme-ov-file #}
-      <script src="https://cdn.jsdelivr.net/npm/table-sort-js/table-sort.min.js"></script>
 
       {# navbar burger behaviour #}
       <script type="text/javascript">

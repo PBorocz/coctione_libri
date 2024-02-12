@@ -8,20 +8,6 @@ $family-primary: "Atkinson Hyperlegible";
 // $family-sans-serif: "Inter", sans-serif;
 // $family-primary: "Inter";
 
-.watermark {
-    position: fixed;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    opacity: 0.5;
-    font-size: 7em;
-    font-weight: 100;
-    text-align: center;
-    color: #ff0000;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    transform-origin: center;
-}
-
 .htmx-indicator{
     opacity:0;
     transition: opacity 500ms ease-in;

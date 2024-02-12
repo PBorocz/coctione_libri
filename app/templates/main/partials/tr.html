@@ -1,0 +1,57 @@
+<tr style="background-color: white;">
+
+  {# Quality #}
+  <td class="has-text-centered" style="vertical-align: middle;">
+    {{ document.quality_enum | default("", true) }}
+  </td>
+
+  {# Complexity #}
+  <td class="has-text-centered" style="vertical-align: middle;">
+    {{ document.complexity_enum | default("", true) }}
+  </td>
+
+  {# Title #}
+  <td style="vertical-align: middle;">
+    <a href="/view/{{ document.id }}">
+      {{ document.title }}
+    </a>
+  </td>
+
+  {# Tag(s) #}
+  <td style="vertical-align: middle;">
+    <div class="tags">
+      {% for tag in document.tags|sort %}
+      <span class="tag is-rounded is-light">{{ tag  }}</span>
+      {% endfor %}
+    </div>
+    {# document.tags|sort|join(", ") #}
+  </td>
+
+  {# Source #}
+  <td style="vertical-align: middle;">
+    {{ document.source | default("", true) }}
+  </td>
+
+  {# Edit Icon #}
+  <td class="has-text-centered"  style="vertical-align: middle;">
+    <a href="/edit/{{ document.id }}">
+      <span class="icon is-small is-right is-size-6">
+	<i class="fa-regular fa-pen-to-square"></i>
+      </span>
+    </a>
+  </td>
+
+  {# Delete Icon #}
+  <td class="has-text-centered"  style="vertical-align: middle;">
+    <a
+      class="confirm-beforehand"
+      href="/delete/{{ document.id }}"
+    >
+      {# onclick="return confirm('Are you sure you want to delete: {{ document.title }}?');" #}
+      <span class="icon is-small is-right is-size-6">
+	<i class="fa-regular fa-trash-can"></i>
+      </span>
+    </a>
+  </td>
+
+</tr>
