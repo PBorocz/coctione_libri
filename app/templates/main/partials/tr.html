@@ -21,7 +21,7 @@
   <td style="vertical-align: middle;">
     <div class="tags">
       {% for tag in document.tags|sort %}
-      <span class="tag is-rounded is-light">{{ tag  }}</span>
+      <span class="tag is-rounded is-light is-medium">{{ tag }}</span>
       {% endfor %}
     </div>
     {# document.tags|sort|join(", ") #}
@@ -43,11 +43,7 @@
 
   {# Delete Icon #}
   <td class="has-text-centered"  style="vertical-align: middle;">
-    <a
-      class="confirm-beforehand"
-      href="/delete/{{ document.id }}"
-    >
-      {# onclick="return confirm('Are you sure you want to delete: {{ document.title }}?');" #}
+    <a onclick="confirm_deletion(event)" href="/delete/{{ document.id }}">
       <span class="icon is-small is-right is-size-6">
 	<i class="fa-regular fa-trash-can"></i>
       </span>

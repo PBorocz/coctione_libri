@@ -76,9 +76,12 @@ def render_table_sorted(template="main/partials/table.html") -> Response:
 ################################################################################
 @bp.post("/search")
 @login_required
-def render_search() -> Response:
+def render_search(template="main/partials/table.html") -> Response:
     """Render just the results table based on a *SEARCH* request."""
     import flask as f
+
+    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
+    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, f.request)
 
     search_term_s = f.request.form["search"]
 
@@ -88,13 +91,13 @@ def render_search() -> Response:
 
     if not search_term_s or search_term_s == "*":
         # Sometimes a "search" is not a "search" after all!
-        documents, sort_state = get_all_documents()
+        documents, sort_state = get_all_documents(cookies)
     else:
-        documents, sort_state = get_search_documents(search_term_s)
+        documents, sort_state = get_search_documents(cookies, search_term_s)
 
     log.info("*" * 80)
     return f.render_template(
-        "main/partials/main_table.html",
+        template,
         documents=documents,
         sort_state=sort_state,
         search=search_term_s,

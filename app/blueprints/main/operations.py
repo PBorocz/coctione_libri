@@ -19,7 +19,7 @@ def get_all_documents(cookies: Cookies) -> tuple[list[Documents], dict]:
     return _sort(documents, cookies)
 
 
-def get_search_documents(search: str) -> tuple[list[Documents], dict]:
+def get_search_documents(cookies: Cookies, search: str) -> tuple[list[Documents], dict]:
     """Return any documents matching the search term(s)."""
     ids = set()
     for search_method in SEARCH_METHODS:
@@ -29,7 +29,7 @@ def get_search_documents(search: str) -> tuple[list[Documents], dict]:
     documents = Documents.objects(id__in=ids)
     log.info(f"{len(documents):,d} documents found.")
 
-    return _sort(documents)
+    return _sort(documents, cookies)
 
 
 ################################################################################
