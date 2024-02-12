@@ -27,14 +27,16 @@
       <div class="navbar-item">
 	<div class="field">
 	  <div class="control search_control_width">
-	    <input _="on htmx:afterRequest set my value to ''"
-	  	   name="search"
-	  	   class="input"
-		   type="search"
-		   hx-post="/search"
-		   hx-target="#id_documents_table"
-		   placeholder="Search..."
-		   autofocus
+	    {# Use this if we're doing a full page refresh: #}
+	    {# _="on htmx:afterRequest set my value to ''" #}
+	    <input
+	      class="input"
+	      autofocus
+	      hx-post="/search"
+	      hx-target="#id_documents_table"
+	      placeholder="Search..."
+	      type="search"
+	      name="search"
 	    >
 	  </div>
 	</div>

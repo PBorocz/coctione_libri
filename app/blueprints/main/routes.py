@@ -89,19 +89,14 @@ def render_search(template="main/partials/table.html") -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /search ['{search_term_s}']")
 
-    if not search_term_s or search_term_s == "*":
+    if search_term_s == "*" or not search_term_s:
         # Sometimes a "search" is not a "search" after all!
         documents, sort_state = get_all_documents(cookies)
     else:
         documents, sort_state = get_search_documents(cookies, search_term_s)
 
     log.info("*" * 80)
-    return f.render_template(
-        template,
-        documents=documents,
-        sort_state=sort_state,
-        search=search_term_s,
-    )
+    return f.render_template(template, documents=documents, sort_state=sort_state)
 
 
 ################################################################################
