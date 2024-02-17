@@ -80,11 +80,12 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         # Connect and setup our database environment.
         ################################################################################
         db = MongoEngine()
+        app_db_settings = application.config["mongo_db"]
         application.config["MONGODB_SETTINGS"] = [
-            {"host": application.config["mongo_db"], "alias": "default"},
+            {"host": app_db_settings, "alias": "default"},
         ]
         db.init_app(application)
-        log.debug(f"...connected to MongoDB -> '{application.config['mongo_db'][0:40]}'")
+        log.debug(f"...connected to MongoDB -> '{app_db_settings[0:40]}'")
 
         ################################################################################
         # Setup static resources..

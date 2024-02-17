@@ -89,7 +89,7 @@ def register():
             user.save()
             flask_login.login_user(user)
             f.flash("Congratulations, you are now a registered user!", "is-primary")
-            return f.redirect(f.url_for("main.main"))
+            return f.redirect(f.url_for("main.render_main"))
         except mongoengine.NotUniqueError:
             f.flash("Sorry, that email address has already been used! Please try another one.")
 

@@ -2,7 +2,9 @@
 .env
 .envrc
 .secrets.*
-__data/
+__raindrop_data__/
+# Database backups..
+__dumps__/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

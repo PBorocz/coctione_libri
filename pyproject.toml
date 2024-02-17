@@ -128,4 +128,35 @@ interpreter = "fish"
 shell = """
   set -x FLASK_ENV "production"
   flask run --debug --host localhost --port 5001
+  """
+
+################################################################################
+# Backups!
+################################################################################
+[tool.poe.tasks.backup_local]
+interpreter = "fish"
+shell = """
+  mkdir -p ./__dumps__
+  echo "Doing dump from local database..."
+  mongodump --db=coctione_libri --out=./__dumps__/dump
+  echo "Compressing to single backup file..."
+  set backup_filename (date +"backup_local_%Y%m%dT%H%M.tar.gz")
+  tar -czf ./__dumps__/$backup_filename ./__dumps__/dump
+  rm                                    ./__dumps__/dump
+"""
+
+[tool.poe.tasks.backup_production]
+interpreter = "fish"
+shell = """
+  mkdir -p ./__dumps__
+  if not set -q mongodb; or not string length -q $mongodb
+      echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
+      exit 1
+  end
+  echo "Doing dump from PRODUCTION database..."
+  mongodump --db=coctione_libri --out=./__dumps__/dump --uri=$mongodb
+  echo "Compressing to single backup file..."
+  set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
+  tar -czf ./__dumps__/$backup_filename ./__dumps__/dump
+  rm                                    ./__dumps__/dump
 """

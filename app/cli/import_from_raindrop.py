@@ -2,6 +2,7 @@
 """Run either delete or import of a set of pdf's to our collection."""
 import argparse
 import os
+import time
 import tomllib
 from collections import defaultdict
 from pathlib import Path
@@ -46,7 +47,7 @@ def delete_():
 def import_new_pdfs():
     user = Users.objects.get(email="peter.borocz@gmail.com")
 
-    path_toml = Path("__data/RaindropPDF-New")
+    path_toml = Path("__raindrop_data__/RaindropPDF-New")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
         raindrops = tomllib.load(fh_toml)
 
@@ -85,7 +86,7 @@ def import_new_pdfs():
 def import_existing_pdfs():
     user = Users.objects.get(email="peter.borocz@gmail.com")
 
-    path_toml = Path("__data/RaindropPDF-Existing")
+    path_toml = Path("__raindrop_data__/RaindropPDF-Existing")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
         raindrops = tomllib.load(fh_toml)
 
@@ -174,6 +175,8 @@ def __import_raindrop(user, raindrop: dict) -> str:
     doc.save()
 
     print("•", end="", flush=True)
+
+    time.sleep(0.25)
 
 
 if __name__ == "__main__":
