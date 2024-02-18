@@ -152,7 +152,7 @@ def render_delete_doc(doc_id: str) -> Response:
 ################################################################################
 @bp.route("/edit/<doc_id>", methods=["POST", "GET"])
 @login_required
-def render_edit_doc(doc_id: str) -> Response:
+def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Response:
     """Edit the attributes of an existing Document."""
     import flask as f
 
@@ -186,14 +186,19 @@ def render_edit_doc(doc_id: str) -> Response:
     form.file_.filename = document.file_.filename
 
     # Is the form we received on a POST valid?
+    print("1")
     if form.validate_on_submit():
-        if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
+        print("2")
+        if form.cancel.data:  # If cancel button is clicked, the form.cancel.data will be True
+            print("3")
             return f.redirect(f.url_for("main.render_main"))
 
-        # First handle all simple attributes of the document:
+        # First handle all simple attributes of the document
+        # (returning a flag indicating if we should save the document)
         document, save = update_doc_from_form(form, document)
 
-        # Now, let's see if we got a new file to upload
+        # Now, let's see if we got a new file to upload (and if so, marking that we should
+        # update the document)
         if file := f.request.files["file_"]:
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             log.info(f"Saving a new file...{filename=}!")
@@ -203,16 +208,20 @@ def render_edit_doc(doc_id: str) -> Response:
         if save:
             document.save()
 
+        print("4")
         return f.redirect(f.url_for("main.render_main"))
+    else:
+        log.error("Sorry, form didn't validate!")
 
     log.info("*" * 80)
-    return f.render_template("main/add_edit.html", title="Edit Document", form=form, no_search=True)
+    print("5")
+    return f.render_template(template, title="Edit Document", form=form, document=document, no_search=True)
 
 
 ################################################################################
 @bp.route("/add", methods=["POST", "GET"])
 @login_required
-def render_add_doc() -> Response:
+def render_add_doc(template="main/add_edit.html") -> Response:
     """Create a *new* Document."""
     import flask as f
 
@@ -245,7 +254,7 @@ def render_add_doc() -> Response:
         return f.redirect(f.url_for("main.render_main"))
 
     log.info("*" * 80)
-    return f.render_template("main/add_edit.html", title="Add Document", form=form, no_search=True)
+    return f.render_template(template, title="Add Document", form=form, no_search=True)
 
 
 def add_doc_from_form(form) -> tuple[Documents, bool]:
@@ -317,6 +326,15 @@ def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:
         #         -> Do Nothing!
         else:
             assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
+
+    ###############
+    # Special cases
+    ###############
+    log.debug(f"{form.last_cooked.data=}")
+    if form.last_cooked.data:
+        if form.last_cooked.data not in document.dates_cooked:
+            document.dates_cooked.append(form.last_cooked.data)
+            log.info(f"attr=last_cooked was appended to with {form.last_cooked.data}")
 
     if save_doc:
         document.updated = datetime.utcnow()

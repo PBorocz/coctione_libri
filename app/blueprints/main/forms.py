@@ -17,15 +17,10 @@ RATING_CHOICES = [
 
 class TagListField(wtforms.StringField):
 
-    """Stringfield for a list of separated tags."""
+    """Stringified field for a list of separated tags."""
 
     def __init__(self, label="", validators=None, separator=",", **kwargs):
-        """Construct a new field.
-
-        :param label: The label of the field.
-        :param validators: A sequence of validators to call when validate is called.
-        :param separator: The separator that splits the individual tags.
-        """
+        """Construct a new field."""
         super().__init__(label, validators, **kwargs)
         self.separator = separator
         self.data = []
@@ -66,6 +61,13 @@ class DocumentEditForm(FlaskForm):
             "rows": 10,
             "cols": 63,
         },
+    )
+
+    last_cooked = wtforms.DateField(
+        "Last Cooked",
+        validators=[
+            validators.Optional(),
+        ],
     )
 
     quality = wtforms.SelectField(

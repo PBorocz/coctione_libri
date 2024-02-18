@@ -57,28 +57,30 @@ class Documents(me_.Document):
 
     # "Recipe"-specific fields..
     notes            = me_.StringField()                                   # General document "notes" in Markdown format
-    dates_cooked     = me_.EmbeddedDocumentListField("History")            # List of "cooked" dates and notes
+    dates_cooked     = me_.ListField(me_.DateTimeField())                  # List of "cooked" dates
     quality          = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
     complexity       = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
-
     # fmt: on
 
     meta = {"indexes": ["tags"]}
 
     @property
     def quality_enum(self):
+        """Uptype the quality field from an int to a "Rating"."""
         if self.quality:
             return Rating(self.quality)
         return None
 
     @property
     def complexity_enum(self):
+        """Uptype the complexity field from an int to a "Rating"."""
         if self.complexity:
             return Rating(self.complexity)
         return None
 
     @property
     def tags_as_str(self):
+        """Convert the list of tags to a lower-case, sorted comma-separated list."""
         if not self.tags:
             return None
         normalised = [tag.lower() for tag in sorted(self.tags)]

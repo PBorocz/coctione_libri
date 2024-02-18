@@ -1,5 +1,30 @@
 {% extends "__root.html" %}
 
+{% block js_local %}
+<script>
+
+ document.addEventListener('DOMContentLoaded', function () {
+   var datepicker = bulmaCalendar.attach('#datePicker', {
+     displayMode: 'default',
+     isClearable: true,
+   });
+ });
+
+ /* window.onload = function() {
+  *   var today = new Date();
+  *   var dd = String(today.getDate()).padStart(2, '0');
+  *   var mm = String(today.getMonth() + 1).padStart(2, '0');
+  *   var yyyy = today.getFullYear();
+
+  *   today = yyyy + '-' + mm + '-' + dd;
+
+  *   document.getElementById("datePicker").value = today;
+  * }; */
+
+
+</script>
+{% endblock %}
+
 {% block content %}
 
 <form action="" method="post" enctype="multipart/form-data" novalidate>
@@ -48,6 +73,21 @@
     </div>
   </div>
 
+  <!-- URL -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">{{ form.url_.label }}</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-link">
+        {{ form.url_ }}
+      </div>
+      {% for error in form.url_.errors %}
+      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
+      {% endfor %}
+    </div>
+  </div>
+
   <!-- Source -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
@@ -61,8 +101,6 @@
       </div>
     </div>
   </div>
-
-  <hr/>
 
   <!-- Tags -->
   <div class="field is-horizontal">
@@ -107,16 +145,16 @@
     </div>
   </div>
 
-  <!-- URL -->
+  <!-- Last Cooked -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.url_.label }}</label>
+      <label class="label">{{ form.last_cooked.label }}</label>
     </div>
     <div class="field-body">
-      <div class="control is-link">
-        {{ form.url_ }}
+      <div class="control">
+        {{ form.last_cooked(type="date", class="input", id="datePicker", placeholder="") }}
       </div>
-      {% for error in form.url_.errors %}
+      {% for error in form.last_cooked.errors %}
       &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
       {% endfor %}
     </div>
