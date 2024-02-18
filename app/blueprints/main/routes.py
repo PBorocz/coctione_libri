@@ -83,7 +83,7 @@ def render_search(template="main/partials/table.html") -> Response:
     # Pull the user-state/query parameters from the (cookie and form) obo the current user:
     cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, f.request)
 
-    search_term_s = f.request.form["search"]
+    search_term_s: str = f.request.form["search"]
 
     log.info("")
     log.info("*" * 80)

@@ -1,7 +1,9 @@
 """Main/home view, essentially the master table itself, either all or from search."""
 import logging as log
+import shlex
 import sys
 from collections.abc import Callable
+from functools import reduce
 
 from bson.objectid import ObjectId
 from mongoengine.queryset.queryset import QuerySet
@@ -20,13 +22,23 @@ def get_all_documents(cookies: Cookies) -> tuple[list[Documents], dict]:
 
 
 def get_search_documents(cookies: Cookies, search: str) -> tuple[list[Documents], dict]:
-    """Return any documents matching the search term(s)."""
-    ids = set()
-    for search_method in SEARCH_METHODS:
-        ids.update(search_method(search))
+    """Return any documents matching the search term(s).
+
+    Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
+    """
+    # We do an implicit "AND", thus, we want to capture the set of ids for each search term
+    # and then "AND" them together.
+    id_sets: list[set[str]] = []
+    for search_term in shlex.split(search):
+        ids = set()
+        for search_method in SEARCH_METHODS:
+            ids.update(search_method(search_term))
+        id_sets.append(ids)
+
+    ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
     # Return all the documents associated with the matching id's.
-    documents = Documents.objects(id__in=ids)
+    documents = Documents.objects(id__in=ids_to_query)
     log.info(f"{len(documents):,d} documents found.")
 
     return _sort(documents, cookies)
