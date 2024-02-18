@@ -114,10 +114,10 @@ class DocumentEditForm(FlaskForm):
 
     def validate_file_(self, field):
         """Validate that either File or URL are required."""
-        if not field.data and not self.url_.data:
-            raise ValidationError("Sorry, if a File isn't provided, a Link must be.")
+        if not self.file_.filename and not self.url_.data:
+            raise ValidationError("Sorry, if a file isn't provided, a link must be.")
 
     def validate_url_(self, field):
         """Validate that either File or URL are required."""
-        if not field.data and not self.file_.data:
-            raise ValidationError("Sorry, if a Link isn't provided, a File must be.")
+        if not self.file_.filename and not self.url_.data:
+            raise ValidationError("Sorry, if a link isn't provided, a file must be.")

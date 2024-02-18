@@ -167,13 +167,14 @@ def render_edit_doc(doc_id: str) -> Response:
     form_quality = 0 if document.quality is None else document.quality
 
     form = forms.DocumentEditForm(
-        source=document.source,
-        title=document.title,
-        quality=form_quality,
         complexity=form_complexity,
-        url_=document.url_,
+        file_=document.file_,
         notes=document.notes,
+        quality=form_quality,
+        source=document.source,
         tags=document.tags,
+        title=document.title,
+        url_=document.url_,
     )
 
     # Get the list of source choices from the DB..
@@ -184,7 +185,7 @@ def render_edit_doc(doc_id: str) -> Response:
     # Pass the filename into the form field as well for display
     form.file_.filename = document.file_.filename
 
-    # Is the form we recieved on a POST valid?
+    # Is the form we received on a POST valid?
     if form.validate_on_submit():
         if form.cancel.data:  # if cancel button is clicked, the form.cancel.data will be True
             return f.redirect(f.url_for("main.render_main"))
