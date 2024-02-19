@@ -19,22 +19,25 @@
 
   {# Tag(s) #}
   <td style="vertical-align: middle;">
-    <div class="tags">
-      {% for tag in document.tags|sort %}
-      <span class="tag is-rounded is-light is-small">
-	{{ tag }}
-	<button class="delete"
-		style="border: none;"
-      		hx-confirm="Are you sure?"
-		hx-swap="outerHTML"
-		hx-delete="/document/tag"
-		hx-target="closest tr"
-		hx-vals='{"name":"{{ tag }}", "id":"{{ document.id }}"}'
-	></button>
-      </span>
-      {% endfor %}
+    <div class="field">
+      <div class="control">
+	<div class="tags has-addons">
+	  {% for tag in document.tags|sort %}
+	  <span class="tag is-link is-light is-normal">
+	    {{ tag }}
+	  </span>
+	  <a class="tag is-delete is-normal"
+      	     hx-confirm="Are you sure?"
+	     hx-swap="outerHTML"
+	     hx-delete="/document/tag"
+	     hx-target="closest tr"
+	     hx-vals='{"name":"{{ tag }}", "id":"{{ document.id }}"}'>
+	  </a>
+	  &nbsp;
+	  {% endfor %}
+	</div>
+      </div>
     </div>
-    {# document.tags|sort|join(", ") #}
   </td>
 
   {# Source #}
