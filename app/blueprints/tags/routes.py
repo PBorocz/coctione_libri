@@ -50,7 +50,7 @@ def delete_tag() -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
     tag = f.request.values.get("name")
-    log.info(f"To be deleted: {tag=}")
+    log.info(f"Delete ENTIRE {tag=}")
     remove_tag(tag)
     log.info("*" * 80)
     return "", 200

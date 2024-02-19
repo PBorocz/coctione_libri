@@ -102,13 +102,16 @@ def _search_by_tag(search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
+################################################################################
+# Factory method to create/return a new Document from inbound form.
+################################################################################
 def new_doc_from_form(current_user, request) -> Documents:
     """Create a *new* document from the respective form."""
     form = request.form
-    # fmt: off
     # Simple attributes:
+    # fmt: off
     document = Documents(
-        user       = current_user,    # Required
+        user       = current_user,       # Required
         title      = form.get("title" ), # "
         source     = form.get("source"),
         url_       = form.get("url_"  ),
@@ -124,7 +127,7 @@ def new_doc_from_form(current_user, request) -> Documents:
     if form.get("tags"):
         document.set_tags_from_str(form.get("tags"))
 
-    # Last Cooked date as first entry in list.."
+    # Last Cooked date (as first/only entry in list)"
     if form.get("last_cooked"):
         dt_last_cooked = datetime.strptime(form.get("last_cooked"))
         document.dates_cooked.append(dt_last_cooked)
@@ -222,6 +225,13 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
         changed = True
 
     return document, changed
+
+
+def remove_tag(id_: str, tag: str) -> Documents:
+    """Remove the specified tag from the document with the specified id."""
+    document = Documents.objects(id=id_)[0]
+    document.update(pull__tags=tag)
+    return Documents.objects(id=id_)[0]
 
 
 ################################################################################

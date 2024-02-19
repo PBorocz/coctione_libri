@@ -21,7 +21,17 @@
   <td style="vertical-align: middle;">
     <div class="tags">
       {% for tag in document.tags|sort %}
-      <span class="tag is-rounded is-light is-medium">{{ tag }}</span>
+      <span class="tag is-rounded is-light is-small">
+	{{ tag }}
+	<button class="delete"
+		style="border: none;"
+      		hx-confirm="Are you sure?"
+		hx-swap="outerHTML"
+		hx-delete="/document/tag"
+		hx-target="closest tr"
+		hx-vals='{"name":"{{ tag }}", "id":"{{ document.id }}"}'
+	></button>
+      </span>
       {% endfor %}
     </div>
     {# document.tags|sort|join(", ") #}

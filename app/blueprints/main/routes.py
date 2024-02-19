@@ -15,6 +15,7 @@ from app.blueprints.main.operations import (
     get_all_documents,
     get_search_documents,
     new_doc_from_form,
+    remove_tag,
     update_doc_from_form,
 )
 from app.models.cookies import Cookies
@@ -231,3 +232,21 @@ def render_add_doc(template="main/add_edit.html") -> Response:
 
     log.info("*" * 80)
     return f.redirect(f.url_for("main.render_main"))
+
+
+################################################################################
+@bp.route("/document/tag", methods=["DELETE"])
+@login_required
+def delete_tag(template="main/partials/tr.html") -> Response:
+    """Delete the specified tag on the specified document and return the row."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    tag = f.request.values.get("name")
+    id_ = f.request.values.get("id")
+    log.info(f"Deleting {tag=} on document={id_}")
+    document = remove_tag(id_, tag)
+    log.info("*" * 80)
+    return f.render_template(template, document=document)
