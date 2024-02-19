@@ -75,12 +75,24 @@
       {# ######################## #}
       <th
 	id="th_source"
-	scope="col"
-	class="has-text-white"
-    	hx-target="closest table"
-	hx-get="/sort"
+	    scope="col"
+	    class="has-text-white"
+    	    hx-target="closest table"
+	    hx-get="/sort"
       >
 	Source{{ sort_state.source|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Last Cooked              #}
+      {# ######################## #}
+      <th id="th_quality"
+          scope="col"
+          class="has-text-white has-text-centered"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+        Last{{ sort_state.last_cooked|safe }}
       </th>
 
       {# ######################## #}

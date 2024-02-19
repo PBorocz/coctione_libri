@@ -2,26 +2,13 @@
 
 {% block js_local %}
 <script>
-
  document.addEventListener('DOMContentLoaded', function () {
-   var datepicker = bulmaCalendar.attach('#datePicker', {
-     displayMode: 'default',
+   var datepicker = bulmaCalendar.attach('#last_cooked', {
+     displayMode: 'dialog',
+     dateFormat: 'yyyy-M-d',
      isClearable: true,
    });
  });
-
- /* window.onload = function() {
-  *   var today = new Date();
-  *   var dd = String(today.getDate()).padStart(2, '0');
-  *   var mm = String(today.getMonth() + 1).padStart(2, '0');
-  *   var yyyy = today.getFullYear();
-
-  *   today = yyyy + '-' + mm + '-' + dd;
-
-  *   document.getElementById("datePicker").value = today;
-  * }; */
-
-
 </script>
 {% endblock %}
 
@@ -33,70 +20,75 @@
   <!-- Title Field -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.title.label }}</label>
+      <label class="label">Title</label>
     </div>
     <div class="field-body">
       <div class="control">
-        {{ form.title(autofocus="") }}
+	<input autofocus required
+	       class="input"
+	       id="title" name="title"
+	       placeholder="eg. a Really Good Dish"
+	       value="{{ document.title }}"
+	>
       </div>
-      {% for error in form.title.errors %}
-      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
-      {% endfor %}
+      {% for error in errors.title %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
   <!-- File -->
   <div id="file-upload" class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.file_.label }}</label>
+      <label class="label">File</label>
     </div>
     <div class="field-body">
       <div class="control">
         <div class="field">
           <div class="file has-name is-primary">
             <label class="file-label">
-	      {{ form.file_ }}
+	      <input class="file-input" id="file_" name="file_" script="on change put me.files[0].name into #file-name" type="file">
               <span class="file-cta">
                 <span class="file-label">Upload</span>&nbsp;
                 <span class="file-icon"><i class="fas fa-upload"></i></span>
               </span>
-              <span id="file-name" class="file-name is-large">
-		{{ form.file_.filename }}
+              <span id="file-name" name="file-name" class="file-name is-large">
+		{% if document.file_ %}
+		{{ document.file_.filename }}
+		{% endif %}
 	      </span>
             </label>
           </div>
         </div>
       </div>
-      {% for error in form.file_.errors %}
-      &nbsp;<p class="help is-danger is-left is-size-5" style="vertical-align: middle;">{{error}}</p>
-      {% endfor %}
+      {% for error in errors.file_ %}<p class="help is-danger is-left is-size-5" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
   <!-- URL -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.url_.label }}</label>
+      <label class="label">Link</label>
     </div>
     <div class="field-body">
       <div class="control is-link">
-        {{ form.url_ }}
+	<input class="input" id="url_" name="url_" type="text" value="{{ document.url_|default("", true) }}">
       </div>
-      {% for error in form.url_.errors %}
-      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
-      {% endfor %}
+      {% for error in errors.url_ %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
   <!-- Source -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.source.label }}</label>
+      <label class="label">Source</label>
     </div>
     <div class="field-body">
       <div class="control">
         <div class="select">
-          {{ form.source }}
+	  <select id="source" name="source">
+	    {% for source in sources %}
+	    <option {% if document.source == source %}selected{% endif %} value="{{ source }}">{{ source }}</option>
+	    {% endfor %}
+	  </select>
         </div>
       </div>
     </div>
@@ -105,27 +97,32 @@
   <!-- Tags -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.tags.label }}</label>
+      <label class="label">Tags</label>
     </div>
     <div class="field-body">
       <div class="control">
-        {{ form.tags(class="input") }}
+	<input class="input" id="tags" name="tags" type="text" value="{{ document.tags_as_str|default("", true) }}">
       </div>
-      {% for error in form.tags.errors %}
-      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
-      {% endfor %}
+      {% for error in errors.tags %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
   <!-- Quality Rating -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.quality.label }}</label>
+      <label class="label">Quality</label>
     </div>
     <div class="field-body">
       <div class="control">
         <div class="select">
-          {{ form.quality }}
+	  <select id="quality" name="quality">
+	    <option {% if document.quality == 5 %}selected{% endif %} value="5">★★★★★</option>
+	    <option {% if document.quality == 4 %}selected{% endif %} value="4">★★★★</option>
+	    <option {% if document.quality == 3 %}selected{% endif %} value="3">★★★</option>
+	    <option {% if document.quality == 2 %}selected{% endif %} value="2">★★</option>
+	    <option {% if document.quality == 1 %}selected{% endif %} value="1">★</option>
+	    <option {% if not document.quality  %}selected{% endif %} value="0"></option>
+	  </select>
         </div>
       </div>
     </div>
@@ -134,13 +131,32 @@
   <!-- Complexity Rating -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.complexity.label }}</label>
+      <label class="label">Complexity</label>
     </div>
     <div class="field-body">
       <div class="control">
         <div class="select">
-          {{ form.complexity }}
+	  <select id="complexity" name="complexity">
+	    <option {% if document.complexity == 5 %}selected{% endif %} value="5">★★★★★</option>
+	    <option {% if document.complexity == 4 %}selected{% endif %} value="4">★★★★</option>
+	    <option {% if document.complexity == 3 %}selected{% endif %} value="3">★★★</option>
+	    <option {% if document.complexity == 2 %}selected{% endif %} value="2">★★</option>
+	    <option {% if document.complexity == 1 %}selected{% endif %} value="1">★</option>
+	    <option {% if not document.complexity  %}selected{% endif %} value="0"></option>
+	  </select>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Notes</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+	<textarea class="textarea" id="notes" name="notes" cols="63" rows="10" type="text">{{ document.notes|default("", true) }}</textarea>
       </div>
     </div>
   </div>
@@ -148,46 +164,47 @@
   <!-- Last Cooked -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.last_cooked.label }}</label>
+      <label class="label">Last Cooked</label>
     </div>
     <div class="field-body">
       <div class="control">
-        {{ form.last_cooked(type="date", class="input", id="datePicker", placeholder="") }}
+	<input class="input my-calendar" type="date" id="last_cooked" name="last_cooked">
       </div>
-      {% for error in form.last_cooked.errors %}
-      &nbsp;<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>
-      {% endfor %}
+      {% for error in errors.last_cooked %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
-  <!-- Notes -->
+  {% if document.dates_cooked %}
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">{{ form.notes.label }}</label>
+      <label class="label">Recipe Cooked:</label>
     </div>
     <div class="field-body">
       <div class="control">
-        {{ form.notes }}
+	<ul class="bulleted-list">
+	  {% for last_cooked in document.dates_cooked %}
+	  <li>{{ last_cooked.strftime("%Y-%m-%d") }}</li>
+	  {% endfor %}
+	</ul>
       </div>
     </div>
   </div>
+  {% endif %}
 
   <br/>
 
   <div class="field is-horizontal">
-    <div class="field-label is-medium"></div><!-- Need this!!! -->
+    <div class="field-label is-medium"></div><!-- Need this even when empty! -->
     <div class="field-body">
       <div class="control is-primary">
-	{{ form.submit(class="button is-link") }}
+	<input class="button is-link" id="submit" name="submit" type="submit" value="Save">
       </div>
       <div class="control is-secondary">
-	{{ form.cancel(class="button is-link is-light") }}
+	<input class="button is-link is-light" formnovalidate="" id="cancel" name="cancel" type="submit" value="Cancel">
       </div>
     </div>
   </div>
 
 </form>
-
-<!-- </div> -->
 
 {% endblock %}

@@ -8,6 +8,8 @@ $family-primary:    "Atkinson Hyperlegible";
 // $family-sans-serif: "Inter", sans-serif;
 // $family-primary: "Inter";
 
+@import "../lib/bulma-0.9.4/bulma.sass";
+
 .htmx-indicator{
     opacity:0;
     transition: opacity 500ms ease-in;
@@ -28,4 +30,16 @@ tr.htmx-swapping td {
     overflow: auto;
 }
 
-@import "../lib/bulma-0.9.4/bulma.sass";
+.my-calendar .bulma-calendar-overlay {
+    max-height: 400px !important;  /* adjust this value as per your need */
+    overflow: visible !important;
+}
+
+.bulleted-list {
+    list-style-type: disc;
+    padding-left: 1em;
+}
+
+.bulleted-list li {
+    margin-bottom: 0.5em;
+}

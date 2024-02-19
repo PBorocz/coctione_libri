@@ -6,6 +6,8 @@ import mongoengine as me_
 
 from app.models.users import Users
 
+TAG_SEP: str = ","  # Separator for adding/editing tags..
+
 
 class Rating(Enum):
     ZER = 0
@@ -65,36 +67,59 @@ class Documents(me_.Document):
     meta = {"indexes": ["tags"]}
 
     @property
-    def quality_enum(self):
+    def quality_enum(self) -> Rating | None:
         """Uptype the quality field from an int to a "Rating"."""
         if self.quality:
             return Rating(self.quality)
         return None
 
     @property
-    def complexity_enum(self):
+    def complexity_enum(self) -> Rating | None:
         """Uptype the complexity field from an int to a "Rating"."""
         if self.complexity:
             return Rating(self.complexity)
         return None
 
     @property
-    def tags_as_str(self):
+    def tags_as_str(self) -> list[str] | None:
         """Convert the list of tags to a lower-case, sorted comma-separated list."""
         if not self.tags:
             return None
         normalised = [tag.lower() for tag in sorted(self.tags)]
-        return ",".join(normalised)
+        return TAG_SEP.join(normalised)
 
     @property
-    def cooked(self):
+    def cooked(self) -> int:
         """Return number of times we've cooked this."""
         return len(self.dates_cooked)
 
-    def source_choices(self):
+    @property
+    def last_cooked(self) -> str | None:
+        """Return the most recent date we've cooked this."""
+        if self.dates_cooked:
+            print(f"{self.dates_cooked=}")
+            count = len(self.dates_cooked)
+            sdate = max(self.dates_cooked).strftime("%Y-%m-%d")
+            return f"{sdate} ({count})"
+        return None
+
+    def set_tags_from_str(self, s_tags: str):
+        """Set the tags in this document based on a comma-delimited list."""
+        self.tags = [tag.strip().title() for tag in s_tags.split(TAG_SEP)]
+
+    def source_choices(self) -> list[list[str, str]]:
         """Return the current list of sources across all documents as a Choice list."""
         choices = [["", ""]]  # Choices are a list of lists..
         docs = Documents.objects(source__ne=None).only("source")
         sources = sorted({doc.source for doc in docs})
         choices.extend([[source, source] for source in sources])
         return choices
+
+
+def sources_available() -> list[str]:
+    """Return the current list of sources across all documents as a Choice list."""
+    sources_available = [""]
+    docs = Documents.objects(source__ne=None).only("source")
+    sources = sorted({doc.source for doc in docs})
+    sources_available.extend(sources)
+    return sources_available

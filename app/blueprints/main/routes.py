@@ -7,13 +7,22 @@ import flask_login as fl
 from flask import make_response, send_file
 from flask.wrappers import Response
 from flask_login import login_required
-from werkzeug.utils import secure_filename
+from flask_wtf import FlaskForm
 
 from app import constants as c
-from app.blueprints.main import bp, forms
-from app.blueprints.main.operations import get_all_documents, get_search_documents
+from app.blueprints.main import bp
+from app.blueprints.main.operations import (
+    get_all_documents,
+    get_search_documents,
+    new_doc_from_form,
+    update_doc_from_form,
+)
 from app.models.cookies import Cookies
-from app.models.documents import Documents
+from app.models.documents import Documents, sources_available
+
+
+class DocumentEditForm(FlaskForm):
+    pass
 
 
 ################################################################################
@@ -160,62 +169,33 @@ def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Respon
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    # Get the document we're going to be editing...
+    # Get the document we might be changing...
     document = Documents.objects(id=doc_id)[0]
 
-    form_complexity = 0 if document.complexity is None else document.complexity
-    form_quality = 0 if document.quality is None else document.quality
+    # On GET, simply present the document for editing..
+    if f.request.method == "GET":
+        log.info("*" * 80)
+        return f.render_template(
+            template,
+            title="Edit Document",
+            document=document,
+            sources=sources_available(),
+            form=DocumentEditForm(),  # Essentially an empty form for CSRF rendering.
+            errors={},
+            no_search=True,
+        )
 
-    form = forms.DocumentEditForm(
-        complexity=form_complexity,
-        file_=document.file_,
-        notes=document.notes,
-        quality=form_quality,
-        source=document.source,
-        tags=document.tags,
-        title=document.title,
-        url_=document.url_,
-    )
-
-    # Get the list of source choices from the DB..
-    form.source.choices = Documents().source_choices()
-    if form.source.choices:
-        form.source.default = form.source.choices[0][0]
-
-    # Pass the filename into the form field as well for display
-    form.file_.filename = document.file_.filename
-
-    # Is the form we received on a POST valid?
-    print("1")
-    if form.validate_on_submit():
-        print("2")
-        if form.cancel.data:  # If cancel button is clicked, the form.cancel.data will be True
-            print("3")
-            return f.redirect(f.url_for("main.render_main"))
-
-        # First handle all simple attributes of the document
-        # (returning a flag indicating if we should save the document)
-        document, save = update_doc_from_form(form, document)
-
-        # Now, let's see if we got a new file to upload (and if so, marking that we should
-        # update the document)
-        if file := f.request.files["file_"]:
-            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-            log.info(f"Saving a new file...{filename=}!")
-            document.file_.replace(file, content_type="application/pdf")
-            save = True
-
-        if save:
-            document.save()
-
-        print("4")
+    # On POST, we need to process any changes encountered (unless we've canceled)
+    if f.request.form.get("cancel"):
         return f.redirect(f.url_for("main.render_main"))
-    else:
-        log.error("Sorry, form didn't validate!")
 
-    log.info("*" * 80)
-    print("5")
-    return f.render_template(template, title="Edit Document", form=form, document=document, no_search=True)
+    # Upset all document attributes on the document (if any)
+    document, doc_changed = update_doc_from_form(f.request, document)
+    if doc_changed:
+        document.updated = datetime.utcnow()
+        document.save()
+
+    return f.redirect(f.url_for("main.render_main"))
 
 
 ################################################################################
@@ -229,114 +209,25 @@ def render_add_doc(template="main/add_edit.html") -> Response:
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    form = forms.DocumentEditForm()
+    # On GET, simply present the page to fill out...
+    if f.request.method == "GET":
+        log.info("*" * 80)
+        return f.render_template(
+            template,
+            title="Add Document",
+            form=DocumentEditForm(),
+            sources=sources_available(),
+            document=None,
+            errors={},
+            no_search=True,
+        )
 
-    if form.cancel.data:  # If cancel button is clicked, the form.cancel.data will be True and we're done!
+    # On POST, we need to create a new document and save it (unless we've canceled)
+    if f.request.form.get("cancel"):
         return f.redirect(f.url_for("main.render_main"))
 
-    # Get the list of source choices from the DB
-    form.source.choices = Documents().source_choices()
-    if form.source.choices:
-        form.source.default = form.source.choices[0][0]
-
-    # Is the form we recieved on a POST valid?
-    if form.validate_on_submit():
-        # First handle all simple attributes of the document:
-        document = add_doc_from_form(form)
-
-        # Now let's see if we got a new file to upload along with it (we may not)
-        if file := f.request.files["file_"]:
-            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-            log.info(f"Saving a new file...{filename=}!")
-            document.file_.replace(file, content_type="application/pdf")
-            document.save()
-
-        return f.redirect(f.url_for("main.render_main"))
-
-    log.info("*" * 80)
-    return f.render_template(template, title="Add Document", form=form, no_search=True)
-
-
-def add_doc_from_form(form) -> tuple[Documents, bool]:
-    """Add (and return) a *new* document from the respective form."""
-    # fmt: off
-    document = Documents(
-        user       = fl.current_user,  # Required
-        title      = form.title.data,  # "
-        source     = form.source.data          if form.source     else None,
-        url_       = form.url_.data            if form.url_       else None,
-        notes      = form.notes.data           if form.notes      else None,
-        quality    = int(form.quality.data)    if form.quality    else None,
-        complexity = int(form.complexity.data) if form.complexity else None,
-    )
-    # fmt: on
+    document = new_doc_from_form(fl.current_user, f.request)
     document.save()
 
-    return document
-
-
-def update_doc_from_form(form, document: Documents) -> tuple[Documents, bool]:
-    """Update the document attributes from the respective form, returning the doc if changed."""
-    form_document_attrs = (
-        (None, "title"),
-        (None, "notes"),
-        (None, "source"),
-        (None, "url_"),
-        (None, "tags"),
-        ("to_int", "quality"),
-        ("to_int", "complexity"),
-    )
-
-    save_doc = False
-    for conversion, attr in form_document_attrs:
-        curr_value = getattr(document, attr)  # Value in the current document, ie. in db.
-        form_value = getattr(form, attr).data  # Value coming back from the form.
-        if conversion == "to_int":
-            form_value = int(form_value)
-
-        ################################################################################
-        # Case 1: Have both a form_value and current document value
-        #         -> Check for match and update if necessary
-        ################################################################################
-        if form_value and curr_value:
-            if form_value != curr_value:
-                save_doc = True
-                setattr(document, attr, form_value)
-                log.info(f"{attr=} was updated to {form_value} (from {curr_value})")
-
-        ################################################################################
-        # Case 2: Have a new form_value but not current document value
-        #         -> Update document with new value.
-        ################################################################################
-        elif form_value and not curr_value:
-            save_doc = True
-            setattr(document, attr, form_value)
-            log.info(f"{attr=} was newly set to {form_value}")
-
-        ################################################################################
-        # Case 3: Don't have a new form_value but do have a current document value
-        #         -> Update document value to None.
-        ################################################################################
-        elif not form_value and curr_value:
-            save_doc = True
-            setattr(document, attr, None)
-            log.info(f"{attr=} was cleared")
-
-        # Case 4: Don't have a new form_value and don't have a current document value
-        #         -> Do Nothing!
-        else:
-            assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
-
-    ###############
-    # Special cases
-    ###############
-    log.debug(f"{form.last_cooked.data=}")
-    if form.last_cooked.data:
-        if form.last_cooked.data not in document.dates_cooked:
-            document.dates_cooked.append(form.last_cooked.data)
-            log.info(f"attr=last_cooked was appended to with {form.last_cooked.data}")
-
-    if save_doc:
-        document.updated = datetime.utcnow()
-        return document, True
-    return document, False
+    log.info("*" * 80)
+    return f.redirect(f.url_for("main.render_main"))

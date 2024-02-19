@@ -32,6 +32,11 @@
     {{ document.source | default("", true) }}
   </td>
 
+  {# Last Cooked #}
+  <td style="vertical-align: middle;">
+    {{ document.last_cooked | default("", true) }}
+  </td>
+
   {# Edit Icon #}
   <td class="has-text-centered"  style="vertical-align: middle;">
     <a href="/edit/{{ document.id }}">
