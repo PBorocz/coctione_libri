@@ -1,6 +1,7 @@
 """Base application document model."""
-from datetime import datetime
+import datetime as dt
 from enum import Enum
+from zoneinfo import ZoneInfo
 
 import mongoengine as me_
 
@@ -26,9 +27,9 @@ class History(me_.EmbeddedDocument):
     """Sub-document for Recipe Documents representing cooking history."""
 
     # fmt: off
-    cooked  = me_.DateTimeField(required=True)                           # Date on which we cooked/prepared the doc
-    notes   = me_.StringField()                                          # Document "notes" (in Markdown format)
-    created = me_.DateTimeField(required=True, default=datetime.utcnow)  # Date stamp when created in Raindrop!
+    cooked  = me_.DateTimeField(required=True)                              # Date on which we cooked/prepared the doc
+    notes   = me_.StringField()                                             # Document "notes" (in Markdown format)
+    created = me_.DateTimeField(required=True, default=dt.datetime.utcnow)  # Date stamp when created in Raindrop!
     # fmt: on
 
 
@@ -42,7 +43,7 @@ class Documents(me_.Document):
     ################################################################################
     user             = me_.ReferenceField(Users, required=True)            # FK to user
     title            = me_.StringField(max_length=120, required=True)      # Display title, eg. SomethingGoodToCook.pdf
-    created          = me_.DateTimeField(default=datetime.utcnow)          # Date stamp when created in Raindrop!
+    created          = me_.DateTimeField(default=dt.datetime.utcnow)       # Date stamp when created in Raindrop!
 
     ################################################################################
     # Optional Fields
@@ -94,10 +95,23 @@ class Documents(me_.Document):
         return len(self.dates_cooked)
 
     @property
+    def created_local(self) -> str:
+        """Return created attr in local and nicely formatted."""
+        print("here")
+        return dt_as_local(self.created)
+
+    @property
+    def updated_local(self) -> str:
+        """Return updated attr in local and nicely formatted if available."""
+        print("here2")
+        if self.updated:
+            return dt_as_local(self.updated)
+        return ""
+
+    @property
     def last_cooked(self) -> str | None:
         """Return the most recent date we've cooked this."""
         if self.dates_cooked:
-            print(f"{self.dates_cooked=}")
             count = len(self.dates_cooked)
             sdate = max(self.dates_cooked).strftime("%Y-%m-%d")
             return f"{sdate} ({count})"
@@ -114,6 +128,19 @@ class Documents(me_.Document):
         sources = sorted({doc.source for doc in docs})
         choices.extend([[source, source] for source in sources])
         return choices
+
+
+def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angeles") -> str:
+    """Return naive datetime in nicely formatted local time (`Wednesday, February 21st 02:15pm`)."""
+    datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)
+    datetime_local = datetime_utc.astimezone(ZoneInfo(timezone_))
+
+    day = int(datetime_local.strftime("%d"))
+    suffix = ["th", "st", "nd", "rd", "th"][min(day % 10, 4)]
+    if 11 <= (day % 100) <= 13:  # noqa: PLR2004
+        suffix = "th"
+
+    return datetime_local.strftime(f"%A, %B {day}{suffix} %I:%M%p")
 
 
 def sources_available() -> list[str]:

@@ -16,8 +16,12 @@
   {% if documents %}
   <thead style="font-family: 'Raleway', sans-serif;">
 
-    <tr class="has-background-grey-dark"
-    >
+    <tr class="has-background-grey-dark">
+
+      {# ######################## #}
+      {# Edit?                    #}
+      {# ######################## #}
+      <th scope="col" class="disable-sort"></th>
 
       {# ######################## #}
       {# Quality                  #}
@@ -94,22 +98,6 @@
       >
         Last{{ sort_state.last_cooked|safe }}
       </th>
-
-      {# ######################## #}
-      {# Edit?                    #}
-      {# ######################## #}
-      <th
-	scope="col"
-	class="disable-sort"
-      ></th>
-
-      {# ######################## #}
-      {# Delete?                  #}
-      {# ######################## #}
-      <th
-	scope="col"
-	class="disable-sort"
-      ></th>
 
     </tr>
   </thead>

@@ -1,7 +1,7 @@
 {% extends "__root.html" %}
 
 {% block js_local %}
-<script>
+<script type="text/javascript">
  document.addEventListener('DOMContentLoaded', function () {
    var datepicker = bulmaCalendar.attach('#last_cooked', {
      displayMode: 'dialog',
@@ -9,12 +9,42 @@
      isClearable: true,
    });
  });
+
+ function confirm_form_delete(event, formId, btnName, btnValue) {
+   event.preventDefault();
+   Swal.fire({
+
+     title: "Are you sure you want to delete this entry?",
+     text: "You will not be able to revert this!",
+     icon: "warning",
+
+     confirmButtonColor: "#d33",
+     confirmButtonText: "Yes",
+
+     showCancelButton: true,
+     cancelButtonColor: "#3085d6",
+     cancelButtonText: "Cancel",
+
+   }).then((result) => {
+     if (result.isConfirmed) {
+
+       var input = document.createElement("input");	// Create a new input element to simulate the button press
+       input.setAttribute("type", "hidden");		// Set its type to "hidden", so it's not visible on the page
+       input.setAttribute("name", btnName);		// The name should match the name of the button you're simulating
+       input.setAttribute("value", btnValue);		// The value should match the value of the button you're simulating
+
+       var form = document.getElementById(formId);
+       form.appendChild(input);
+       form.submit()
+     }
+   });
+ }
 </script>
 {% endblock %}
 
 {% block content %}
 
-<form action="" method="post" enctype="multipart/form-data" novalidate>
+<form action="" method="post" enctype="multipart/form-data" id="form_add_edit" novalidate>
   {{ form.hidden_tag() }}
 
   <!-- Title Field -->
@@ -191,16 +221,62 @@
   </div>
   {% endif %}
 
+  <hr/>
+
+  <!-- Created -->
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Created</label>
+    </div>
+    <div class="field-body">
+      <div class="control">
+	<input class="input" type="text" readonly value="{{ document.created_local }}">
+      </div>
+    </div>
+  </div>
+
+  <!-- Updated -->
+  {% if document.updated %}
+  <div class="field is-horizontal">
+    <div class="field-label is-medium is-normal">
+      <label class="label">Last Updated</label>
+    </div>
+    <div class="field-body is-normal">
+      <div class="control">
+	<input class="input" type="text" readonly value="{{ document.updated_local }}">
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <br/>
 
   <div class="field is-horizontal">
     <div class="field-label is-medium"></div><!-- Need this even when empty! -->
     <div class="field-body">
       <div class="control is-primary">
-	<input class="button is-link" id="submit" name="submit" type="submit" value="Save">
-      </div>
-      <div class="control is-secondary">
-	<input class="button is-link is-light" formnovalidate="" id="cancel" name="cancel" type="submit" value="Cancel">
+	<div class="columns">
+	  <div class="column is-2">
+	    <input class="button is-link"
+		   type="submit"
+		   id="save"
+		   name="save"
+		   value="Save">
+	  </div>
+	  <div class="column is-2">
+	    <input class="button is-link is-light"
+		   type="submit"
+		   id="cancel"
+		   name="cancel"
+		   value="Cancel">
+	  </div>
+	  <div class="column is-2 is-offset-4">
+	    <input class="button is-danger is-light"
+		   type="submit"
+		   value="Delete Document"
+		   onclick="confirm_form_delete(event, 'form_add_edit', 'delete', 'delete')">
+	  </div>
+	</div>
       </div>
     </div>
   </div>

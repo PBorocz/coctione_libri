@@ -8,34 +8,3 @@
 </div>
 
 {% endblock %}
-
-{# Delete confirmation support code #}
-{% block js_local %}
-<script type="text/javascript">
-
- function confirm_deletion(ev) {
-   ev.preventDefault();
-   var urlToRedirect = ev.currentTarget.getAttribute('href');
-   Swal.fire({
-
-     title: "Are you sure you want to delete this entry?",
-     text: "You will not be able to revert this!",
-     icon: "warning",
-
-     confirmButtonColor: "#d33",
-     confirmButtonText: "Yes",
-
-     showCancelButton: true,
-     cancelButtonColor: "#3085d6",
-     cancelButtonText: "Cancel",
-
-   }).then((result) => {
-     if (result.isConfirmed) {
-       window.location.href = urlToRedirect;
-     }
-   });
- }
-
-</script>
-
-{% endblock %}

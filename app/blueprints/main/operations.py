@@ -234,6 +234,16 @@ def remove_tag(id_: str, tag: str) -> Documents:
     return Documents.objects(id=id_)[0]
 
 
+def delete_document(document: Documents | None = None, id_: str | None = None) -> None:
+    """Delete the specified document (or the one with the specified id)."""
+    assert document or id_, "Sorry, we need EITHER a document or a document id!"
+    if not document:
+        document = Documents.objects(id=id_)[0]
+    if document.file_:
+        document.file_.delete()
+    document.delete()
+
+
 ################################################################################
 # Utility methods
 ################################################################################

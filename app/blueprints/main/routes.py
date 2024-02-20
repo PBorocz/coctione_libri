@@ -12,6 +12,7 @@ from flask_wtf import FlaskForm
 from app import constants as c
 from app.blueprints.main import bp
 from app.blueprints.main.operations import (
+    delete_document,
     get_all_documents,
     get_search_documents,
     new_doc_from_form,
@@ -139,27 +140,6 @@ def render_view_doc(doc_id: str) -> Response:
 
 
 ################################################################################
-@bp.route("/delete/<doc_id>", methods=["GET"])
-@login_required
-def render_delete_doc(doc_id: str) -> Response:
-    """Delete a document."""
-    import flask as f
-
-    log.info("")
-    log.info("*" * 80)
-    log.info(f"{f.request.method.upper()} /")
-
-    document = Documents.objects(id=doc_id)[0]
-
-    if document.file_:
-        document.file_.delete()
-
-    document.delete()
-
-    return f.redirect(f.url_for("main.render_main"))
-
-
-################################################################################
 @bp.route("/edit/<doc_id>", methods=["POST", "GET"])
 @login_required
 def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Response:
@@ -170,10 +150,11 @@ def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Respon
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
 
-    # Get the document we might be changing...
     document = Documents.objects(id=doc_id)[0]
 
+    ################################################################################
     # On GET, simply present the document for editing..
+    ################################################################################
     if f.request.method == "GET":
         log.info("*" * 80)
         return f.render_template(
@@ -186,17 +167,33 @@ def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Respon
             no_search=True,
         )
 
-    # On POST, we need to process any changes encountered (unless we've canceled)
+    ################################################################################
+    # On POST, we determine which of the 3 buttons was pressed:
+    ################################################################################
     if f.request.form.get("cancel"):
+        # Easiest case, we're outa here!
+        log.info("Cancel...")
+        log.info("*" * 80)
         return f.redirect(f.url_for("main.render_main"))
 
-    # Upset all document attributes on the document (if any)
-    document, doc_changed = update_doc_from_form(f.request, document)
-    if doc_changed:
-        document.updated = datetime.utcnow()
-        document.save()
+    elif f.request.form.get("delete"):
+        # Easier case, delete the document!
+        log.info("Delete...")
+        delete_document(document=document)
+        log.info("*" * 80)
+        return f.redirect(f.url_for("main.render_main"))
 
-    return f.redirect(f.url_for("main.render_main"))
+    elif f.request.form.get("save"):
+        # Normal case, upsert all document attributes on the document (if any)
+        log.info("Save...")
+        document, doc_changed = update_doc_from_form(f.request, document)
+        if doc_changed:
+            document.updated = datetime.utcnow()
+            document.save()
+        log.info("*" * 80)
+        return f.redirect(f.url_for("main.render_main"))
+    else:
+        raise RuntimeError("Sorry, invalid action received! (expected: cancel, save or delete)")
 
 
 ################################################################################
@@ -250,3 +247,53 @@ def delete_tag(template="main/partials/tr.html") -> Response:
     document = remove_tag(id_, tag)
     log.info("*" * 80)
     return f.render_template(template, document=document)
+
+
+################################################################################
+# CURRENTLY UNUSED AS WE DON'T RENDER A DELETE BUTTON on the Main table.
+################################################################################
+# Used to be:
+# {# Delete Icon #}
+# <td class="has-text-centered"  style="vertical-align: middle;">
+#   <a onclick="confirm_deletion(event)" href="/delete/{{ document.id }}">
+#     <span class="icon is-small is-right is-size-6">
+#       <i class="fa-regular fa-trash-can"></i>
+#     </span>
+#   </a>
+# </td>
+# and:
+# {% block js_local %}
+# <script type="text/javascript">
+#   function confirm_deletion(event) {
+#    event.preventDefault();
+#    var urlToRedirect = event.currentTarget.getAttribute('href');
+#    Swal.fire({
+#      title: "Are you sure you want to delete this entry?",
+#      text: "You will not be able to revert this!",
+#      icon: "warning",
+#      confirmButtonColor: "#d33",
+#      confirmButtonText: "Yes",
+#      showCancelButton: true,
+#      cancelButtonColor: "#3085d6",
+#      cancelButtonText: "Cancel",
+#    }).then((result) => {
+#      if (result.isConfirmed) {
+#        window.location.href = urlToRedirect;
+#      }
+#    });
+#  }
+# </script>
+# {% endblock %}
+################################################################################
+@bp.route("/delete/<doc_id>", methods=["GET"])
+@login_required
+def render_delete_doc(doc_id: str) -> Response:
+    """Delete a document."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    delete_document(doc_id)
+    log.info("*" * 80)
+    return f.redirect(f.url_for("main.render_main"))
