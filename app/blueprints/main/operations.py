@@ -129,7 +129,7 @@ def new_doc_from_form(current_user, request) -> Documents:
 
     # Last Cooked date (as first/only entry in list)"
     if form.get("last_cooked"):
-        dt_last_cooked = datetime.strptime(form.get("last_cooked"))
+        dt_last_cooked = datetime.strptime(form.get("last_cooked"), "%Y-%m-%d")
         document.dates_cooked.append(dt_last_cooked)
 
     # Did we also get a new file to upload along with it (we may not!)

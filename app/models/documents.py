@@ -97,13 +97,11 @@ class Documents(me_.Document):
     @property
     def created_local(self) -> str:
         """Return created attr in local and nicely formatted."""
-        print("here")
         return dt_as_local(self.created)
 
     @property
     def updated_local(self) -> str:
         """Return updated attr in local and nicely formatted if available."""
-        print("here2")
         if self.updated:
             return dt_as_local(self.updated)
         return ""
@@ -116,6 +114,10 @@ class Documents(me_.Document):
             sdate = max(self.dates_cooked).strftime("%Y-%m-%d")
             return f"{sdate} ({count})"
         return None
+
+    @property
+    def dates_cooked_local(self) -> list[str]:
+        return [dt_as_date(lc_) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
     def set_tags_from_str(self, s_tags: str):
         """Set the tags in this document based on a comma-delimited list."""
@@ -130,8 +132,8 @@ class Documents(me_.Document):
         return choices
 
 
-def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angeles") -> str:
-    """Return naive datetime in nicely formatted local time (`Wednesday, February 21st 02:15pm`)."""
+def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angeles", date_only: bool = False) -> str:
+    """Return naive datetime as a nicely formatted local date-time (`Wednesday, February 21st 02:15pm 2024`)."""
     datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)
     datetime_local = datetime_utc.astimezone(ZoneInfo(timezone_))
 
@@ -140,7 +142,20 @@ def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angel
     if 11 <= (day % 100) <= 13:  # noqa: PLR2004
         suffix = "th"
 
-    return datetime_local.strftime(f"%A, %B {day}{suffix} %I:%M%p")
+    strftime_ = f"%A, %B {day}{suffix} %Y" if date_only else f"%A, %B {day}{suffix} %I:%M%p %Y"
+    return datetime_local.strftime(strftime_)
+
+
+def dt_as_date(datetime_naive: dt.datetime) -> str:
+    """Return naive datetime as a nicely formatted date (`Wednesday, February 21st 2024`)."""
+    datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)
+
+    day = int(datetime_utc.strftime("%d"))
+    suffix = ["th", "st", "nd", "rd", "th"][min(day % 10, 4)]
+    if 11 <= (day % 100) <= 13:  # noqa: PLR2004
+        suffix = "th"
+
+    return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
 
 
 def sources_available() -> list[str]:

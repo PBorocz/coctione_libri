@@ -44,7 +44,7 @@
 
 {% block content %}
 
-<form action="" method="post" enctype="multipart/form-data" id="form_add_edit" novalidate>
+<form action="" method="post" enctype="multipart/form-data" id="form_manage" novalidate>
   {{ form.hidden_tag() }}
 
   <!-- Title Field -->
@@ -197,40 +197,38 @@
       <label class="label">Last Cooked</label>
     </div>
     <div class="field-body">
-      <div class="control">
+      <div class="control" style="overflow:hidden;">
 	<input class="input my-calendar" type="date" id="last_cooked" name="last_cooked">
       </div>
       {% for error in errors.last_cooked %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
+  <hr/>
+
   {% if document.dates_cooked %}
   <div class="field is-horizontal">
-    <div class="field-label is-medium">
-      <label class="label">Recipe Cooked:</label>
+    <div class="field-label">
+      <label class="label">Cooking History:</label>
     </div>
     <div class="field-body">
       <div class="control">
-	<ul class="bulleted-list">
-	  {% for last_cooked in document.dates_cooked %}
-	  <li>{{ last_cooked.strftime("%Y-%m-%d") }}</li>
-	  {% endfor %}
-	</ul>
+	{% for date_cooked in document.dates_cooked_local %}
+	<span class="content">{{ date_cooked }}</span><br/>
+	{% endfor %}
       </div>
     </div>
   </div>
   {% endif %}
 
-  <hr/>
-
   <!-- Created -->
   <div class="field is-horizontal">
-    <div class="field-label is-medium">
-      <label class="label">Created</label>
+    <div class="field-label">
+      <label class="label">Created:</label>
     </div>
     <div class="field-body">
       <div class="control">
-	<input class="input" type="text" readonly value="{{ document.created_local }}">
+	<div class="content">{{ document.created_local }}</div>
       </div>
     </div>
   </div>
@@ -238,12 +236,12 @@
   <!-- Updated -->
   {% if document.updated %}
   <div class="field is-horizontal">
-    <div class="field-label is-medium is-normal">
-      <label class="label">Last Updated</label>
+    <div class="field-label">
+      <label class="label">Last Updated:</label>
     </div>
-    <div class="field-body is-normal">
+    <div class="field-body">
       <div class="control">
-	<input class="input" type="text" readonly value="{{ document.updated_local }}">
+	<div class="content">{{ document.created_local }}</div>
       </div>
     </div>
   </div>
@@ -254,7 +252,7 @@
   <div class="field is-horizontal">
     <div class="field-label is-medium"></div><!-- Need this even when empty! -->
     <div class="field-body">
-      <div class="control is-primary">
+      <div class="control is-primary" style="overflow:hidden;">
 	<div class="columns">
 	  <div class="column is-2">
 	    <input class="button is-link"
@@ -274,7 +272,7 @@
 	    <input class="button is-danger is-light"
 		   type="submit"
 		   value="Delete Document"
-		   onclick="confirm_form_delete(event, 'form_add_edit', 'delete', 'delete')">
+		   onclick="confirm_form_delete(event, 'form_manage', 'delete', 'delete')">
 	  </div>
 	</div>
       </div>

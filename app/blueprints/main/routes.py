@@ -56,9 +56,14 @@ def render_main(template="main/main.html") -> Response:
 ################################################################################
 @bp.get("/sort")
 @login_required
-def render_table_sorted(template="main/partials/table.html") -> Response:
+def render_main_sorted(template="main/partials/table.html") -> Response:
     """Re-render our main table based on a new sort field and/or direction."""
     import flask as f
+
+    # Make sure we're coming in from an HTMX call..
+    assert "Hx-Trigger" in f.request.headers
+    trigger = f.request.headers.get("Hx-Trigger")
+    log.info(f"Hx-Trigger:{trigger}")
 
     log.info("")
     log.info("*" * 80)
@@ -113,7 +118,7 @@ def render_search(template="main/partials/table.html") -> Response:
 ################################################################################
 @bp.get("/view/<doc_id>")
 @login_required
-def render_view_doc(doc_id: str) -> Response:
+def render_view_document(doc_id: str) -> Response:
     """Render a file (for now, usually a pdf)."""
     import flask as f
 
@@ -140,9 +145,9 @@ def render_view_doc(doc_id: str) -> Response:
 
 
 ################################################################################
-@bp.route("/edit/<doc_id>", methods=["POST", "GET"])
+@bp.route("/manage/<doc_id>", methods=["POST", "GET"])
 @login_required
-def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Response:
+def render_manage_document(doc_id: str, template: str = "main/manage_document.html") -> Response:
     """Edit the attributes of an existing Document."""
     import flask as f
 
@@ -170,21 +175,21 @@ def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Respon
     ################################################################################
     # On POST, we determine which of the 3 buttons was pressed:
     ################################################################################
+    # Easiest case, we're outa here!
     if f.request.form.get("cancel"):
-        # Easiest case, we're outa here!
         log.info("Cancel...")
         log.info("*" * 80)
         return f.redirect(f.url_for("main.render_main"))
 
+    # Easier case, delete the document!
     elif f.request.form.get("delete"):
-        # Easier case, delete the document!
         log.info("Delete...")
         delete_document(document=document)
         log.info("*" * 80)
         return f.redirect(f.url_for("main.render_main"))
 
+    # Normal case, upsert all document attributes on the document (if any)
     elif f.request.form.get("save"):
-        # Normal case, upsert all document attributes on the document (if any)
         log.info("Save...")
         document, doc_changed = update_doc_from_form(f.request, document)
         if doc_changed:
@@ -199,7 +204,7 @@ def render_edit_doc(doc_id: str, template: str = "main/add_edit.html") -> Respon
 ################################################################################
 @bp.route("/add", methods=["POST", "GET"])
 @login_required
-def render_add_doc(template="main/add_edit.html") -> Response:
+def render_add_doc(template="main/manage_document.html") -> Response:
     """Create a *new* Document."""
     import flask as f
 
@@ -234,9 +239,14 @@ def render_add_doc(template="main/add_edit.html") -> Response:
 ################################################################################
 @bp.route("/document/tag", methods=["DELETE"])
 @login_required
-def delete_tag(template="main/partials/tr.html") -> Response:
+def delete_tag_from_document(template="main/partials/tr.html") -> Response:
     """Delete the specified tag on the specified document and return the row."""
     import flask as f
+
+    # Make sure we're coming in from an HTMX call..
+    assert "Hx-Trigger" in f.request.headers
+    trigger = f.request.headers.get("Hx-Trigger")
+    log.info(f"Hx-Trigger:{trigger}")
 
     log.info("")
     log.info("*" * 80)
