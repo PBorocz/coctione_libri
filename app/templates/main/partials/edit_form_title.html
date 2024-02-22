@@ -1,0 +1,21 @@
+<!-- Title Field -->
+<form hx-post="/edit/{{ document.id }}" hx-vals='{"field": "title"}' hx-swap="outerHTML">
+  {{ form.hidden_tag() }}
+
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Title</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+
+	<input type="submit" style="display:none;"> {# Hidden submit will make "return" fire the hx-post #}
+	<input autofocus required class="input mr-4 form-input" name="title" value="{{ document.title }}">
+
+	{% include "main/partials/_status_icon.html" %}
+
+      </div>
+    </div>
+  </div>
+
+</form>

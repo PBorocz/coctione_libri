@@ -12,19 +12,14 @@
 
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
-    {% block css %}
     {# Primary CSS framework #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
     <link rel="stylesheet" href="https://unpkg.com/bulma-calendar@6.1.19/dist/css/bulma-calendar.min.css">
 
-    <style>
-     {% block extra_css %}
-     {# Any optional/page-specific css goes here. #}
-     {% endblock %}
-    </style>
-
+    {% block extra_css %}
+    {# Any optional/page-specific css can be injected here... #}
     {% endblock %}
 
   </head>

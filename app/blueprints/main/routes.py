@@ -8,6 +8,7 @@ from flask import make_response, send_file
 from flask.wrappers import Response
 from flask_login import login_required
 from flask_wtf import FlaskForm
+from werkzeug.utils import secure_filename
 
 from app import constants as c
 from app.blueprints.main import bp
@@ -23,7 +24,7 @@ from app.models.cookies import Cookies
 from app.models.documents import Documents, sources_available
 
 
-class DocumentEditForm(FlaskForm):
+class EmptyForm(FlaskForm):
     pass
 
 
@@ -167,7 +168,7 @@ def render_manage_document(doc_id: str, template: str = "main/manage_document.ht
             title="Edit Document",
             document=document,
             sources=sources_available(),
-            form=DocumentEditForm(),  # Essentially an empty form for CSRF rendering.
+            form=EmptyForm(),  # Essentially an empty form for CSRF rendering.
             errors={},
             no_search=True,
         )
@@ -202,6 +203,72 @@ def render_manage_document(doc_id: str, template: str = "main/manage_document.ht
 
 
 ################################################################################
+@bp.route("/edit/<doc_id>", methods=["POST", "GET"])
+@login_required
+def render_edit_document(doc_id: str) -> Response:
+    """Edit the attributes of an existing Document using the 'atomic' edit approach."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+
+    document = Documents.objects(id=doc_id)[0]
+
+    # status_error = {"color": "has-text-danger-dark", "icon": "fa-xmark"}
+    status_icon = {"color": "has-text-success", "icon": "fa-circle-check"}
+
+    # Default return values for BOTH GET and POST Calls
+    return_ = {
+        "form": EmptyForm(),  # Need for CSRF rendering,
+        "sources": sources_available(),
+        "no_search": True,
+        "title": "Edit Document",
+    }
+
+    ################################################################################
+    # On GET, simply present the entire page...
+    ################################################################################
+    if f.request.method == "GET":
+        log.info("*" * 80)
+        return_["document"] = document
+        return f.render_template("main/edit_document.html", **return_)
+
+    ################################################################################
+    # On POST, we determine which field was edited:
+    ################################################################################
+    match f.request.form.get("field"):
+        case "title":
+            document.title = f.request.form.get("title")
+            document.save()
+            template = "main/partials/edit_form_title.html"
+        case "file_":
+            file = f.request.files["file_"]
+            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
+            document.file_.replace(file, filename=filename, content_type="application/pdf")
+            document.save()
+            msg = (
+                f"Saving a new file: {filename=}!"
+                if document.file_
+                else f"Replacing existing file {document.file_.filename=} with: {filename=}!"
+            )
+            log.debug(msg)
+            template = "main/partials/edit_form_file.html"
+        case "url_":
+            document.url_ = f.request.form.get("url_")
+            document.save()
+            template = "main/partials/edit_form_url.html"
+        case "source":
+            document.source = f.request.form.get("source")
+            document.save()
+            template = "main/partials/edit_form_source.html"
+        case _:
+            raise RuntimeError(f"Unrecognised {f.request.form.get('field')=}")
+
+    return f.render_template(template, document=document, status_icon=status_icon, **return_)
+
+
+################################################################################
 @bp.route("/add", methods=["POST", "GET"])
 @login_required
 def render_add_doc(template="main/manage_document.html") -> Response:
@@ -218,7 +285,7 @@ def render_add_doc(template="main/manage_document.html") -> Response:
         return f.render_template(
             template,
             title="Add Document",
-            form=DocumentEditForm(),
+            form=EmptyForm(),
             sources=sources_available(),
             document=None,
             errors={},

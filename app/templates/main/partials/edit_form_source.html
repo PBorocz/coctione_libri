@@ -1,0 +1,26 @@
+<!-- Source -->
+<form hx-post="/edit/{{ document.id }}" hx-trigger="change from:#source" hx-swap="outerHTML" hx-vals='{"field": "source"}' novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Source</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+
+        <div class="select mr-4">
+	  <select id="source" name="source">
+	    {% for source in sources %}
+	    <option {% if document.source == source %}selected{% endif %} value="{{ source }}">{{ source }}</option>
+	    {% endfor %}
+	  </select>
+        </div>
+
+	{% include "main/partials/_status_icon.html" %}
+
+      </div>
+    </div>
+  </div>
+
+</form>
