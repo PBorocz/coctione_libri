@@ -203,20 +203,17 @@ def render_manage_document(doc_id: str, template: str = "main/manage_document.ht
 
 
 ################################################################################
-@bp.route("/edit/<doc_id>", methods=["POST", "GET"])
+@bp.get("/edit/<doc_id>")
 @login_required
 def render_edit_document(doc_id: str) -> Response:
-    """Edit the attributes of an existing Document using the 'atomic' edit approach."""
+    """Display the Document edit panel."""
     import flask as f
 
     log.info("")
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
-
+    log.info(f"{doc_id=}")
     document = Documents.objects(id=doc_id)[0]
-
-    # status_error = {"color": "has-text-danger-dark", "icon": "fa-xmark"}
-    status_icon = {"color": "has-text-success", "icon": "fa-circle-check"}
 
     # Default return values for BOTH GET and POST Calls
     return_ = {
@@ -225,24 +222,68 @@ def render_edit_document(doc_id: str) -> Response:
         "no_search": True,
         "title": "Edit Document",
     }
+    log.info("*" * 80)
+    return_["document"] = document
+    return f.render_template("main/edit_document.html", **return_)
 
-    ################################################################################
-    # On GET, simply present the entire page...
-    ################################################################################
-    if f.request.method == "GET":
-        log.info("*" * 80)
-        return_["document"] = document
-        return f.render_template("main/edit_document.html", **return_)
 
-    ################################################################################
-    # On POST, we determine which field was edited:
-    ################################################################################
-    match f.request.form.get("field"):
+################################################################################
+@bp.post("/edit/<field>/<doc_id>")
+@login_required
+def edit_document_field(field: str, doc_id: str) -> Response:
+    """Edit an particular attribute of an Document."""
+    import flask as f
+
+    log.info("")
+    log.info("*" * 80)
+    log.info(f"{f.request.method.upper()} /")
+    log.info(f"{field=}")
+    log.info(f"{doc_id=}")
+    document = Documents.objects(id=doc_id)[0]
+
+    status_error = {"color": "has-text-danger-dark", "icon": "fa-solid fa-circle-exclamation"}
+    status_icon = {"color": "has-text-success", "icon": "fa-solid fa-circle-check"}
+
+    # Default return values for BOTH GET and POST Calls
+    return_ = {
+        "form": EmptyForm(),  # Need for CSRF rendering,
+        "sources": sources_available(),
+    }
+
+    match field:
         case "title":
+            template = "main/partials/edit_form_title.html"
             document.title = f.request.form.get("title")
             document.save()
-            template = "main/partials/edit_form_title.html"
+
+        case "notes":
+            template = "main/partials/edit_form_notes.html"
+            document.notes = f.request.form.get("notes")
+            document.save()
+
+        case "quality":
+            print("quality")
+            print(f"{f.request.form.get('quality')=}")
+            template = "main/partials/edit_form_quality.html"
+            document.quality = int(f.request.form.get("quality")) if f.request.form.get("quality") else None
+            document.save()
+
+        case "complexity":
+            template = "main/partials/edit_form_complexity.html"
+            document.complexity = int(f.request.form.get("complexity")) if f.request.form.get("complexity") else None
+            document.save()
+
+        case "tag":
+            template = "main/partials/edit_form_tags.html"
+            tag = f.request.form.get("tag")
+            if tag.title() not in document.tags:
+                document.tags.append(tag.title())
+                document.save()
+            else:
+                status_icon = status_error
+
         case "file_":
+            template = "main/partials/edit_form_file.html"
             file = f.request.files["file_"]
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             document.file_.replace(file, filename=filename, content_type="application/pdf")
@@ -253,15 +294,14 @@ def render_edit_document(doc_id: str) -> Response:
                 else f"Replacing existing file {document.file_.filename=} with: {filename=}!"
             )
             log.debug(msg)
-            template = "main/partials/edit_form_file.html"
         case "url_":
+            template = "main/partials/edit_form_url.html"
             document.url_ = f.request.form.get("url_")
             document.save()
-            template = "main/partials/edit_form_url.html"
         case "source":
+            template = "main/partials/edit_form_source.html"
             document.source = f.request.form.get("source")
             document.save()
-            template = "main/partials/edit_form_source.html"
         case _:
             raise RuntimeError(f"Unrecognised {f.request.form.get('field')=}")
 
@@ -304,26 +344,20 @@ def render_add_doc(template="main/manage_document.html") -> Response:
 
 
 ################################################################################
-@bp.route("/document/tag", methods=["DELETE"])
+@bp.route("/document/tag/<id_>/<tag>", methods=["DELETE"])
 @login_required
-def delete_tag_from_document(template="main/partials/tr.html") -> Response:
-    """Delete the specified tag on the specified document and return the row."""
+def delete_tag_from_document(id_: str, tag: str, template="main/partials/edit_form_tags.html") -> Response:
+    """Delete the specified tag on the specified document and return the form."""
     import flask as f
-
-    # Make sure we're coming in from an HTMX call..
-    assert "Hx-Trigger" in f.request.headers
-    trigger = f.request.headers.get("Hx-Trigger")
-    log.info(f"Hx-Trigger:{trigger}")
 
     log.info("")
     log.info("*" * 80)
     log.info(f"{f.request.method.upper()} /")
-    tag = f.request.values.get("name")
-    id_ = f.request.values.get("id")
     log.info(f"Deleting {tag=} on document={id_}")
     document = remove_tag(id_, tag)
     log.info("*" * 80)
-    return f.render_template(template, document=document)
+    status_icon = {"color": "has-text-success", "icon": "fa-solid fa-circle-check"}
+    return f.render_template(template, document=document, status_icon=status_icon, form=EmptyForm())
 
 
 ################################################################################

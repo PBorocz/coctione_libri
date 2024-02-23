@@ -1,0 +1,29 @@
+<!-- Quality -->
+<form hx-post="/edit/{{ document.id }}" hx-trigger="change from:#quality" hx-swap="outerHTML" hx-vals='{"field": "quality"}' novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Quality</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+
+        <div class="select mr-4">
+	  <select id="quality" name="quality">
+	    <option {% if document.quality == 5 %}selected{% endif %} value="5">★★★★★</option>
+	    <option {% if document.quality == 4 %}selected{% endif %} value="4">★★★★</option>
+	    <option {% if document.quality == 3 %}selected{% endif %} value="3">★★★</option>
+	    <option {% if document.quality == 2 %}selected{% endif %} value="2">★★</option>
+	    <option {% if document.quality == 1 %}selected{% endif %} value="1">★</option>
+	    <option {% if not document.quality  %}selected{% endif %} value="0"></option>
+	  </select>
+        </div>
+
+	{% include "main/partials/_status_icon.html" %}
+
+      </div>
+    </div>
+  </div>
+
+</form>

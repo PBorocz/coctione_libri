@@ -1,0 +1,24 @@
+<!-- Notes Field -->
+<div id="div_notes">
+
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Notes</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+	<textarea class="textarea mr-4 form-input"
+		  id="notes" name="notes"
+		  rows="10"
+		  hx-post="/edit/notes/{{ document.id }}"
+		  hx-target="#div_notes"
+		  hx-trigger="keyup changed delay:1500ms"
+		  placeholder="Write your task here...">{{ document.notes|default("", true) }}</textarea>
+
+      </div>
+
+      {% include "main/partials/_status_icon.html" %}
+
+    </div>
+  </div>
+</div>
