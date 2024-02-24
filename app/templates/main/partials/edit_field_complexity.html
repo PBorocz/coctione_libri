@@ -1,0 +1,24 @@
+<div class="field is-horizontal" id="field_complexity">
+  <div class="field-label is-medium">
+    <label class="label">Complexity</label>
+  </div>
+  <div class="field-body">
+    <div class="control is-flex is-align-items-center">
+      <div class="select mr-4">
+	<select name="complexity"
+		      hx-post="/edit/complexity/{{ document.id }}"
+		      hx-swap="outerHTML"
+		      hx-target="#field_complexity"
+	>
+	  <option {% if document.complexity == 5 %}selected{% endif %} value="5">★★★★★</option>
+	  <option {% if document.complexity == 4 %}selected{% endif %} value="4">★★★★</option>
+	  <option {% if document.complexity == 3 %}selected{% endif %} value="3">★★★</option>
+	  <option {% if document.complexity == 2 %}selected{% endif %} value="2">★★</option>
+	  <option {% if document.complexity == 1 %}selected{% endif %} value="1">★</option>
+	  <option {% if not document.complexity  %}selected{% endif %} value="0"></option>
+	</select>
+      </div>
+      {% include "main/partials/_status_icon.html" %}
+    </div>
+  </div>
+</div>

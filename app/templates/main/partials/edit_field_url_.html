@@ -1,0 +1,17 @@
+<div class="field is-horizontal" id="field_url_">
+  <div class="field-label is-medium">
+    <label class="label">Link</label>
+  </div>
+  <div class="field-body">
+    <div class="control is-flex is-align-items-center">
+      <input class="input mr-4 form-input"
+	     name="url_"
+	     value="{{ document.url_|default("", true) }}"
+	     hx-post="/edit/url_/{{ document.id }}"
+	     hx-swap="outerHTML"
+	     hx-target="#field_url_"
+      >
+      {% include "main/partials/_status_icon.html" %}
+    </div>
+  </div>
+</div>

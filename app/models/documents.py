@@ -4,6 +4,7 @@ from enum import Enum
 from zoneinfo import ZoneInfo
 
 import mongoengine as me_
+from mongoengine import signals
 
 from app.models.users import Users
 
@@ -29,7 +30,7 @@ class History(me_.EmbeddedDocument):
     # fmt: off
     cooked  = me_.DateTimeField(required=True)                              # Date on which we cooked/prepared the doc
     notes   = me_.StringField()                                             # Document "notes" (in Markdown format)
-    created = me_.DateTimeField(required=True, default=dt.datetime.utcnow)  # Date stamp when created in Raindrop!
+    created = me_.DateTimeField(required=True, default=dt.datetime.utcnow)  # Date stamp when created
     # fmt: on
 
 
@@ -41,31 +42,38 @@ class Documents(me_.Document):
     ################################################################################
     # Required Fields
     ################################################################################
-    user             = me_.ReferenceField(Users, required=True)            # FK to user
-    title            = me_.StringField(max_length=120, required=True)      # Display title, eg. SomethingGoodToCook.pdf
-    created          = me_.DateTimeField(default=dt.datetime.utcnow)       # Date stamp when created in Raindrop!
+    user             = me_.ReferenceField(Users, required=True)                     # FK to user
+    title            = me_.StringField(max_length=120, required=True)               # Display title, eg. CookMe.pdf
+    created          = me_.DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
 
     ################################################################################
     # Optional Fields
     ################################################################################
     # Generic fields..
-    source           = me_.StringField()                                   # Logical source of doc, e.g. NY, FN, etc.
-    file_            = me_.FileField()                                     # GridFS link to actual pdf/file content.
-    mimetype         = me_.StringField(default="application/pdf")          # Mimetype associated with the file type.
-    raindrop_created = me_.DateTimeField()                                 # Original creation date in Raindrop
-    raindrop_id      = me_.IntField()                                      # Original ID in Raindrop
-    tags             = me_.SortedListField(me_.StringField(max_length=50)) # List of tags in "Titled" display format
-    updated          = me_.DateTimeField()                                 # When doc was last "touched"
-    url_             = me_.StringField(max_length=2038)                    # Originating URL associated with the doc.
+    source           = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
+    file_            = me_.FileField()                                      # GridFS link to actual pdf/file content.
+    mimetype         = me_.StringField(default="application/pdf")           # Mimetype associated with the file type.
+    raindrop_created = me_.DateTimeField()                                  # Original creation date in Raindrop
+    raindrop_id      = me_.IntField()                                       # Original ID in Raindrop
+    tags             = me_.SortedListField(me_.StringField(max_length=50))  # List of tags in "Titled" display format
+    updated          = me_.DateTimeField()                                  # When doc was last "touched"
+    url_             = me_.StringField(max_length=2038)                     # Originating URL associated with the doc.
 
     # "Recipe"-specific fields..
-    notes            = me_.StringField()                                   # General document "notes" in Markdown format
-    dates_cooked     = me_.ListField(me_.DateTimeField())                  # List of "cooked" dates
+    notes            = me_.StringField()                                                         # "Notes" in MD format
+    dates_cooked     = me_.ListField(me_.DateTimeField())                                        # List "cooked" dates
     quality          = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
     complexity       = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
     # fmt: on
 
     meta = {"indexes": ["tags"]}
+
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+        """Perform any data management issues BEFORE we save (either on create or update)."""
+        if document.id:
+            # Only update "updated" if we're doing an update!
+            document.updated = dt.datetime.utcnow()
 
     @property
     def quality_enum(self) -> Rating | None:
@@ -117,7 +125,8 @@ class Documents(me_.Document):
 
     @property
     def dates_cooked_local(self) -> list[str]:
-        return [dt_as_date(lc_) for lc_ in sorted(self.dates_cooked, reverse=True)]
+        """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
+        return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
     def set_tags_from_str(self, s_tags: str):
         """Set the tags in this document based on a comma-delimited list."""
@@ -132,6 +141,15 @@ class Documents(me_.Document):
         return choices
 
 
+################################################################################
+# Signal support
+################################################################################
+signals.pre_save.connect(Documents.pre_save, sender=Documents)
+
+
+################################################################################
+# Utilities
+################################################################################
 def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angeles", date_only: bool = False) -> str:
     """Return naive datetime as a nicely formatted local date-time (`Wednesday, February 21st 02:15pm 2024`)."""
     datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)

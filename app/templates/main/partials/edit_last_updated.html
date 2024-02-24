@@ -1,0 +1,13 @@
+<div class="field is-horizontal"
+     hx-trigger="updatedDocument from:body"
+     hx-get="/document/last_updated/{{document.id}}"
+     hx-swap="outerHTML">
+  <div class="field-label">
+    <label class="label">Last Updated:</label>
+  </div>
+  <div class="field-body">
+    <div class="control">
+      <div class="content">{{ document.updated_local }}</div>
+    </div>
+  </div>
+</div>

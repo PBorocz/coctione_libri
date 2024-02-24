@@ -1,5 +1,53 @@
 {% extends "__root.html" %}
 
+{% block js_local %}
+<script>
+
+ /* Date picker for Dates Cooked widget */
+ window.addEventListener('DOMContentLoaded', (event) => {
+   flatpickr("#date_cooked", {dateFormat: "Y-m-d", altInput: true, altFormat: "l, F J Y" });
+ });
+ document.body.addEventListener('htmx:afterSwap', function (event) {
+   if (document.querySelector('#div_dates_cooked')) {
+     flatpickr("#date_cooked", {dateFormat: "Y-m-d", altInput: true, altFormat: "l, F J Y" });
+   }
+ });
+
+
+ /* Sweet Alert confirmation dialog for document deletion. */
+ function confirm_form_delete(event, formId, btnName, btnValue) {
+   event.preventDefault();
+   Swal.fire({
+
+     title: "Are you sure you want to delete this entry?",
+     text: "You will not be able to revert this!",
+     icon: "warning",
+
+     confirmButtonColor: "#d33",
+     confirmButtonText: "Yes",
+
+     showCancelButton: true,
+     cancelButtonColor: "#3085d6",
+     cancelButtonText: "Cancel",
+
+   }).then((result) => {
+     if (result.isConfirmed) {
+
+       var input = document.createElement("input");	// Create a new input element to simulate the button press
+       input.setAttribute("type", "hidden");		// Set its type to "hidden", so it's not visible on the page
+       input.setAttribute("name", btnName);		// The name should match the name of the button you're simulating
+       input.setAttribute("value", btnValue);		// The value should match the value of the button you're simulating
+
+       var form = document.getElementById(formId);
+       form.appendChild(input);
+       form.submit()
+     }
+   });
+ }
+
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
  /* Use these to handle the disappearance of success/failure icons for each form element */
@@ -10,11 +58,11 @@
    75%  { opacity: 0.25; }
    100% { opacity: 0.00; }
  }
-
  .fade-out {
    animation: fade-out 5s forwards;
  }
 
+ /* Responsive sizing of form input fields */
  .form-input {
    width: 100%;  /* For mobile phones: */
  }
@@ -45,20 +93,39 @@
 
 {% block content %}
 
-{% include "main/partials/edit_form_title.html" %}
-<br/>
-{% include "main/partials/edit_form_file.html" %}
-<br/>
-{% include "main/partials/edit_form_url.html" %}
-<br/>
-{% include "main/partials/edit_form_source.html" %}
-<br/>
-{% include "main/partials/edit_form_tags.html" %}
-<br/>
-{% include "main/partials/edit_form_quality.html" %}
-<br/>
-{% include "main/partials/edit_form_complexity.html" %}
-<br/>
-{% include "main/partials/edit_form_notes.html" %}
+<div class="field is-horizontal">
+  <div class="field-label">
+    <label class="label">Created:</label>
+  </div>
+  <div class="field-body">
+    <div class="control">
+      <div class="content">{{ document.created_local }}</div>
+    </div>
+  </div>
+</div>
+
+{% include "main/partials/edit_last_updated.html" %}
+
+{% include "main/partials/edit_field_title.html" %}
+
+{% include "main/partials/edit_field_file_.html" %}
+
+{% include "main/partials/edit_field_url_.html" %}
+
+{% include "main/partials/edit_field_source.html" %}
+
+{% include "main/partials/edit_field_tag.html" %}
+
+{% include "main/partials/edit_field_quality.html" %}
+
+{% include "main/partials/edit_field_complexity.html" %}
+
+{% include "main/partials/edit_field_notes.html" %}
+
+{% include "main/partials/edit_field_dates_cooked.html" %}
+
+<hr/>
+
+{% include "main/partials/edit_form_delete.html" %}
 
 {% endblock %}

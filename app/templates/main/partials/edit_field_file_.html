@@ -1,7 +1,8 @@
-<!-- File Field -->
-<form hx-post="/edit/{{ document.id }}" hx-vals='{"field": "file_"}' hx-swap="outerHTML" hx-trigger="change from:#file_" enctype="multipart/form-data">
+<form hx-post="/edit/file_/{{ document.id }}"
+      hx-trigger="change from:#file_"
+      enctype="multipart/form-data"
+      class="mb-3"> {# Roughly match the bottom margins of div elements on this page #}
   {{ form.hidden_tag() }}
-
   <div class="field is-horizontal">
     <div class="field-label is-medium">
       <label class="label">File</label>
@@ -13,7 +14,7 @@
             <label class="file-label">
 	      <input class="file-input" id="file_" name="file_" type="file" hx-swap="closest form">
               <span class="file-cta">
-                <span class="file-label">Upload</span>&nbsp;
+                <span class="file-label"></span>
                 <span class="file-icon"><i class="fas fa-upload"></i></span>
               </span>
               <span id="file-name" name="file-name" class="file-name is-large mr-4 form-input">
@@ -26,5 +27,4 @@
       </div>
     </div>
   </div>
-
 </form>

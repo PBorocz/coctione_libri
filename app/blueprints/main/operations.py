@@ -74,7 +74,7 @@ def _search_by_tag(search: str) -> list[ObjectId]:
         # Yes..."or" and "and" semantic between the elements provided??
 
         ########################################
-        # For an "or" semantic:
+        # For an "or" semantic (which is what Raindrop does! :-()
         # documents = Documents.objects(tags__in=search.split())
         ########################################
         ...
@@ -105,7 +105,7 @@ def _search_by_tag(search: str) -> list[ObjectId]:
 ################################################################################
 # Factory method to create/return a new Document from inbound form.
 ################################################################################
-def new_doc_from_form(current_user, request) -> Documents:
+def new_document(current_user, request) -> Documents:
     """Create a *new* document from the respective form."""
     form = request.form
     # Simple attributes:
@@ -127,10 +127,10 @@ def new_doc_from_form(current_user, request) -> Documents:
     if form.get("tags"):
         document.set_tags_from_str(form.get("tags"))
 
-    # Last Cooked date (as first/only entry in list)"
-    if form.get("last_cooked"):
-        dt_last_cooked = datetime.strptime(form.get("last_cooked"), "%Y-%m-%d")
-        document.dates_cooked.append(dt_last_cooked)
+    # Date cooked (as first/only entry in list)"
+    if form.get("date_cooked"):
+        dt_date_cooked = datetime.strptime(form.get("date_cooked"), "%Y-%m-%d")
+        document.dates_cooked.append(dt_date_cooked)
 
     # Did we also get a new file to upload along with it (we may not!)
     if file := request.files["file_"]:
@@ -138,7 +138,7 @@ def new_doc_from_form(current_user, request) -> Documents:
         log.info(f"Saving a *new* file...{filename=}!")
         document.file_.put(file, filename=filename, content_type="application/pdf")
 
-    return document
+    document.save()
 
 
 def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]:
@@ -234,14 +234,102 @@ def remove_tag(id_: str, tag: str) -> Documents:
     return Documents.objects(id=id_)[0]
 
 
-def delete_document(document: Documents | None = None, id_: str | None = None) -> None:
-    """Delete the specified document (or the one with the specified id)."""
-    assert document or id_, "Sorry, we need EITHER a document or a document id!"
-    if not document:
-        document = Documents.objects(id=id_)[0]
+def delete_document(id_: str) -> None:
+    """Delete the document with specified id."""
+    document = Documents.objects(id=id_)[0]
     if document.file_:
         document.file_.delete()
     document.delete()
+
+
+def update_document_attribute(document: Documents, field: str, request) -> [Documents, str | None]:
+    """Update the specified field attribute of the document request.form the specified request.form."""
+    error_msg = None
+    match field:
+        ##############################
+        # Simple attributes: Str
+        ##############################
+        case "title" | "notes" | "url_" | "source":
+            setattr(document, field, request.form.get(field))
+
+        ##############################
+        # Simple attributes: Int
+        ##############################
+        case "quality" | "complexity":
+            try:
+                new_value = int(request.form.get(field)) if request.form.get(field) else None
+                setattr(document, field, new_value)
+            except TypeError:
+                error_msg = f"Sorry, {request.form.get(field)} is not a valid integer value."
+
+        ##############################
+        # Special Handling: File upload
+        ##############################
+        case "file_":
+            file = request.files["file_"]
+            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
+            document.file_.replace(file, filename=filename, content_type="application/pdf")
+
+        ##############################
+        # Special Attribute: List of string obo Tag
+        ##############################
+        case "tag":
+            document, error_msg = _update_document_tags(document, request)
+
+        ##############################
+        # Special Attribute: List of dates obo dates_cooked
+        ##############################
+        case "dates_cooked":
+            document, error_msg = _update_document_dates_cooked(document, request)
+
+        case _:
+            raise RuntimeError(f"Unrecognised {request.form.get('field')=}")
+
+    # If we haven't run into an issue thus far, try to save the document.
+    if not error_msg:
+        try:
+            document.save()
+        except Exception as exc:
+            error_msg = str(exc)
+
+    return document, error_msg
+
+
+def _update_document_tags(document: Documents, request) -> [Documents, str | None]:
+    """Update the "tags" attribute of the specified document for the specified request."""
+    if request.method == "POST":
+        # NEW tag to be added to the document
+        tag = request.form.get("tag")
+        if tag.title() not in document.tags:
+            document.tags.append(tag.title())
+        else:
+            return document, "Tag already appears for this document."
+    elif request.method == "DELETE":
+        # DELETE existing tag from the document
+        tag = request.values.get("tag")
+        document.update(pull__tags=tag)
+        document.reload()
+    return document, None
+
+
+def _update_document_dates_cooked(document: Documents, request) -> [Documents, str | None]:
+    """Update the "dates_cooked" attribute of the specified document for the specified request."""
+    if request.method == "POST":
+        # NEW date to be added to the document
+        date_cooked = request.form.get("date_cooked")
+        date_cooked = datetime.strptime(date_cooked, "%Y-%m-%d")
+        print(f"POST {date_cooked=}")
+        if date_cooked not in document.dates_cooked:
+            document.dates_cooked.append(date_cooked)
+        else:
+            return document, "Sorry, your already have this date entered."
+    elif request.method == "DELETE":
+        # DELETE existing date from the document
+        date_cooked = request.values.get("date_cooked")
+        print(f"DELETE {date_cooked=}")
+        document.update(pull__dates_cooked=date_cooked)
+        document.reload()
+    return document, None
 
 
 ################################################################################

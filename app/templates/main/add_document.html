@@ -2,43 +2,13 @@
 
 {% block js_local %}
 <script type="text/javascript">
- document.addEventListener('DOMContentLoaded', function () {
-   var datepicker = bulmaCalendar.attach('#last_cooked', {
-     displayMode: 'dialog',
-     dateFormat: 'yyyy-M-d',
-     isClearable: true,
+ document.addEventListener('DOMContentLoaded', (event) => {
+   flatpickr("#date_cooked", {
+     dateFormat: "Y-m-d",
+     altInput: true,
+     altFormat: "l, F J Y",
    });
  });
-
- function confirm_form_delete(event, formId, btnName, btnValue) {
-   event.preventDefault();
-   Swal.fire({
-
-     title: "Are you sure you want to delete this entry?",
-     text: "You will not be able to revert this!",
-     icon: "warning",
-
-     confirmButtonColor: "#d33",
-     confirmButtonText: "Yes",
-
-     showCancelButton: true,
-     cancelButtonColor: "#3085d6",
-     cancelButtonText: "Cancel",
-
-   }).then((result) => {
-     if (result.isConfirmed) {
-
-       var input = document.createElement("input");	// Create a new input element to simulate the button press
-       input.setAttribute("type", "hidden");		// Set its type to "hidden", so it's not visible on the page
-       input.setAttribute("name", btnName);		// The name should match the name of the button you're simulating
-       input.setAttribute("value", btnValue);		// The value should match the value of the button you're simulating
-
-       var form = document.getElementById(formId);
-       form.appendChild(input);
-       form.submit()
-     }
-   });
- }
 </script>
 {% endblock %}
 
@@ -53,7 +23,7 @@
       <label class="label">Title</label>
     </div>
     <div class="field-body">
-      <div class="control">
+      <div class="control is-flex">
 	<input autofocus required
 	       class="input"
 	       id="title" name="title"
@@ -191,63 +161,20 @@
     </div>
   </div>
 
-  <!-- Last Cooked -->
+  <!-- Date Cooked -->
   <div class="field is-horizontal">
     <div class="field-label is-medium">
-      <label class="label">Last Cooked</label>
+      <label class="label">Date Cooked</label>
     </div>
     <div class="field-body">
       <div class="control" style="overflow:hidden;">
-	<input class="input my-calendar" type="date" id="last_cooked" name="last_cooked">
+	<input class="input date-cooked" type="date" id="date_cooked" name="date_cooked">
       </div>
-      {% for error in errors.last_cooked %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
+      {% for error in errors.date_cooked %}<p class="help is-danger has-text-centered is-size-4" style="vertical-align: middle;">{{error}}</p>{% endfor %}
     </div>
   </div>
 
   <hr/>
-
-  {% if document.dates_cooked %}
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">Cooking History:</label>
-    </div>
-    <div class="field-body">
-      <div class="control">
-	{% for date_cooked in document.dates_cooked_local %}
-	<span class="content">{{ date_cooked }}</span><br/>
-	{% endfor %}
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Created -->
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">Created:</label>
-    </div>
-    <div class="field-body">
-      <div class="control">
-	<div class="content">{{ document.created_local }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Updated -->
-  {% if document.updated %}
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">Last Updated:</label>
-    </div>
-    <div class="field-body">
-      <div class="control">
-	<div class="content">{{ document.created_local }}</div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  <br/>
 
   <div class="field is-horizontal">
     <div class="field-label is-medium"></div><!-- Need this even when empty! -->
@@ -267,12 +194,6 @@
 		   id="cancel"
 		   name="cancel"
 		   value="Cancel">
-	  </div>
-	  <div class="column is-2 is-offset-4">
-	    <input class="button is-danger is-light"
-		   type="submit"
-		   value="Delete Document"
-		   onclick="confirm_form_delete(event, 'form_manage', 'delete', 'delete')">
 	  </div>
 	</div>
       </div>

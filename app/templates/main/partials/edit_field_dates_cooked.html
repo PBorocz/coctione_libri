@@ -1,0 +1,49 @@
+<div id="div_dates_cooked">
+  <div class="field is-horizontal">
+    <div class="field-label is-medium">
+      <label class="label">Dates Cooked</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center" style="overflow:hidden;">
+	<input class="input my-calendar form-input mr-4"
+	       id="date_cooked"
+	       name="date_cooked"
+	       type="date"
+	       placeholder="Select to add a new date"
+	       hx-post="/edit/dates_cooked/{{ document.id }}"
+	       hx-swap="outerHTML"
+	       hx-target="#div_dates_cooked"
+	>
+	<br/>
+	{% include "main/partials/_status_icon.html" %}
+      </div>
+    </div>
+  </div>
+
+  {% if document.dates_cooked %}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label"></label> {# Need this even though we use the label from above #}
+    </div>
+    <div class="field-body">
+      <div class="control">
+	{% for date_cooked_yyyymmdd, date_cooked_display in document.dates_cooked_local %}
+	<span class="content">
+	  {{ date_cooked_display }}
+	  <span class="icon"
+		hx-delete="/edit/dates_cooked/{{ document.id}}"
+		hx-swap="outerHTML"
+		hx-target="#div_dates_cooked"
+		hx-vals='{"date_cooked": "{{ date_cooked_yyyymmdd }}"}'
+	  >
+	    <i class="fa-solid fa-xmark"></i>
+	  </span>
+	</span>
+	<br/>
+	{% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>

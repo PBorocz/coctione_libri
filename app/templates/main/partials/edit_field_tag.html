@@ -1,0 +1,32 @@
+<div class="field is-horizontal" id="field_tags">
+  <div class="field-label is-medium">
+    <label class="label">Tags</label>
+  </div>
+  <div class="field-body">
+    <div class="control is-flex is-align-items-center">
+      <input autofocus
+	     class="input mr-4 form-input"
+	     style="width: 120px;vertical-align: middle;"
+	     name="tag"
+	     placeholder="Add new tag..."
+	     hx-post="/edit/tag/{{ document.id }}"
+	     hx-swap="outerHTML"
+	     hx-target="#field_tags">
+      <div class="tags has-addons" style="vertical-align: middle;">
+	{% for tag in document.tags|sort %}
+	<span class="tag is-link is-light is-normal" style="vertical-align: middle;">
+	  {{ tag }}
+	</span>
+	<a class="tag is-delete is-small"
+	   hx-delete="/edit/tag/{{ document.id}}"
+	   hx-swap="outerHTML"
+	   hx-target="#field_tags"
+	   hx-vals='{"tag": "{{ tag }}"}'>
+	</a>
+	&nbsp;
+	{% endfor %}
+      </div>
+      {% include "main/partials/_status_icon.html" %}
+    </div>
+  </div>
+</div>
