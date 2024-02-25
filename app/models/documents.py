@@ -49,7 +49,7 @@ class Documents(me_.Document):
     ################################################################################
     # Optional Fields
     ################################################################################
-    # Generic fields..
+    # Generic "document" fields..
     source           = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
     file_            = me_.FileField()                                      # GridFS link to actual pdf/file content.
     mimetype         = me_.StringField(default="application/pdf")           # Mimetype associated with the file type.
@@ -70,24 +70,20 @@ class Documents(me_.Document):
 
     @classmethod
     def pre_save(cls, sender, document, **kwargs):
-        """Perform any data management issues BEFORE we save (either on create or update)."""
+        """Perform any/all PRE-SAVE data updates/checks (ie. either on create or update)."""
         if document.id:
             # Only update "updated" if we're doing an update!
             document.updated = dt.datetime.utcnow()
 
     @property
     def quality_enum(self) -> Rating | None:
-        """Uptype the quality field from an int to a "Rating"."""
-        if self.quality:
-            return Rating(self.quality)
-        return None
+        """Return the uptyped quality field as "Rating" instead of int."""
+        return Rating(self.quality) if self.quality else None
 
     @property
     def complexity_enum(self) -> Rating | None:
-        """Uptype the complexity field from an int to a "Rating"."""
-        if self.complexity:
-            return Rating(self.complexity)
-        return None
+        """Return the uptyped complexity field as "Rating" instead of int."""
+        return Rating(self.complexity) if self.complexity else None
 
     @property
     def tags_as_str(self) -> list[str] | None:
@@ -103,16 +99,14 @@ class Documents(me_.Document):
         return len(self.dates_cooked)
 
     @property
-    def created_local(self) -> str:
+    def created_display(self) -> str:
         """Return created attr in local and nicely formatted."""
         return dt_as_local(self.created)
 
     @property
-    def updated_local(self) -> str:
+    def updated_display(self) -> str:
         """Return updated attr in local and nicely formatted if available."""
-        if self.updated:
-            return dt_as_local(self.updated)
-        return ""
+        return dt_as_local(self.updated) if self.updated else ""
 
     @property
     def last_cooked(self) -> str | None:
@@ -124,7 +118,7 @@ class Documents(me_.Document):
         return None
 
     @property
-    def dates_cooked_local(self) -> list[str]:
+    def dates_cooked_display(self) -> list[str]:
         """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
         return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
@@ -178,8 +172,17 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
 
 def sources_available() -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
-    sources_available = [""]
+    sources_available = []
     docs = Documents.objects(source__ne=None).only("source")
     sources = sorted({doc.source for doc in docs})
     sources_available.extend(sources)
     return sources_available
+
+
+def tags_available() -> list[str]:
+    """Return a sorted list of all current tags (ie. those attached to documents)."""
+    tags = set()
+    for document in Documents.objects(tags__ne=None).only("tags"):
+        for tag in document.tags:
+            tags.add(tag)
+    return sorted(tags)

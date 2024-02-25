@@ -4,12 +4,11 @@
   </div>
   <div class="field-body">
     <div class="control is-flex is-align-items-center">
-      <div class="select mr-4">
+      <div class="select is-rounded is-small mr-4">
 	<select name="source"
 		hx-post="/edit/source/{{ document.id }}"
 		hx-swap="outerHTML"
-		hx-target="#field_source"
-	>
+		hx-target="#field_source">
 	  {% for source in sources %}
 	  <option {% if document.source == source %}selected{% endif %} value="{{ source }}">{{ source }}</option>
 	  {% endfor %}

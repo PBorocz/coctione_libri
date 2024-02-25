@@ -93,39 +93,25 @@
 
 {% block content %}
 
-<div class="field is-horizontal">
-  <div class="field-label">
-    <label class="label">Created:</label>
-  </div>
-  <div class="field-body">
-    <div class="control">
-      <div class="content">{{ document.created_local }}</div>
-    </div>
-  </div>
-</div>
+{% if document %}
+{# Only existing documents have created & last_updated fields. #}
+{% include "main/partials/edit_created.html"            %}
+{% include "main/partials/edit_last_updated.html"       %}
+{% include "main/partials/edit_field_title.html"        %}
+{% include "main/partials/edit_field_file_.html"	%}
+{% include "main/partials/edit_field_url_.html"	        %}
+{% include "main/partials/edit_field_source.html"	%}
+{% include "main/partials/edit_field_tag.html"	        %}
+{% include "main/partials/edit_field_quality.html"	%}
+{% include "main/partials/edit_field_complexity.html"	%}
+{% include "main/partials/edit_field_notes.html"	%}
+{% include "main/partials/edit_field_dates_cooked.html" %}
+{% include "main/partials/edit_form_delete.html" %}
+{% else %}
 
-{% include "main/partials/edit_last_updated.html" %}
-
+{# New documents only get a "title" field to be populated. #}
 {% include "main/partials/edit_field_title.html" %}
 
-{% include "main/partials/edit_field_file_.html" %}
-
-{% include "main/partials/edit_field_url_.html" %}
-
-{% include "main/partials/edit_field_source.html" %}
-
-{% include "main/partials/edit_field_tag.html" %}
-
-{% include "main/partials/edit_field_quality.html" %}
-
-{% include "main/partials/edit_field_complexity.html" %}
-
-{% include "main/partials/edit_field_notes.html" %}
-
-{% include "main/partials/edit_field_dates_cooked.html" %}
-
-<hr/>
-
-{% include "main/partials/edit_form_delete.html" %}
+{% endif %}
 
 {% endblock %}

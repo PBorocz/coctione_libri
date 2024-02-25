@@ -6,7 +6,7 @@ from app.models.documents import Documents
 
 
 def get_all_tags() -> list[str]:
-    """Return a sorted list of all current tags (ie. those attached to documents)."""
+    """Return a dict of all current tags & counts (ie. those attached to documents)."""
     tags = defaultdict(int)
     for document in Documents.objects().only("tags"):
         for tag in document.tags:

@@ -1,3 +1,5 @@
+{% if document %}
+{# EDIT Mode, ie. we have a document and all other fields will be available as well #}
 <div class="field is-horizontal" id="field_title">
   <div class="field-label is-medium">
     <label class="label">Title</label>
@@ -8,10 +10,36 @@
 	     name="title"
 	     class="input mr-4 form-input"
 	     value="{{ document.title }}"
-	     hx-post="/edit/title/{{ document.id }}"
+  	     hx-post="/edit/title/{{ document.id }}"
 	     hx-target="#field_title"
-	     hx-swap="outerHTML">
+	     hx-swap="outerHTML"
+      >
       {% include "main/partials/_status_icon.html" %}
     </div>
   </div>
 </div>
+
+{% else %}
+
+{# NEW mode, just this field will show, on entry, we'll create a new document #}
+<form method="POST">
+  {{ form.hidden_tag() }}
+
+  <div class="field is-horizontal" id="field_title">
+    <div class="field-label is-medium">
+      <label class="label">Title</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+	<input autofocus
+	       name="title"
+	       class="input mr-4 form-input"
+	       placeholder="Enter title..."
+	>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+{% endif %}

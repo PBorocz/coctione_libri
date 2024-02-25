@@ -41,12 +41,12 @@ def logout():
 
 
 @bp.route("/login", methods=["GET", "POST"])
-def login():
+def login(template: str = "auth/login.html"):
     """Process a request to either render the login page (GET) or handle login request (POST)."""
     import flask as f
 
     if flask_login.current_user.is_authenticated:
-        return f.redirect(f.url_for("main.render_main"))
+        return f.redirect(f.url_for("main.render_display"))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -67,14 +67,14 @@ def login():
             return f.abort(400)
 
         f.flash("You were successfully logged in.")
-        return f.redirect(next_ or f.url_for("main.render_main"))
+        return f.redirect(next_ or f.url_for("main.render_display"))
 
     # First time in, render the login page
-    return f.render_template("auth/login.html", title="Sign In", form=form)
+    return f.render_template(template, title="Sign In", form=form)
 
 
 @bp.route("/register", methods=["GET", "POST"])
-def register():
+def register(template: str = "auth/register.html"):
     """Register a new user, redirect to main/home page if successful."""
     import flask as f
 
@@ -89,8 +89,8 @@ def register():
             user.save()
             flask_login.login_user(user)
             f.flash("Congratulations, you are now a registered user!", "is-primary")
-            return f.redirect(f.url_for("main.render_main"))
+            return f.redirect(f.url_for("main.render_display"))
         except mongoengine.NotUniqueError:
             f.flash("Sorry, that email address has already been used! Please try another one.")
 
-    return f.render_template("auth/register.html", title="Register", form=form)
+    return f.render_template(template, title="Register", form=form)

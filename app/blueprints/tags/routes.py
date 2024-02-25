@@ -11,7 +11,7 @@ from app.blueprints.tags.operations import get_all_tags, get_tag_count, remove_t
 ################################################################################
 @bp.route("/tags", methods=["GET"])
 @login_required
-def manage_tags() -> Response:
+def manage_tags(template: str = "tags/tags.html") -> Response:
     """Render our tag management page."""
     import flask as f
 
@@ -20,13 +20,13 @@ def manage_tags() -> Response:
     log.info(f"{f.request.method.upper()} /")
     tags = get_all_tags()
     log.info("*" * 80)
-    return f.render_template("tags/tags.html", tags=tags, no_search=True)
+    return f.render_template(template, tags=tags, no_search=True)
 
 
 ################################################################################
 @bp.get("/tag/edit")
 @login_required
-def render_tag_edit() -> Response:
+def render_tag_edit(template: str = "tags/partials/edit.html") -> Response:
     """Return our tag editor form for a single tag table cell."""
     import flask as f
 
@@ -36,7 +36,7 @@ def render_tag_edit() -> Response:
     tag = f.request.values.get("name")
     log.info(f"{tag=}")
     log.info("*" * 80)
-    return f.render_template("tags/partials/edit.html", tag=tag)
+    return f.render_template(template, tag=tag)
 
 
 ################################################################################
@@ -59,7 +59,7 @@ def delete_tag() -> Response:
 ################################################################################
 @bp.post("/tag/update")
 @login_required
-def render_tag_update() -> Response:
+def render_tag_update(template: str = "tags/partials/tr.html") -> Response:
     """Process a potentially updated tag value and display the entry with the new value."""
     import flask as f
 
@@ -82,4 +82,4 @@ def render_tag_update() -> Response:
     # Irrespective of whether or not we did an update, we still need to redisplay the count as well:
     tag_count = get_tag_count(tag_return)
 
-    return f.render_template("tags/partials/tr.html", tag=tag_return, count=tag_count)
+    return f.render_template(template, tag=tag_return, count=tag_count)
