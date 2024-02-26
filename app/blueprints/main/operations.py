@@ -344,6 +344,7 @@ def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents]
     if sort_ascending:
         sort_lambdas = {
             "complexity" : lambda doc: (doc.complexity  is None, doc.complexity),
+            "last_cooked": lambda doc: (doc.last_cooked is None, doc.last_cooked),
             "quality"    : lambda doc: (doc.quality     is None, doc.quality),
             "source"     : lambda doc: (doc.source      is None, doc.source),
             "tags"       : lambda doc: (doc.tags_as_str is None, doc.tags_as_str),
@@ -352,6 +353,7 @@ def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents]
     else:
         sort_lambdas = {
             "complexity" : lambda doc: (doc.complexity  is not None, doc.complexity),
+            "last_cooked": lambda doc: (doc.last_cooked is not None, doc.last_cooked),
             "quality"    : lambda doc: (doc.quality     is not None, doc.quality),
             "source"     : lambda doc: (doc.source      is not None, doc.source),
             "tags"       : lambda doc: (doc.tags_as_str is not None, doc.tags_as_str),

@@ -49,7 +49,7 @@
 	    </th>
 
 	    {# ######################## #}
-	    {# Title        	          #}
+	    {# Title        	        #}
 	    {# ######################## #}
 	    <th
 		id="th_title"
@@ -62,7 +62,7 @@
 	    </th>
 
 	    {# ######################## #}
-	    {# Tags         	          #}
+	    {# Tags         	        #}
 	    {# ######################## #}
 	    <th
 		id="th_tags"
@@ -75,7 +75,7 @@
 	    </th>
 
 	    {# ######################## #}
-	    {# Source        	          #}
+	    {# Source        	        #}
 	    {# ######################## #}
 	    <th
 		id="th_source"
@@ -90,7 +90,7 @@
 	    {# ######################## #}
 	    {# Last Cooked              #}
 	    {# ######################## #}
-	    <th id="th_quality"
+	    <th id="th_last_cooked"
 		scope="col"
 		class="has-text-white has-text-centered"
     		hx-target="closest table"
@@ -103,7 +103,7 @@
     </thead>
     <tbody>
 	{% for document in documents %}
-	{% include "main/partials/tr.html" %}
+	{% include "main/partials/display_table_tr.html" %}
 	{% endfor %}
     </tbody>
     {% endif %}
