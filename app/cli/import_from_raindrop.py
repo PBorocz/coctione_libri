@@ -153,9 +153,6 @@ def __import_raindrop(user, raindrop: dict) -> str:
     doc = Documents(
         user=user,
         title=raindrop["title"],
-        mimetype="application/pdf",
-        raindrop_id=raindrop["id"],
-        raindrop_created=raindrop["created"],
     )
     if "source" in raindrop:
         doc.source = raindrop["source"]

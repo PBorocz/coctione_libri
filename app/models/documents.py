@@ -42,28 +42,25 @@ class Documents(me_.Document):
     ################################################################################
     # Required Fields
     ################################################################################
-    user             = me_.ReferenceField(Users, required=True)                     # FK to user
-    title            = me_.StringField(max_length=120, required=True)               # Display title, eg. CookMe.pdf
-    created          = me_.DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
+    user         = me_.ReferenceField(Users, required=True)                     # FK to user
+    title        = me_.StringField(max_length=120, required=True)               # Display title, eg. CookMe.pdf
+    created      = me_.DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
 
     ################################################################################
     # Optional Fields
     ################################################################################
     # Generic "document" fields..
-    source           = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
-    file_            = me_.FileField()                                      # GridFS link to actual pdf/file content.
-    mimetype         = me_.StringField(default="application/pdf")           # Mimetype associated with the file type.
-    raindrop_created = me_.DateTimeField()                                  # Original creation date in Raindrop
-    raindrop_id      = me_.IntField()                                       # Original ID in Raindrop
-    tags             = me_.SortedListField(me_.StringField(max_length=50))  # List of tags in "Titled" display format
-    updated          = me_.DateTimeField()                                  # When doc was last "touched"
-    url_             = me_.StringField(max_length=2038)                     # Originating URL associated with the doc.
+    source       = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
+    file_        = me_.FileField()                                      # GridFS link to actual pdf/file content
+    tags         = me_.SortedListField(me_.StringField(max_length=50))  # List of tags in "Titled" display format
+    updated      = me_.DateTimeField()                                  # When doc was last "touched"
+    url_         = me_.StringField(max_length=2038)                     # URL associated with the document.
 
     # "Recipe"-specific fields..
-    notes            = me_.StringField()                                                         # "Notes" in MD format
-    dates_cooked     = me_.ListField(me_.DateTimeField())                                        # List "cooked" dates
-    quality          = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
-    complexity       = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
+    notes        = me_.StringField()                                                         # "Notes" in MD format
+    dates_cooked = me_.ListField(me_.DateTimeField())                                        # List "cooked" dates
+    quality      = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
+    complexity   = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
     # fmt: on
 
     meta = {"indexes": ["tags"]}
