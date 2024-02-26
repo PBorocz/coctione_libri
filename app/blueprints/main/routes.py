@@ -56,7 +56,7 @@ def render_display(template="main/display.html") -> Response:
 @bp.get("/sort")
 @login_required
 @log_route_info
-def partial_main_sorted(template="main/partials/table.html") -> Response:
+def partial_main_sorted(template="main/partials/display_table.html") -> Response:
     """Re-render our main table based on a new sort field and/or direction."""
     # Make sure we're coming in from an HTMX call..
     assert "Hx-Trigger" in request.headers
@@ -81,7 +81,7 @@ def partial_main_sorted(template="main/partials/table.html") -> Response:
 @bp.post("/search")
 @login_required
 @log_route_info
-def partial_search(template="main/partials/table.html") -> Response:
+def partial_search(template="main/partials/display_table.html") -> Response:
     """Render just the results table based on a *SEARCH* request."""
     # Pull the user-state/query parameters from the (cookie and form) obo the current user:
     cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request)
@@ -111,13 +111,14 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
         log.debug(f"{len(file_contents)=}")
         contents: BytesIO = BytesIO(file_contents)
         name: str = f"{doc_id}.pdf"
-        mimetype: str = document.file_.content_type
+        mimetype: str = document.file_.contentType
         return send_file(contents, download_name=name, mimetype=mimetype)
 
     elif document.url_:
-        redirect(document.url_)
+        return redirect(document.url_)
 
     else:
+        # FIXME: Would be nice to flash a message here..
         log.error("Sorry, document without either PDF file OR a link?")
 
     return redirect(url_for(url))

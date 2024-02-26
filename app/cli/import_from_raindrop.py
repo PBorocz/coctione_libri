@@ -168,7 +168,7 @@ def __import_raindrop(user, raindrop: dict) -> str:
 
     # Save the new "document"
     with open(raindrop["__path_pdf"], "rb") as fd:
-        doc.file_.put(fd, filename=raindrop.get("__path_pdf").name, content_type="application/pdf")
+        doc.file_.put(fd, fileName=raindrop.get("__path_pdf").name, contentType="application/pdf")
     doc.save()
 
     print("•", end="", flush=True)

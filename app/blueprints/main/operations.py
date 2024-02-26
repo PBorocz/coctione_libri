@@ -136,7 +136,7 @@ def new_document(current_user, request) -> Documents:
     if file := request.files["file_"]:
         filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
         log.info(f"Saving a *new* file...{filename=}!")
-        document.file_.put(file, filename=filename, content_type="application/pdf")
+        document.file_.put(file, fileName=filename, contentType="application/pdf")
 
     document.save()
 
@@ -221,7 +221,7 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
             else f"Replacing existing file {document.file_.filename=} with: {filename=}!"
         )
         log.debug(msg)
-        document.file_.replace(file, filename=filename, content_type="application/pdf")
+        document.file_.replace(file, fileName=filename, contentType="application/pdf")
         changed = True
 
     return document, changed
@@ -268,7 +268,7 @@ def update_document_attribute(document: Documents, field: str, request) -> [Docu
         case "file_":
             file = request.files["file_"]
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-            document.file_.replace(file, filename=filename, content_type="application/pdf")
+            document.file_.replace(file, fileName=filename, contentType="application/pdf")
 
         ##############################
         # Special Attribute: List of string obo Tag
