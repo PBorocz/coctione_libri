@@ -1,110 +1,106 @@
 <table
-    id="id_documents_table"
-    class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth table-sort table-arrows no-class-infer">
-    <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
-	{% if documents %}
-	{% if search %}
-	{{ documents|length }} Recipes matched
-	{% else %}
-	{{ documents|length }} Total Recipes
-	{% endif %}
-	{% else %}
-	Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
-	{% endif %}
-    </caption>
-
+  id="id_documents_table"
+  class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth table-sort table-arrows no-class-infer">
+  <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
     {% if documents %}
-    <thead style="font-family: 'Raleway', sans-serif;">
-
-	<tr class="has-background-grey-dark">
-
-	    {# ######################## #}
-	    {# Edit?                    #}
-	    {# ######################## #}
-	    <th scope="col" class="disable-sort"></th>
-
-	    {# ######################## #}
-	    {# Quality                  #}
-	    {# ######################## #}
-	    <th id="th_quality"
-		scope="col"
-		class="has-text-white has-text-centered"
-    		hx-target="closest table"
-		hx-get="/sort"
-	    >
-		Q{{ sort_state.quality|safe }}
-	    </th>
-
-	    {# ######################## #}
-	    {# Complexity               #}
-	    {# ######################## #}
-	    <th
-		id="th_complexity"
-		scope="col"
-		class="has-text-white has-text-centered"
-    		    hx-target="closest table"
-		    hx-get="/sort"
-	    >
-		C{{ sort_state.complexity|safe }}
-	    </th>
-
-	    {# ######################## #}
-	    {# Title        	        #}
-	    {# ######################## #}
-	    <th
-		id="th_title"
-		    scope="col"
-		    class="has-text-white"
-    		    hx-target="closest table"
-		    hx-get="/sort"
-	    >
-		Title{{ sort_state.title|safe }}
-	    </th>
-
-	    {# ######################## #}
-	    {# Tags         	        #}
-	    {# ######################## #}
-	    <th
-		id="th_tags"
-		    scope="col"
-		    class="has-text-white"
-    		    hx-target="closest table"
-		    hx-get="/sort"
-	    >
-		Tags{{ sort_state.tags|safe }}
-	    </th>
-
-	    {# ######################## #}
-	    {# Source        	        #}
-	    {# ######################## #}
-	    <th
-		id="th_source"
-		scope="col"
-		class="has-text-white"
-    		hx-target="closest table"
-		hx-get="/sort"
-	    >
-		Source{{ sort_state.source|safe }}
-	    </th>
-
-	    {# ######################## #}
-	    {# Last Cooked              #}
-	    {# ######################## #}
-	    <th id="th_last_cooked"
-		scope="col"
-		class="has-text-white has-text-centered"
-    		hx-target="closest table"
-		hx-get="/sort"
-	    >
-		Last{{ sort_state.last_cooked|safe }}
-	    </th>
-
-	</tr>
-    </thead>
-    <tbody>
-	{% for document in documents %}
-	{% include "main/partials/display_table_tr.html" %}
-	{% endfor %}
-    </tbody>
+    {% if search %}
+    {{ documents|length }} Recipes matched
+    {% else %}
+    {{ documents|length }} Total Recipes
     {% endif %}
+    {% else %}
+    Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
+    {% endif %}
+  </caption>
+
+  {% if documents %}
+  <thead style="font-family: 'Raleway', sans-serif;">
+
+    <tr class="has-background-grey-dark">
+
+      {# ######################## #}
+      {# Edit?                    #}
+      {# ######################## #}
+      <th scope="col" class="disable-sort"></th>
+
+      {# ######################## #}
+      {# Quality                  #}
+      {# ######################## #}
+      <th id="th_quality"
+	  scope="col"
+	  class="has-text-white has-text-centered"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	Q{{ sort_state.quality|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Complexity               #}
+      {# ######################## #}
+      <th id="th_complexity"
+	  scope="col"
+	  class="has-text-white has-text-centered"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	C{{ sort_state.complexity|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Title        	        #}
+      {# ######################## #}
+      <th id="th_title"
+	  scope="col"
+	  class="has-text-white"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	Title{{ sort_state.title|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Tags         	          #}
+      {# ######################## #}
+      <th id="th_tags"
+	  scope="col"
+	  class="has-text-white"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	Tags{{ sort_state.tags|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Source        	          #}
+      {# ######################## #}
+      <th id="th_source"
+	  scope="col"
+	  class="has-text-white"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	Source{{ sort_state.source|safe }}
+      </th>
+
+      {# ######################## #}
+      {# Last Cooked              #}
+      {# ######################## #}
+      <th id="th_last_cooked"
+	  scope="col"
+	  class="has-text-white has-text-centered"
+    	  hx-target="closest table"
+	  hx-get="/sort"
+      >
+	Last{{ sort_state.last_cooked|safe }}
+      </th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for document in documents %}
+    {% include "main/partials/display_table_tr.html" %}
+    {% endfor %}
+  </tbody>
+  {% endif %}
 </table>
