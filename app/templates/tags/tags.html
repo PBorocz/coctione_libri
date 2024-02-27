@@ -1,3 +1,7 @@
+{% macro render_sort_icon() %}
+<span class="icon is-size-6"><i class="fas {{ 'fa-arrow-down-a-z' if order == 'desc' else 'fa-arrow-up-a-z' }}"></i></span>
+{% endmacro %}
+
 {% extends "__root.html" %}
 
 {% block content %}
@@ -7,21 +11,31 @@
 <div class="columns is-mobile is-multiline is-vcentered is-centered">
   <div class="column is-half is-offset-one-quarter">
     <div class="table-container">
-      <table id="table_tags" class="table is-responsive table-arrows">
+      <table id="table_tags" class="table is-responsive">
 
-	<thead>
-	  <tr class="has-background-grey-dark">
-            <th scope="col" class="has-text-centered has-text-white">Tag</th>
-            <th scope="col" class="has-text-centered has-text-white">Count</th>
-            <th scope="col" class="has-text-centered has-text-white disable-sort">Actions</th>
-	  </tr>
-	</thead>
+        <thead>
+          <tr class="has-background-grey-dark">
+            <th class="has-text-centered">
+              <a class="has-text-white"
+		 href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
+                Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
+              </a>
+            </th>
+            <th class="has-text-centered">
+              <a class="link has-text-white"
+		 href="/tags?sort=count&order={{ 'asc' if sort == 'count' and order == 'desc' else 'desc' }}">
+                Count{% if sort == "count" %}{{ render_sort_icon() }}{% endif %}
+	      </a>
+            </th>
+            <th class="has-text-centered has-text-white disable-sort">Actions</th>
+          </tr>
+        </thead>
 
-	<tbody>
-	  {% for tag, count in tags %}
-	  {% include "tags/partials/tr.html" %}
-	  {% endfor %}
-	</tbody>
+        <tbody>
+          {% for tag, count in tags %}
+          {% include "tags/partials/tr.html" %}
+          {% endfor %}
+        </tbody>
 
       </table>
 

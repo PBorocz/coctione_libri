@@ -5,14 +5,15 @@ from collections import defaultdict
 from app.models.documents import Documents
 
 
-def get_all_tags() -> list[str]:
-    """Return a dict of all current tags & counts (ie. those attached to documents)."""
+def get_all_tags(sort: str = "tag", order: str = "asc") -> list[str, int]:
+    """Return a sorted list of all current tags & counts (ie. those attached to documents)."""
     tags = defaultdict(int)
     for document in Documents.objects().only("tags"):
         for tag in document.tags:
             tags[tag] += 1
     log.info(f"{len(tags):,d} unique tags found.")
-    return sorted(tags.items())
+    offset = 0 if sort == "tag" else 1
+    return sorted(tags.items(), key=lambda entry: entry[offset], reverse=(order == "desc"))
 
 
 def get_tag_count(tag: str) -> int:
