@@ -24,9 +24,10 @@ from app.models.documents import Documents, sources_available, tags_available
 def log_route_info(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        log.info("*" * 80)
-        log.info(f"{request.method:4s} -> {func.__name__}")
-        log.info("*" * 80)
+        log.info("-" * 80)
+        # For now, we don't need more information...
+        # log.info(f"{request.method:4s} -> {func.__name__}")
+        # log.info("-" * 80)
         return func(*args, **kwargs)
 
     return wrapper

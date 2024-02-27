@@ -337,8 +337,11 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
 ################################################################################
 def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents], dict]:
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
-    sort_field = cookies.sort_field
-    sort_ascending = True if cookies.sort_dir == c.SORT_ASCENDING else False
+    sort_field = cookies.sort_field if cookies.sort_field else "title"
+    if cookies.sort_dir:
+        sort_ascending = True if cookies.sort_dir == c.SORT_ASCENDING else False
+    else:
+        sort_ascending = True
 
     # fmt: off
     if sort_ascending:
@@ -369,10 +372,8 @@ def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents]
     # display This allows us to render the sort up/down arrow for EACH field (as
     # {{ sort_indicators.aField }}) and only the column that matches the key field will
     # actually have it's arrow displayed.
-    if sort_ascending:
-        sort_state = {sort_field: '<span class="icon is-size-6"><i class="fa-solid fa-sort-up"></i></span>'}
-    else:
-        sort_state = {sort_field: '<span class="icon is-size-6"><i class="fa-solid fa-sort-down"></i></span>'}
+    arrow_icon = "fa-arrow-up-a-z" if sort_ascending else "fa-arrow-down-a-z"
+    sort_state = {sort_field: f'<span class="icon is-size-6"><i class="fas {arrow_icon}"></i></span>'}
 
     # Apply sort direction..
     sorted_kwargs = {} if sort_ascending else {"reverse": True}
