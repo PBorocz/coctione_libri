@@ -14,6 +14,15 @@
 	  {% endfor %}
 	</select>
       </div>
+
+      <input class="input mr-4 form-input is-small is-rounded"
+	     style="width: 120px;vertical-align: middle;"
+	     name="source"
+	     placeholder="New source..."
+	     hx-post="/edit/source/{{ document.id }}"
+	     hx-swap="outerHTML"
+	     hx-target="#field_source">
+
       {% include "main/partials/_status_icon.html" %}
     </div>
   </div>
