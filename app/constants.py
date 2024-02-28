@@ -3,7 +3,8 @@
 ###############################################################################
 # Logging infrastructure
 ###############################################################################
-LOGGING_FORMAT = "{levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
+# LOGGING_FORMAT = "{levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
+LOGGING_FORMAT = "{levelname:8s} {message}"
 LOGGING_DATEFMT = "%Y-%m-%d %H:%M:%S"
 
 ###############################################################################

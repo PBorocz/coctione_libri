@@ -136,27 +136,41 @@ shell = """
 [tool.poe.tasks.backup_local]
 interpreter = "fish"
 shell = """
-  mkdir -p ./__dumps__
   echo "Doing dump from local database..."
-  mongodump --db=coctione_libri --out=./__dumps__/dump
+  mkdir -p ./__dumps__/working
+  mongodump --db=coctione_libri --out=./__dumps__/working
+
   echo "Compressing to single backup file..."
   set backup_filename (date +"backup_local_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__dumps__/$backup_filename ./__dumps__/dump
-  rm                                    ./__dumps__/dump
-"""
+  tar -czf ./__dumps__/$backup_filename ./__dumps__/working
+  rm                                    ./__dumps__/working
+  """
 
 [tool.poe.tasks.backup_production]
 interpreter = "fish"
 shell = """
-  mkdir -p ./__dumps__
+  mkdir -p ./__dumps__/working
   if not set -q mongodb; or not string length -q $mongodb
       echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
       exit 1
   end
   echo "Doing dump from PRODUCTION database..."
-  mongodump --db=coctione_libri --out=./__dumps__/dump --uri=$mongodb
+  mongodump --db=coctione_libri --out=./__dumps__/working --uri=$mongodb
   echo "Compressing to single backup file..."
   set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__dumps__/$backup_filename ./__dumps__/dump
-  rm                                    ./__dumps__/dump
+  tar -czf ./__dumps__/$backup_filename ./__dumps__/working
+  rm                                    ./__dumps__/working
 """
+
+################################################################################
+# Restore
+################################################################################
+[tool.poe.tasks.restore]
+interpreter = "fish"
+args = ["db_from", "db_to", "backup_directory_path"]
+shell = """
+  # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__dumps__/workin  # mkdir -p ./__dumps__/working
+  # tar -xzf {$backup_directory_path} -C ./__dumps__/working
+  echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
+  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* ./__dumps__/working
+  """

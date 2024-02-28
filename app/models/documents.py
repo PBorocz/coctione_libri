@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 import mongoengine as me_
 from mongoengine import signals
+from mongoengine.context_managers import switch_collection
 
 from app.models.users import Users
 
@@ -123,14 +124,6 @@ class Documents(me_.Document):
         """Set the tags in this document based on a comma-delimited list."""
         self.tags = [tag.strip().title() for tag in s_tags.split(TAG_SEP)]
 
-    def source_choices(self) -> list[list[str, str]]:
-        """Return the current list of sources across all documents as a Choice list."""
-        choices = [["", ""]]  # Choices are a list of lists..
-        docs = Documents.objects(source__ne=None).only("source")
-        sources = sorted({doc.source for doc in docs})
-        choices.extend([[source, source] for source in sources])
-        return choices
-
 
 ################################################################################
 # Signal support
@@ -167,19 +160,30 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
     return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
 
 
-def sources_available() -> list[str]:
+def sources_available(user: Users) -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
     sources_available = []
-    docs = Documents.objects(source__ne=None).only("source")
-    sources = sorted({doc.source for doc in docs})
-    sources_available.extend(sources)
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        docs = user_documents.objects(source__ne=None).only("source")
+        sources = sorted({doc.source for doc in docs})
+        sources_available.extend(sources)
     return sources_available
 
 
-def tags_available() -> list[str]:
+def tags_available(user: Users) -> list[str]:
     """Return a sorted list of all current tags (ie. those attached to documents)."""
     tags = set()
-    for document in Documents.objects(tags__ne=None).only("tags"):
-        for tag in document.tags:
-            tags.add(tag)
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        for document in user_documents.objects(tags__ne=None).only("tags"):
+            for tag in document.tags:
+                tags.add(tag)
     return sorted(tags)
+
+
+###############################################################################
+# User-management methods (not worth a separate utilities file yet)
+###############################################################################
+def get_user_documents(user: Users) -> str:
+    """Return the documents collection name obo the specified user."""
+    # We put this in a single place to centralise the naming convention.
+    return f"documents-{user.id}"

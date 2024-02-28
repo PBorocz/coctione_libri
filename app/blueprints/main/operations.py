@@ -7,23 +7,26 @@ from datetime import datetime
 from functools import reduce
 
 from bson.objectid import ObjectId
+from mongoengine.context_managers import switch_collection
 from mongoengine.queryset.queryset import QuerySet
 from mongoengine.queryset.visitor import QCombination
 from werkzeug.utils import secure_filename
 
 from app import constants as c
 from app.models.cookies import Cookies
-from app.models.documents import Documents
+from app.models.documents import Documents, get_user_documents
+from app.models.users import Users
 
 
-def get_all_documents(cookies: Cookies) -> tuple[list[Documents], dict]:
+def get_all_documents(user: Users, cookies: Cookies) -> tuple[list[Documents], dict]:
     """Return *all* documents."""
-    documents = Documents.objects()
-    log.info(f"{len(documents):,d} documents found.")
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        documents = user_documents.objects()
+    log.debug(f"{len(documents):,d} documents found.")
     return _sort(documents, cookies)
 
 
-def get_search_documents(cookies: Cookies, search: str) -> tuple[list[Documents], dict]:
+def get_search_documents(user: Users, cookies: Cookies, search: str) -> tuple[list[Documents], dict]:
     """Return any documents matching the search term(s).
 
     Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
@@ -34,13 +37,14 @@ def get_search_documents(cookies: Cookies, search: str) -> tuple[list[Documents]
     for search_term in shlex.split(search):
         ids = set()
         for search_method in SEARCH_METHODS:
-            ids.update(search_method(search_term))
+            ids.update(search_method(user, search_term))
         id_sets.append(ids)
 
     ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
     # Return all the documents associated with the matching id's.
-    documents = Documents.objects(id__in=ids_to_query)
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        documents = user_documents.objects(id__in=ids_to_query)
     log.info(f"{len(documents):,d} documents found.")
 
     return _sort(documents, cookies)
@@ -49,23 +53,25 @@ def get_search_documents(cookies: Cookies, search: str) -> tuple[list[Documents]
 ################################################################################
 # Sub-search methods
 ################################################################################
-def _search_by_title(search: str) -> list[ObjectId]:
+def _search_by_title(user: Users, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
-    partials: QuerySet = Documents.objects(title__icontains=search).only("id")
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        partials: QuerySet = user_documents.objects(title__icontains=search).only("id")
     if partials:
-        log.info(f"{len(partials):,d} documents matched against 'title'")
+        log.debug(f"{len(partials):,d} documents matched against 'title'")
     return [doc.id for doc in partials]
 
 
-def _search_by_source(search: str) -> list[ObjectId]:
+def _search_by_source(user: Users, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
-    partials: QuerySet = Documents.objects(source__icontains=search).only("id")
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        partials: QuerySet = user_documents.objects(source__icontains=search).only("id")
     if partials:
-        log.info(f"{len(partials):,d} documents matched against 'source'")
+        log.debug(f"{len(partials):,d} documents matched against 'source'")
     return [doc.id for doc in partials]
 
 
-def _search_by_tag(search: str) -> list[ObjectId]:
+def _search_by_tag(user: Users, search: str) -> list[ObjectId]:
     """Search all documents by tag(s)."""
     if any(chr.isspace() for chr in search):
         # Split and "title" the search terms to match those within the database.
@@ -75,7 +81,7 @@ def _search_by_tag(search: str) -> list[ObjectId]:
 
         ########################################
         # For an "or" semantic (which is what Raindrop does! :-()
-        # documents = Documents.objects(tags__in=search.split())
+        # documents = user_documents.objects(tags__in=search.split())
         ########################################
         ...
 
@@ -89,56 +95,19 @@ def _search_by_tag(search: str) -> list[ObjectId]:
 
         queries: list[Q] = [Q(tags=tag) for tag in l_search]
         query: QCombination = reduce(and_, queries)
-        partials: QuerySet = Documents.objects(query).only("id")
+        with switch_collection(Documents, get_user_documents(user)) as user_documents:
+            partials: QuerySet = user_documents.objects(query).only("id")
         if partials:
-            log.info(f"{len(partials):,d} documents matched against multiple search terms")
+            log.debug(f"{len(partials):,d} documents matched against multiple search terms")
 
     else:
         # No, use as is..
-        partials: QuerySet = Documents.objects(tags=search.title()).only("id")
+        with switch_collection(Documents, get_user_documents(user)) as user_documents:
+            partials: QuerySet = user_documents.objects(tags=search.title()).only("id")
         if partials:
-            log.info(f"{len(partials):,d} documents matched against single search")
+            log.debug(f"{len(partials):,d} documents matched against single search")
 
     return [doc.id for doc in partials]
-
-
-################################################################################
-# Factory method to create/return a new Document from inbound form.
-################################################################################
-def new_document(current_user, request) -> Documents:
-    """Create a *new* document from the respective form."""
-    form = request.form
-    # Simple attributes:
-    # fmt: off
-    document = Documents(
-        user       = current_user,       # Required
-        title      = form.get("title" ), # "
-        source     = form.get("source"),
-        url_       = form.get("url_"  ),
-        notes      = form.get("notes" ),
-        quality    = int(form.get("quality"))    if form.get("quality")    else None,
-        complexity = int(form.get("complexity")) if form.get("complexity") else None,
-    )
-    # fmt: on
-
-    ################
-    # Special cases
-    ################
-    if form.get("tags"):
-        document.set_tags_from_str(form.get("tags"))
-
-    # Date cooked (as first/only entry in list)"
-    if form.get("date_cooked"):
-        dt_date_cooked = datetime.strptime(form.get("date_cooked"), "%Y-%m-%d")
-        document.dates_cooked.append(dt_date_cooked)
-
-    # Did we also get a new file to upload along with it (we may not!)
-    if file := request.files["file_"]:
-        filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-        log.info(f"Saving a *new* file...{filename=}!")
-        document.file_.put(file, fileName=filename, contentType="application/pdf")
-
-    document.save()
 
 
 def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]:
@@ -227,19 +196,13 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
     return document, changed
 
 
-def remove_tag(id_: str, tag: str) -> Documents:
-    """Remove the specified tag from the document with the specified id."""
-    document = Documents.objects(id=id_)[0]
-    document.update(pull__tags=tag)
-    return Documents.objects(id=id_)[0]
-
-
-def delete_document(id_: str) -> None:
-    """Delete the document with specified id."""
-    document = Documents.objects(id=id_)[0]
-    if document.file_:
-        document.file_.delete()
-    document.delete()
+def delete_document(user: Users, id_: str) -> None:
+    """Delete the document with specified id for the specified user."""
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        document = user_documents.objects(id=id_)[0]
+        if document.file_:
+            document.file_.delete()
+        document.delete()
 
 
 def update_document_attribute(document: Documents, field: str, request) -> [Documents, str | None]:
@@ -318,15 +281,14 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
         # NEW date to be added to the document
         date_cooked = request.form.get("date_cooked")
         date_cooked = datetime.strptime(date_cooked, "%Y-%m-%d")
-        print(f"POST {date_cooked=}")
         if date_cooked not in document.dates_cooked:
             document.dates_cooked.append(date_cooked)
         else:
             return document, "Sorry, your already have this date entered."
+
     elif request.method == "DELETE":
         # DELETE existing date from the document
         date_cooked = request.values.get("date_cooked")
-        print(f"DELETE {date_cooked=}")
         document.update(pull__dates_cooked=date_cooked)
         document.reload()
     return document, None

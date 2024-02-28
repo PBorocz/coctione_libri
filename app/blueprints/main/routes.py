@@ -8,6 +8,7 @@ from flask import make_response, redirect, render_template, request, send_file, 
 from flask.wrappers import Response
 from flask_login import login_required
 from flask_wtf import FlaskForm
+from mongoengine.context_managers import switch_collection
 
 from app import constants as c
 from app.blueprints.main import bp
@@ -18,7 +19,7 @@ from app.blueprints.main.operations import (
     update_document_attribute,
 )
 from app.models.cookies import Cookies
-from app.models.documents import Documents, sources_available, tags_available
+from app.models.documents import Documents, get_user_documents, sources_available, tags_available
 
 
 def log_route_info(func):
@@ -43,7 +44,7 @@ def render_display(template="main/display.html") -> Response:
     cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request)
 
     # Query the documents (and sort by last sort field/dir if we have one)
-    documents, sort_state = get_all_documents(cookies)
+    documents, sort_state = get_all_documents(fl.current_user, cookies)
 
     # Render our template, set our cookie and we're done!
     template = render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
@@ -68,7 +69,7 @@ def partial_main_sorted(template="main/partials/display_table.html") -> Response
     cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request, update_sort=True)
 
     # Query all the documents and sort based on our state requested.
-    documents, sort_state = get_all_documents(cookies)
+    documents, sort_state = get_all_documents(fl.current_user, cookies)
 
     # Render our template, set our cookie and we're done!
     template: str = render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
@@ -93,9 +94,9 @@ def partial_search(template="main/partials/display_table.html") -> Response:
 
     if search_term_s == "*" or not search_term_s:
         # Sometimes a "search" is not a "search" after all!
-        documents, sort_state = get_all_documents(cookies)
+        documents, sort_state = get_all_documents(fl.current_user, cookies)
     else:
-        documents, sort_state = get_search_documents(cookies, search_term_s)
+        documents, sort_state = get_search_documents(fl.current_user, cookies, search_term_s)
 
     return render_template(template, documents=documents, sort_state=sort_state)
 
@@ -106,7 +107,9 @@ def partial_search(template="main/partials/display_table.html") -> Response:
 @log_route_info
 def route_view_document(doc_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    document = Documents.objects(id=doc_id)[0]
+    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+        document = user_documents.objects(id=doc_id)[0]
+
     if document.file_:
         file_contents = document.file_.read()
         log.debug(f"{len(file_contents)=}")
@@ -131,7 +134,7 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 @log_route_info
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
-    delete_document(request.values["doc_id"])
+    delete_document(fl.current_user, request.values["doc_id"])
     return redirect(url_for(url))
 
 
@@ -145,8 +148,9 @@ def render_new_document() -> Response:
         return render_template("main/manage.html", no_search=True, document=None, form=FlaskForm())
 
     # POST, create a new document and go back to the normal /edit to get all other attributes.
-    document = Documents(user=fl.current_user, title=request.form.get("title"))
-    document.save()
+    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+        document = user_documents(user=fl.current_user, title=request.form.get("title"))
+        document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))
 
 
@@ -156,11 +160,12 @@ def render_new_document() -> Response:
 @log_route_info
 def render_edit_document(doc_id: str | None, template: str = "main/manage.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    document = Documents.objects(id=doc_id)[0]
+    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+        document = user_documents.objects(id=doc_id)[0]
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
-        "sources": sources_available(),  # Source pulldown options
-        "tags": tags_available(),  # Tag pulldown options
+        "sources": sources_available(fl.current_user),  # Source pulldown options for user
+        "tags": tags_available(fl.current_user),  # Tag pulldown options for user
         "no_search": True,
         "document": document,
     }
@@ -173,25 +178,26 @@ def render_edit_document(doc_id: str | None, template: str = "main/manage.html")
 @log_route_info
 def partial_edit_field(field: str, doc_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    document = Documents.objects(id=doc_id)[0]
+    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+        document = user_documents.objects(id=doc_id)[0]
+
+        # Update the specified field in the document based on the inbound request, get doc and optional error msg
+        document, error_msg = update_document_attribute(document, field, request)
 
     return_args = {
-        "sources": sources_available(),
-        "tags": tags_available(),
+        "document": document,
+        "sources": sources_available(fl.current_user),
+        "tags": tags_available(fl.current_user),
         "form": FlaskForm(),  # Need for CSRF rendering obo the "file" field (rest don't use form)
-        "status": {  # We start with/assume a successful operation.
-            "icon": {"color": "has-text-success", "icon": "fa-solid fa-circle-check"},
-        },
     }
-
-    # Update the specified field in the document based on the inbound request, get doc and optional error msg
-    return_args["document"], error_msg = update_document_attribute(document, field, request)
 
     if error_msg:
         return_args["status"] = {
             "icon": {"color": "has-text-danger-dark", "icon": "fa-solid fa-circle-exclamation"},
             "error_msg": error_msg,
         }
+    else:
+        return_args["status"] = {"icon": {"color": "has-text-success", "icon": "fa-solid fa-circle-check"}}
 
     # (naming the templates after the respective field makes this easy!)
     template = render_template(f"main/partials/edit_field_{field}.html", **return_args)
@@ -210,5 +216,6 @@ def partial_edit_field(field: str, doc_id: str) -> Response:
 @log_route_info
 def partial_last_updated(doc_id: str, template: str = "main/partials/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    document = Documents.objects(id=doc_id)[0]
+    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+        document = user_documents.objects(id=doc_id)[0]
     return render_template(template, document=document)

@@ -3,14 +3,24 @@
   class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth table-sort table-arrows no-class-infer">
   <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
     {% if documents %}
+
     {% if search %}
-    {{ documents|length }} Recipes matched
+    {{ documents|length }} Recipes Matched
     {% else %}
     {{ documents|length }} Total Recipes
     {% endif %}
+
     {% else %}
+
+    {# No documents, why? nothing matches search or empty db? #}
+    {% if search %}
     Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
+    {% else %}
+    Sorry, your database is empty, you have no documents!
     {% endif %}
+
+    {% endif %}
+
   </caption>
 
   {% if documents %}

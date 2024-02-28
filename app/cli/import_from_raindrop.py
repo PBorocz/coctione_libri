@@ -9,11 +9,12 @@ from pathlib import Path
 from pprint import pprint
 
 import tomli_w
+from mongoengine.context_managers import switch_collection
 
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models.documents import Documents, Rating
+from app.models.documents import Documents, Rating, get_user_documents
 from app.models.users import Users
 
 
@@ -36,12 +37,12 @@ def main(args: argparse.Namespace):
 def delete_():
     user = Users.objects.get(email="peter.borocz@gmail.com")
     count = 0
-    for doc in Documents.objects(user=user):
-        doc.file_.delete()
-        doc.delete()
-        count += 1
-
-    print(f"Deleted {count} Documents.")
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        for doc in user_documents.objects(user=user):
+            doc.file_.delete()
+            doc.delete()
+            count += 1
+    print(f"Deleted {count} documents for {user.id=}")
 
 
 def import_new_pdfs():
@@ -150,26 +151,27 @@ def import_existing_pdfs():
 def __import_raindrop(user, raindrop: dict) -> str:
     # Parse name<|source> -> name, source
 
-    doc = Documents(
-        user=user,
-        title=raindrop["title"],
-    )
-    if "source" in raindrop:
-        doc.source = raindrop["source"]
+    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        doc = user_documents(
+            user=user,
+            title=raindrop["title"],
+        )
+        if "source" in raindrop:
+            doc.source = raindrop["source"]
 
-    if raindrop["tags"]:
-        all_tags = list(map(str.title, raindrop["tags"]))
+        if raindrop["tags"]:
+            all_tags = list(map(str.title, raindrop["tags"]))
 
-        doc.tags = [tag for tag in all_tags if "*" not in tag]
+            doc.tags = [tag for tag in all_tags if "*" not in tag]
 
-        tags_rating = [tag for tag in all_tags if "*" in tag]
-        if tags_rating:
-            doc.quality = Rating(len(tags_rating[0])).value
+            tags_rating = [tag for tag in all_tags if "*" in tag]
+            if tags_rating:
+                doc.quality = Rating(len(tags_rating[0])).value
 
-    # Save the new "document"
-    with open(raindrop["__path_pdf"], "rb") as fd:
-        doc.file_.put(fd, fileName=raindrop.get("__path_pdf").name, contentType="application/pdf")
-    doc.save()
+        # Save the new "document"
+        with open(raindrop["__path_pdf"], "rb") as fd:
+            doc.file_.put(fd, fileName=raindrop.get("__path_pdf").name, contentType="application/pdf")
+        doc.save()
 
     print("•", end="", flush=True)
 
