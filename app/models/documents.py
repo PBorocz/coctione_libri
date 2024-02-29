@@ -183,6 +183,7 @@ def tags_available(user: Users) -> list[str]:
 ###############################################################################
 # User-management methods (not worth a separate utilities file yet)
 ###############################################################################
+# FIXME: Make this a Documents classmethod instead of stand-alone!
 def get_user_documents(user: Users) -> str:
     """Return the documents collection name obo the specified user."""
     # We put this in a single place to centralise the naming convention.

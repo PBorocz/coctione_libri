@@ -18,9 +18,9 @@
                 <span class="file-icon"><i class="fas fa-upload"></i></span>
               </span>
               <span id="file-name" name="file-name" class="file-name is-large mr-4 form-input">
-		{% if document.file_ %}
+		# if document.file_:
 		{{ document.file_.fileName|default("", true) }}
-		{% endif %}
+		# endif
 	      </span>
             </label>
 	    {% include "main/partials/_status_icon.html" %}

@@ -16,6 +16,7 @@ import app.constants as c
 
 def create_app(config_override=None, setup_logging=True, log_level: str | None = None):
     application = f.Flask(__name__, template_folder="templates")
+    application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     log.debug("...created application object")
 
     with application.app_context():

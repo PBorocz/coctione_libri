@@ -1,17 +1,13 @@
-{% if status %}
-<span
-  style="vertical-align: middle;"
-  class="icon {{status.icon.color}} is-size-4 fade-out mr-4"
->
+# if status:
+  <span style="vertical-align: middle;" class="icon {{status.icon.color}} is-size-4 fade-out mr-4">
     <i class="{{status.icon.icon}}"></i>
   </span>
-  {% if status.error_msg %}
+  # if status.error_msg:
   <span
     style="vertical-align: middle;"
     class="fade-out"
   >
     {{ status.error_msg }}
   </span>
-  {% endif %}
-
-{% endif %}
+  # endif
+# endif

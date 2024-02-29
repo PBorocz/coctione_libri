@@ -1,29 +1,35 @@
+{% macro render_sort_icon(field) %}
+# if sort.by == field:
+<span class="icon is-size-6"><i class="fas {{ 'fa-arrow-down-a-z' if sort.is_ascending() else 'fa-arrow-up-a-z' }}"></i></span>
+# endif
+{% endmacro %}
+
 <table
   id="id_documents_table"
   class="table is-bordered is-striped is-responsive is-hoverable is-fullwidth table-sort table-arrows no-class-infer">
   <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
-    {% if documents %}
+    # if documents
 
-    {% if search %}
-    {{ documents|length }} Recipes Matched
-    {% else %}
-    {{ documents|length }} Total Recipes
-    {% endif %}
+      # if search:
+        {{ documents|length }} Recipes Matched
+      # else
+        {{ documents|length }} Total Recipes
+      # endif
 
-    {% else %}
+    # else:
 
-    {# No documents, why? nothing matches search or empty db? #}
-    {% if search %}
-    Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
-    {% else %}
-    Sorry, your database is empty, you have no documents!
-    {% endif %}
+      {# No documents, why? nothing matches search or empty db? #}
+      # if search
+        Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
+      # else:
+        Sorry, your database is empty, you have no documents!
+      # endif
 
-    {% endif %}
+    # endif
 
   </caption>
 
-  {% if documents %}
+  # if documents:
   <thead style="font-family: 'Raleway', sans-serif;">
 
     <tr class="has-background-grey-dark">
@@ -40,9 +46,9 @@
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	Q{{ sort_state.quality|safe }}
+	Q{{ render_sort_icon("quality") }}
       </th>
 
       {# ######################## #}
@@ -52,9 +58,9 @@
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	C{{ sort_state.complexity|safe }}
+	C{{ render_sort_icon("complexity") }}
       </th>
 
       {# ######################## #}
@@ -64,9 +70,9 @@
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	Title{{ sort_state.title|safe }}
+	Title{{ render_sort_icon("title") }}
       </th>
 
       {# ######################## #}
@@ -76,9 +82,9 @@
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	Tags{{ sort_state.tags|safe }}
+	Tags{{ render_sort_icon("tags") }}
       </th>
 
       {# ######################## #}
@@ -88,9 +94,9 @@
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	Source{{ sort_state.source|safe }}
+	Source{{ render_sort_icon("source") }}
       </th>
 
       {# ######################## #}
@@ -100,17 +106,17 @@
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort"
+	  hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
       >
-	Last{{ sort_state.last_cooked|safe }}
+	Last{{ render_sort_icon("last_cooked") }}
       </th>
 
     </tr>
   </thead>
   <tbody>
-    {% for document in documents %}
+    # for document in documents:
     {% include "main/partials/display_table_tr.html" %}
-    {% endfor %}
+    # endfor
   </tbody>
-  {% endif %}
+  # endif
 </table>

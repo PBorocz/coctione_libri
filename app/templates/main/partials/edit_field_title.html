@@ -1,4 +1,4 @@
-{% if document %}
+# if document:
 {# EDIT Mode, ie. we have a document and all other fields will be available as well #}
 <div class="field is-horizontal" id="field_title">
   <div class="field-label is-medium">
@@ -19,7 +19,7 @@
   </div>
 </div>
 
-{% else %}
+# else:
 
 {# NEW mode, just this field will show, on entry, we'll create a new document #}
 <form method="POST">
@@ -42,4 +42,4 @@
 
 </form>
 
-{% endif %}
+# endif

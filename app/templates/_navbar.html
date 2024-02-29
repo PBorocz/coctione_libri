@@ -17,13 +17,13 @@
 
   </div><!-- navbar-brand -->
 
-  {% if current_user.is_authenticated %}
+  # if current_user.is_authenticated:
 
   <div class="navbar-menu" id="navbar_menu">
 
     {# The *left* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
-      {% if not no_search %}
+      # if not no_search:
       <div class="navbar-item">
 	<div class="field">
 	  <div class="control search_control_width">
@@ -41,9 +41,9 @@
 	  </div>
 	</div>
       </div>
-      {% endif %}
+      # endif
 
-      {% if watermark %}
+      # if watermark:
       <div class="navbar-item">
 	<div class="field">
 	  <div class="control has-text-danger-dark is-size-3">
@@ -51,7 +51,7 @@
 	  </div>
 	</div>
       </div>
-      {% endif %}
+      # endif
 
     </div>
 
@@ -66,15 +66,15 @@
 	  <i class="fa-solid fa-tags is-size-4"></i>
 	</a>
       </div>
-	<div class="navbar-item">
-	  <a class="navbar-item" href="{{ url_for('auth.logout') }}">
-	    <i class="fa-solid fa-arrow-right-from-bracket is-size-4"></i>
-	  </a>
+      <div class="navbar-item">
+	<a class="navbar-item" href="{{ url_for('auth.logout') }}">
+	  <i class="fa-solid fa-arrow-right-from-bracket is-size-4"></i>
+	</a>
 	</div>
       </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
 
-  {% endif %}
+  # endif
 
 </nav>

@@ -10,7 +10,6 @@ from flask_login import login_required
 from flask_wtf import FlaskForm
 from mongoengine.context_managers import switch_collection
 
-from app import constants as c
 from app.blueprints.main import bp
 from app.blueprints.main.operations import (
     delete_document,
@@ -18,7 +17,7 @@ from app.blueprints.main.operations import (
     get_search_documents,
     update_document_attribute,
 )
-from app.models.cookies import Cookies
+from app.models import Sort
 from app.models.documents import Documents, get_user_documents, sources_available, tags_available
 
 
@@ -41,42 +40,47 @@ def log_route_info(func):
 def render_display(template="main/display.html") -> Response:
     """Render our main page on a full refresh."""
     # Pull the user-state/query parameters from the (cookie and form) obo the current user:
-    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request)
+    # cookies: Cookies = Cookies.factory(fl.current_user, request)
+
+    # Get any sort info (probably not on initial display)
+    sort = Sort.factory(request)
+    log.debug(sort)
 
     # Query the documents (and sort by last sort field/dir if we have one)
-    documents, sort_state = get_all_documents(fl.current_user, cookies)
+    documents = get_all_documents(fl.current_user, sort)
 
-    # Render our template, set our cookie and we're done!
-    template = render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
-    response: Response = make_response(template)
-    response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
-
-    return response
+    # Render our template
+    return render_template(template, documents=documents, sort=sort)
+    # template = render_template(template, documents=documents, sort=sort)
+    # response: Response = make_response(template)
+    # response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
+    # return response
 
 
 ################################################################################
 @bp.get("/sort")
 @login_required
 @log_route_info
-def partial_main_sorted(template="main/partials/display_table.html") -> Response:
-    """Re-render our main table based on a new sort field and/or direction."""
+def partial_display(template="main/partials/display_table.html") -> Response:
+    """Re-render just our partial/main table for re-sort."""
     # Make sure we're coming in from an HTMX call..
     assert "Hx-Trigger" in request.headers
     trigger = request.headers.get("Hx-Trigger")
-    log.debug(f"Hx-Trigger:{trigger}")
+    log.debug(f"Hx-Trigger: {trigger}")
 
-    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
-    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request, update_sort=True)
+    # Get any sort info (probably not on initial display)
+    sort = Sort.factory(request)
+    log.debug(sort)
 
     # Query all the documents and sort based on our state requested.
-    documents, sort_state = get_all_documents(fl.current_user, cookies)
+    documents = get_all_documents(fl.current_user, sort)
 
-    # Render our template, set our cookie and we're done!
-    template: str = render_template(template, documents=documents, cookies=cookies, sort_state=sort_state)
-    response: Response = make_response(template)
-    response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
-
-    return response
+    # Render our template
+    return render_template(template, documents=documents, sort=sort)
+    # template: str = render_template(template, documents=documents, sort=sort)
+    # response: Response = make_response(template)
+    # response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
+    # return response
 
 
 ################################################################################
@@ -85,20 +89,19 @@ def partial_main_sorted(template="main/partials/display_table.html") -> Response
 @log_route_info
 def partial_search(template="main/partials/display_table.html") -> Response:
     """Render just the results table based on a *SEARCH* request."""
-    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
-    cookies: Cookies = Cookies.factory_from_cookie(fl.current_user, request)
+    sort = Sort.factory(request)
+    log.debug(sort)
 
     search_term_s: str = request.form["search"]
-
-    log.debug(f"{search_term_s=}]")
+    log.debug(f"{search_term_s=}")
 
     if search_term_s == "*" or not search_term_s:
         # Sometimes a "search" is not a "search" after all!
-        documents, sort_state = get_all_documents(fl.current_user, cookies)
+        documents = get_all_documents(fl.current_user, sort)
     else:
-        documents, sort_state = get_search_documents(fl.current_user, cookies, search_term_s)
+        documents = get_search_documents(fl.current_user, search_term_s, sort)
 
-    return render_template(template, documents=documents, sort_state=sort_state)
+    return render_template(template, documents=documents, sort=sort)
 
 
 ################################################################################

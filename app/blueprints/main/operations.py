@@ -12,21 +12,20 @@ from mongoengine.queryset.queryset import QuerySet
 from mongoengine.queryset.visitor import QCombination
 from werkzeug.utils import secure_filename
 
-from app import constants as c
-from app.models.cookies import Cookies
+from app.models import Sort
 from app.models.documents import Documents, get_user_documents
 from app.models.users import Users
 
 
-def get_all_documents(user: Users, cookies: Cookies) -> tuple[list[Documents], dict]:
+def get_all_documents(user: Users, sort: Sort) -> tuple[list[Documents], dict]:
     """Return *all* documents."""
     with switch_collection(Documents, get_user_documents(user)) as user_documents:
         documents = user_documents.objects()
     log.debug(f"{len(documents):,d} documents found.")
-    return _sort(documents, cookies)
+    return _sort(documents, sort)
 
 
-def get_search_documents(user: Users, cookies: Cookies, search: str) -> tuple[list[Documents], dict]:
+def get_search_documents(user: Users, search: str, sort: Sort) -> tuple[list[Documents], dict]:
     """Return any documents matching the search term(s).
 
     Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
@@ -47,7 +46,7 @@ def get_search_documents(user: Users, cookies: Cookies, search: str) -> tuple[li
         documents = user_documents.objects(id__in=ids_to_query)
     log.info(f"{len(documents):,d} documents found.")
 
-    return _sort(documents, cookies)
+    return _sort(documents, sort)
 
 
 ################################################################################
@@ -297,16 +296,12 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
 ################################################################################
 # Utility methods
 ################################################################################
-def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents], dict]:
+def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict]:
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
-    sort_field = cookies.sort_field if cookies.sort_field else "title"
-    if cookies.sort_dir:
-        sort_ascending = True if cookies.sort_dir == c.SORT_ASCENDING else False
-    else:
-        sort_ascending = True
-
     # fmt: off
-    if sort_ascending:
+    if sort.is_ascending():
+        # These are a bit more complex but allow us to make sure that "None" entries of the
+        # sort.by field are always at the bottom, irrespective of sort.order.
         sort_lambdas = {
             "complexity" : lambda doc: (doc.complexity  is None, doc.complexity),
             "last_cooked": lambda doc: (doc.last_cooked is None, doc.last_cooked),
@@ -326,21 +321,14 @@ def _sort(documents: list[Documents], cookies: Cookies) -> tuple[list[Documents]
         }
     # fmt: on
 
-    if not (sort_lambda := sort_lambdas.get(sort_field)):
-        log.error(f"Sorry, ran into a case where cookies.sort_field is unrecognized? '{sort_field}'")
+    if not (sort_lambda := sort_lambdas.get(sort.by)):
+        log.error(f"Sorry, ran into a case where cookies.sort.by is unrecognized? '{sort.by}'")
         sort_lambda = sort_lambdas.get("title")
 
-    # Sort indicator is a dict keyed by the respective sort column with the right icon to
-    # display This allows us to render the sort up/down arrow for EACH field (as
-    # {{ sort_indicators.aField }}) and only the column that matches the key field will
-    # actually have it's arrow displayed.
-    arrow_icon = "fa-arrow-up-a-z" if sort_ascending else "fa-arrow-down-a-z"
-    sort_state = {sort_field: f'<span class="icon is-size-6"><i class="fas {arrow_icon}"></i></span>'}
-
     # Apply sort direction..
-    sorted_kwargs = {} if sort_ascending else {"reverse": True}
+    sorted_kwargs = {} if sort.is_ascending() else {"reverse": True}
 
-    return sorted(documents, key=sort_lambda, **sorted_kwargs), sort_state
+    return sorted(documents, key=sort_lambda, **sorted_kwargs)
 
 
 def _find_search_methods(module: str, prefix: str) -> list[Callable]:

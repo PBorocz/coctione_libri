@@ -20,14 +20,14 @@
     </div>
   </div>
 
-  {% if document.dates_cooked %}
+  # if document.dates_cooked:
   <div class="field is-horizontal">
     <div class="field-label">
       <label class="label"></label> {# Need this even though we use the label from above #}
     </div>
     <div class="field-body">
       <div class="control">
-	{% for date_cooked_yyyymmdd, date_cooked_display in document.dates_cooked_display %}
+	# for date_cooked_yyyymmdd, date_cooked_display in document.dates_cooked_display:
 	<span class="content">
 	  {{ date_cooked_display }}
 	  <span class="icon"
@@ -40,10 +40,10 @@
 	  </span>
 	</span>
 	<br/>
-	{% endfor %}
+	# endfor
       </div>
     </div>
   </div>
-  {% endif %}
+  # endif
 
 </div>

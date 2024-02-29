@@ -1,16 +1,16 @@
 {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
+  # if messages:
+    # for category, message in messages:
       <div class="notification">
 	<button class="delete"></button>
-	{% if category == 'error' %}
+	# if category == 'error':
         <span class="has-background-danger-light">{{ message }}</span>
         <br/>
-	{% elif category == 'success' %}
+	# elif category == 'success':
         <span class="has-background-success-light">{{ message }}</span>
         <br/>
-	{% endif %}
+	# endif
       </div>
-    {% endfor %}
- {% endif %}
+    # endfor
+ # endif
 {% endwith %}
