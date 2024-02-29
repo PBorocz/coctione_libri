@@ -50,54 +50,57 @@
     {# Le javascript: Keep at the end of the document for faster page load #}
     {% block javascript %}
 
-      {# Setup our FontAwesome environment #}
-      <script src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
+    {# Setup our FontAwesome environment #}
+    <script defer src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
 
-      {# htmx & hyperscript libraries #}
-      <script defer src="https://unpkg.com/htmx.org@latest"></script> {# As of last update: 1.9.9 #}
-      <script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
+    {# htmx & hyperscript libraries #}
+    <script defer src="https://unpkg.com/htmx.org@latest"></script> {# As of last update: 1.9.9 #}
+    <script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
 
-      {# Sweetalert confirmation system #}
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {# allow for inline/scoped css #}
+    <script defer src="https://cdn.jsdelivr.net/gh/gnat/css-scope-inline@main/script.js"></script>
 
-      {# calendar widget du-jour #}
-      <script src="https://unpkg.com/flatpickr"></script>
+    {# Sweetalert confirmation system #}
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      {# navbar burger behaviour #}
-      <script type="text/javascript">
+    {# calendar widget du-jour #}
+    <script defer src="https://unpkg.com/flatpickr"></script>
 
-	document.addEventListener('DOMContentLoaded', () => {
+    <script type="text/javascript">
+     {# navbar burger behaviour #}
 
-         // Get all "navbar-burger" elements
-         const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+     document.addEventListener('DOMContentLoaded', () => {
 
-         // Check if there are any navbar burgers
-         if ($navbarBurgers.length > 0) {
+       // Get all "navbar-burger" elements
+       const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
 
-           // Add a click event on each of them
-           $navbarBurgers.forEach( el => {
-             el.addEventListener('click', () => {
+       // Check if there are any navbar burgers
+       if ($navbarBurgers.length > 0) {
 
-               // Get the target from the "data-target" attribute
-               const target = el.dataset.target;
-               const $target = document.getElementById(target);
+         // Add a click event on each of them
+         $navbarBurgers.forEach( el => {
+           el.addEventListener('click', () => {
 
-               // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-               el.classList.toggle('is-active');
-               $target.classList.toggle('is-active');
+             // Get the target from the "data-target" attribute
+             const target = el.dataset.target;
+             const $target = document.getElementById(target);
 
-             });
+             // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+             el.classList.toggle('is-active');
+             $target.classList.toggle('is-active');
+
            });
-         }
+         });
+       }
 
-       });
-      </script>
+     });
+    </script>
 
-      {% block js_local %}
-      {# Any page-specific JS can be populated here! #}
-      {% endblock %}
+    {% block js_local %}
+    {# Any page-specific JS can be populated
+    {% endblock %}
 
-      {% endblock %}
+    {% endblock %}
 
   </body>
 </html>

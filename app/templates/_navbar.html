@@ -26,18 +26,21 @@
       # if not no_search:
       <div class="navbar-item">
 	<div class="field">
-	  <div class="control search_control_width">
-	    {# Use this if we're doing a full page refresh: #}
-	    {# _="on htmx:afterRequest set my value to ''" #}
-	    <input
-	      class="input"
-	      autofocus
-	      hx-post="/search"
-	      hx-target="#id_documents_table"
-	      placeholder="Search..."
-	      type="search"
-	      name="search"
-	    >
+	    <style>
+	      me { max-width: 300px; min-width: 150px; width: 200px; }
+	    </style>
+	    <div class="control">
+	      {# Use this if we're doing a full page refresh: #}
+	      {# _="on htmx:afterRequest set my value to ''" #}
+	      <input
+		class="input"
+		autofocus
+		hx-post="/search"
+		hx-target="#id_documents_table"
+		placeholder="Search..."
+		type="search"
+		name="search"
+	      >
 	  </div>
 	</div>
       </div>

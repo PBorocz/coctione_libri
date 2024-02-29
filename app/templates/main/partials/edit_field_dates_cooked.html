@@ -5,11 +5,17 @@
     </div>
     <div class="field-body">
       <div class="control is-flex is-align-items-center" style="overflow:hidden;">
-	<input class="input my-calendar form-input mr-4"
+	<style>
+	 me {
+	   max-height: 200px !important;
+	   overflow: visible !important;
+	 }
+	</style>
+	<input class="input form-input mr-4"
 	       id="date_cooked"
 	       name="date_cooked"
 	       type="date"
-	       placeholder="Select to add a new date"
+	       placeholder="Click to add a new date"
 	       hx-post="/edit/dates_cooked/{{ document.id }}"
 	       hx-swap="outerHTML"
 	       hx-target="#div_dates_cooked"
