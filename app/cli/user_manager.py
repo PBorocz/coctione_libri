@@ -7,8 +7,7 @@ import mongoengine
 
 from app import constants as c
 from app import create_app
-from app.models import Users
-from app.models.users import delete_user, query_user, update_user
+from app.models.users import Users, delete_user, query_user, update_user
 
 
 def reset_password():
@@ -93,10 +92,10 @@ if __name__ == "__main__":
     ARGS = parser.parse_args()
 
     # Validate..
-    assert ARGS.database in ("production", "local")
+    assert ARGS.database in ("production", "development")
 
     # Setup our db connection
-    os.environ["DB_ENV"] = ARGS.database
+    os.environ["FLASK_ENV"] = ARGS.database
     app = create_app()
     app.app_context().push()
 

@@ -14,7 +14,7 @@ from flask_mongoengine import MongoEngine
 import app.constants as c
 
 
-def create_app(config_override=None, setup_logging=True, log_level: str | None = None):
+def create_app(setup_logging=True, log_level: str | None = None):
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     log.debug("...created application object")
@@ -24,12 +24,11 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
         # Get configuration
         ################################################################################
         dynaconf = FlaskDynaconf()
-        dynaconf.init_app(application)
+        dynaconf.init_app(application, load_dotenv=True)
 
-        # Set our environmen
+        # Set booleans for ease in checking our environment.
         application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
         application.config["development"] = not application.config["production"]
-        log.debug(f"...configured configuration environment -> {application.config.get('ENV')}")
 
         ################################################################################
         # Setup Logging and default log level if requested. There are cases where we
@@ -42,7 +41,9 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
             # See *all* inbound requests for local/development environment (but not in production)
             log.getLogger("werkzeug").disabled = True if application.config["production"] else False
 
-            log.debug(f"...setup logging environment -> '{log.getLevelName(log.getLogger().getEffectiveLevel())}'")
+            log.debug(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
+
+        log.debug(f"...configured configuration environment: {application.config.get('ENV')}")
 
         ################################################################################
         # Initialise our login/authentication extension
@@ -86,7 +87,7 @@ def create_app(config_override=None, setup_logging=True, log_level: str | None =
             {"host": app_db_settings, "alias": "default"},
         ]
         db.init_app(application)
-        log.debug(f"...connected to MongoDB -> '{app_db_settings[0:40]}'")
+        log.debug(f"...connected to MongoDB: {app_db_settings[0:40]}")
 
         ################################################################################
         # Setup static resources..

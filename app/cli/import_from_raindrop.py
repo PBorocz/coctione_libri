@@ -23,7 +23,7 @@ def main(args: argparse.Namespace):
     setup_logging(True)
 
     # Setup our application/db connection
-    os.environ["DB_ENV"] = args.database
+    os.environ["FLASK_ENV"] = args.database
     app = create_app(setup_logging=False)
     with app.app_context():
         if args.action == "import_existing_pdfs":
