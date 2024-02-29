@@ -124,6 +124,11 @@ class Documents(me_.Document):
         """Set the tags in this document based on a comma-delimited list."""
         self.tags = [tag.strip().title() for tag in s_tags.split(TAG_SEP)]
 
+    @classmethod
+    def as_user(cls, user: Users) -> str:
+        """Return the documents collection name obo the specified user."""
+        return f"documents-{user.id}"
+
 
 ################################################################################
 # Signal support
@@ -163,7 +168,7 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
 def sources_available(user: Users) -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
     sources_available = []
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         docs = user_documents.objects(source__ne=None).only("source")
         sources = sorted({doc.source for doc in docs})
         sources_available.extend(sources)
@@ -173,18 +178,8 @@ def sources_available(user: Users) -> list[str]:
 def tags_available(user: Users) -> list[str]:
     """Return a sorted list of all current tags (ie. those attached to documents)."""
     tags = set()
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         for document in user_documents.objects(tags__ne=None).only("tags"):
             for tag in document.tags:
                 tags.add(tag)
     return sorted(tags)
-
-
-###############################################################################
-# User-management methods (not worth a separate utilities file yet)
-###############################################################################
-# FIXME: Make this a Documents classmethod instead of stand-alone!
-def get_user_documents(user: Users) -> str:
-    """Return the documents collection name obo the specified user."""
-    # We put this in a single place to centralise the naming convention.
-    return f"documents-{user.id}"

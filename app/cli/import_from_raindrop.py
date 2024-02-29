@@ -14,7 +14,7 @@ from mongoengine.context_managers import switch_collection
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models.documents import Documents, Rating, get_user_documents
+from app.models.documents import Documents, Rating
 from app.models.users import Users
 
 
@@ -37,7 +37,7 @@ def main(args: argparse.Namespace):
 def delete_():
     user = Users.objects.get(email="peter.borocz@gmail.com")
     count = 0
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         for doc in user_documents.objects(user=user):
             doc.file_.delete()
             doc.delete()
@@ -151,7 +151,7 @@ def import_existing_pdfs():
 def __import_raindrop(user, raindrop: dict) -> str:
     # Parse name<|source> -> name, source
 
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         doc = user_documents(
             user=user,
             title=raindrop["title"],

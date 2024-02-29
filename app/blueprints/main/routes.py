@@ -18,7 +18,7 @@ from app.blueprints.main.operations import (
     update_document_attribute,
 )
 from app.models import Sort
-from app.models.documents import Documents, get_user_documents, sources_available, tags_available
+from app.models.documents import Documents, sources_available, tags_available
 
 
 def log_route_info(func):
@@ -110,7 +110,7 @@ def partial_search(template="main/partials/display_table.html") -> Response:
 @log_route_info
 def route_view_document(doc_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
 
     if document.file_:
@@ -151,7 +151,7 @@ def render_new_document() -> Response:
         return render_template("main/manage.html", no_search=True, document=None, form=FlaskForm())
 
     # POST, create a new document and go back to the normal /edit to get all other attributes.
-    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents(user=fl.current_user, title=request.form.get("title"))
         document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))
@@ -163,7 +163,7 @@ def render_new_document() -> Response:
 @log_route_info
 def render_edit_document(doc_id: str | None, template: str = "main/manage.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
@@ -181,7 +181,7 @@ def render_edit_document(doc_id: str | None, template: str = "main/manage.html")
 @log_route_info
 def partial_edit_field(field: str, doc_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
 
         # Update the specified field in the document based on the inbound request, get doc and optional error msg
@@ -219,6 +219,6 @@ def partial_edit_field(field: str, doc_id: str) -> Response:
 @log_route_info
 def partial_last_updated(doc_id: str, template: str = "main/partials/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    with switch_collection(Documents, get_user_documents(fl.current_user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
     return render_template(template, document=document)

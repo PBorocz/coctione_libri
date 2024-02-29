@@ -13,13 +13,13 @@ from mongoengine.queryset.visitor import QCombination
 from werkzeug.utils import secure_filename
 
 from app.models import Sort
-from app.models.documents import Documents, get_user_documents
+from app.models.documents import Documents
 from app.models.users import Users
 
 
 def get_all_documents(user: Users, sort: Sort) -> tuple[list[Documents], dict]:
     """Return *all* documents."""
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         documents = user_documents.objects()
     log.debug(f"{len(documents):,d} documents found.")
     return _sort(documents, sort)
@@ -42,7 +42,7 @@ def get_search_documents(user: Users, search: str, sort: Sort) -> tuple[list[Doc
     ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
     # Return all the documents associated with the matching id's.
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         documents = user_documents.objects(id__in=ids_to_query)
     log.info(f"{len(documents):,d} documents found.")
 
@@ -54,7 +54,7 @@ def get_search_documents(user: Users, search: str, sort: Sort) -> tuple[list[Doc
 ################################################################################
 def _search_by_title(user: Users, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(title__icontains=search).only("id")
     if partials:
         log.debug(f"{len(partials):,d} documents matched against 'title'")
@@ -63,7 +63,7 @@ def _search_by_title(user: Users, search: str) -> list[ObjectId]:
 
 def _search_by_source(user: Users, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(source__icontains=search).only("id")
     if partials:
         log.debug(f"{len(partials):,d} documents matched against 'source'")
@@ -94,14 +94,14 @@ def _search_by_tag(user: Users, search: str) -> list[ObjectId]:
 
         queries: list[Q] = [Q(tags=tag) for tag in l_search]
         query: QCombination = reduce(and_, queries)
-        with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
             partials: QuerySet = user_documents.objects(query).only("id")
         if partials:
             log.debug(f"{len(partials):,d} documents matched against multiple search terms")
 
     else:
         # No, use as is..
-        with switch_collection(Documents, get_user_documents(user)) as user_documents:
+        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
             partials: QuerySet = user_documents.objects(tags=search.title()).only("id")
         if partials:
             log.debug(f"{len(partials):,d} documents matched against single search")
@@ -197,7 +197,7 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
 
 def delete_document(user: Users, id_: str) -> None:
     """Delete the document with specified id for the specified user."""
-    with switch_collection(Documents, get_user_documents(user)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         document = user_documents.objects(id=id_)[0]
         if document.file_:
             document.file_.delete()
