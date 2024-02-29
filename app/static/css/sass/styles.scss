@@ -15,7 +15,8 @@ tr.htmx-swapping td {
   transition: opacity 1s ease-out;
 }
 
-.field.is-horizontal .field-body .control { // Only way to get things to right-align correctly on new/edit dialog pages?
+// Only way to get things to right-align correctly on new/edit dialog pages?
+.field.is-horizontal .field-body .control {
     width: 50%;
     overflow: auto;
 }
