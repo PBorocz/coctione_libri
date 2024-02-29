@@ -9,6 +9,7 @@
 		hx-post="/edit/source/{{ document.id }}"
 		hx-swap="outerHTML"
 		hx-target="#field_source">
+	  <option value=""></option>
 	  # for source in sources:
 	  <option {% if document.source == source %}selected{% endif %} value="{{ source }}">{{ source }}</option>
 	  # endfor
