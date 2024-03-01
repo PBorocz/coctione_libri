@@ -1,5 +1,41 @@
 """."""
+from __future__ import annotations
+
+from enum import IntEnum, StrEnum
+
 from flask.wrappers import Request  # Typing
+
+
+################################################################################
+# Enumerators
+################################################################################
+class Category(StrEnum):
+    # Extra attributes over and above implicit "value":
+    collection_root: str  # Eg. recipes in "recipes_<user_id>"
+
+    def __new__(cls, display: str, collection_root: str | None = None) -> Category:
+        obj = str.__new__(cls, display)
+        obj.collection_root = collection_root if collection_root else display.lower()
+        return obj
+
+    COOKING_RECIPES = "Recipes"
+    COOKING_COOKING = "Cooking"
+
+
+def categories() -> list[str]:
+    return [category._value_ for category in Category]
+
+
+class Rating(IntEnum):
+    ZER = 0
+    ONE = 1
+    TWO = 2
+    THR = 3
+    FOR = 4
+    FIV = 5
+
+    def __str__(self):
+        return "★" * self.value  # "•"
 
 
 ################################################################################

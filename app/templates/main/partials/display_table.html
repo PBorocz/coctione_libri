@@ -11,9 +11,9 @@
     # if documents
 
       # if search:
-        {{ documents|length }} Recipes Matched
+        {{ documents|length }} Documents Matched
       # else
-        {{ documents|length }} Total Recipes
+        {{ documents|length }} Total Documents
       # endif
 
     # else:
@@ -22,7 +22,7 @@
       # if search
         Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
       # else:
-        Sorry, your database is empty, you have no documents!
+        Sorry, you have no '{{ current_user.category }}' documents (yet)!
       # endif
 
     # endif

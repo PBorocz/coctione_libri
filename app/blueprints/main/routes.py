@@ -17,7 +17,7 @@ from app.blueprints.main.operations import (
     get_search_documents,
     update_document_attribute,
 )
-from app.models import Sort
+from app.models import Sort, categories
 from app.models.documents import Documents, sources_available, tags_available
 
 
@@ -50,7 +50,7 @@ def render_display(template="main/display.html") -> Response:
     documents = get_all_documents(fl.current_user, sort)
 
     # Render our template
-    return render_template(template, documents=documents, sort=sort)
+    return render_template(template, documents=documents, sort=sort, categories=categories())
     # template = render_template(template, documents=documents, sort=sort)
     # response: Response = make_response(template)
     # response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
@@ -63,24 +63,25 @@ def render_display(template="main/display.html") -> Response:
 @log_route_info
 def partial_display(template="main/partials/display_table.html") -> Response:
     """Re-render just our partial/main table for re-sort."""
-    # Make sure we're coming in from an HTMX call..
-    assert "Hx-Trigger" in request.headers
-    trigger = request.headers.get("Hx-Trigger")
-    log.debug(f"Hx-Trigger: {trigger}")
+    sort = Sort.factory(request)  # Get any sort info (probably not on initial display)
 
-    # Get any sort info (probably not on initial display)
-    sort = Sort.factory(request)
-    log.debug(sort)
-
-    # Query all the documents and sort based on our state requested.
+    # Query all the documents for the respective category and sort based on our state requested.
     documents = get_all_documents(fl.current_user, sort)
 
-    # Render our template
+    # Render our partial template of the main display table:
     return render_template(template, documents=documents, sort=sort)
-    # template: str = render_template(template, documents=documents, sort=sort)
-    # response: Response = make_response(template)
-    # response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
-    # return response
+
+
+################################################################################
+@bp.post("/user/category")
+@login_required
+@log_route_info
+def partial_user_category_change() -> Response:
+    """Change the display to the document category specified."""
+    fl.current_user.category = request.values.get("category")
+    fl.current_user.save()
+    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.category}")
+    return redirect(url_for("main.partial_display"))
 
 
 ################################################################################
@@ -146,13 +147,24 @@ def render_delete_document(url: str = "main.render_display") -> Response:
 @login_required
 @log_route_info
 def render_new_document() -> Response:
-    """Display/Process the Document edit page in 'new' mode."""
-    if request.method == "GET":
-        return render_template("main/manage.html", no_search=True, document=None, form=FlaskForm())
+    """Display/Process the Document edit page in 'new' mode.
 
-    # POST, create a new document and go back to the normal /edit to get all other attributes.
+    In "GET" mode, we simply render a page with a title entry input form.
+
+    On successful POST of this, we create a new document (title only) of the
+    user's respective category and redirect to the atomic edit page to get all
+    the rest of the attributes.
+    """
+    if request.method == "GET":
+        return render_template(
+            "main/edit.html", no_search=True, document=None, form=FlaskForm(), categories=categories()
+        )
+
+    # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents(user=fl.current_user, title=request.form.get("title"))
+        document = user_documents(
+            user=fl.current_user, title=request.form.get("title"), category=fl.current_user.category
+        )
         document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))
 
@@ -161,18 +173,19 @@ def render_new_document() -> Response:
 @bp.get("/edit/<doc_id>")
 @login_required
 @log_route_info
-def render_edit_document(doc_id: str | None, template: str = "main/manage.html") -> Response:
+def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
-    return_ = {
-        "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
-        "sources": sources_available(fl.current_user),  # Source pulldown options for user
-        "tags": tags_available(fl.current_user),  # Tag pulldown options for user
-        "no_search": True,
-        "document": document,
-    }
-    return render_template(template, **return_)
+        return_ = {
+            "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
+            "sources": sources_available(fl.current_user),  # Source pulldown options for user
+            "tags": tags_available(fl.current_user),  # Tag pulldown options for user
+            "no_search": True,
+            "document": document,
+            "categories": categories(),
+        }
+        return render_template(template, **return_)
 
 
 ################################################################################

@@ -14,7 +14,8 @@ from mongoengine.context_managers import switch_collection
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models.documents import Documents, Rating
+from app.models import Rating
+from app.models.documents import Recipes
 from app.models.users import Users
 
 
@@ -37,7 +38,7 @@ def main(args: argparse.Namespace):
 def delete_():
     user = Users.objects.get(email="peter.borocz@gmail.com")
     count = 0
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+    with switch_collection(Recipes, Recipes.as_user(user)) as user_documents:
         for doc in user_documents.objects(user=user):
             doc.file_.delete()
             doc.delete()
@@ -151,10 +152,11 @@ def import_existing_pdfs():
 def __import_raindrop(user, raindrop: dict) -> str:
     # Parse name<|source> -> name, source
 
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+    with switch_collection(Recipes, Recipes.as_user(user)) as user_documents:
         doc = user_documents(
             user=user,
             title=raindrop["title"],
+            category=user.category,
         )
         if "source" in raindrop:
             doc.source = raindrop["source"]
@@ -186,8 +188,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--database",
-        help=f"Database environment, eg. {', '.join(c.DB_ENVS)}. Default is 'local'.",
-        default="local",
+        help=f"Database environment, eg. {', '.join(c.DB_ENVS)}. Default is 'development'.",
+        default="development",
     )
 
     parser.add_argument(
@@ -211,7 +213,7 @@ if __name__ == "__main__":
     ARGS = parser.parse_args()
 
     # Validate..
-    assert ARGS.database in ("production", "local")
+    assert ARGS.database in ("production", "development")
     assert ARGS.action.startswith("import") or ARGS.action.startswith("delete")
 
     main(ARGS)

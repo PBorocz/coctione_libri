@@ -7,6 +7,8 @@ from datetime import datetime
 import mongoengine as me_
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.models import Category
+
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
@@ -14,14 +16,31 @@ class Users(me_.Document):
 
     """User model."""
 
-    # fmt: off
-    email         = me_.EmailField(required=True, unique=True)  # Model primary key, must be unique, eg. foo@bar.com
-    user_id       = me_.StringField(required=True)              # Email hash (used as a "private" user_id on UI)
-    password_hash = me_.StringField(required=True)              # Password *HASH*
-    created       = me_.DateTimeField(default=datetime.utcnow)  # When user was first saved to database.
-    updated       = me_.DateTimeField()                         # When user was last updated (None if just created)
-    last_login    = me_.DateTimeField()                         # Last login time, eg. # 2022-02-02T03:00:00+00:00
-    # fmt: on
+    # ---------------------
+    # Required attributes:
+    # ---------------------
+    # Model primary/unique key, eg. foo@bar.com
+    email = me_.EmailField(required=True, unique=True)
+
+    # Email hash (used as a "private" user_id on UI)
+    user_id = me_.StringField(required=True)
+
+    # Password *HASH*
+    password_hash = me_.StringField(required=True)
+
+    # When user was first saved to database.
+    created = me_.DateTimeField(required=True, default=datetime.utcnow)
+
+    # Current category user is working on.
+    category = me_.StringField(required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES)
+
+    # ---------------------
+    # Optional attributes:
+    # ---------------------
+    # When user was last updated (None if just created
+    updated = me_.DateTimeField()
+    # Last login time, eg. # 2022-02-02T03:00:00+00:00
+    last_login = me_.DateTimeField()
 
     @classmethod
     def get_or_create(cls, key: str, **kwargs) -> tuple[Users, bool]:

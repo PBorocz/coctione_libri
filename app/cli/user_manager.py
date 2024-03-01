@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 """."""
 import argparse
+import getpass
 import os
 
 import mongoengine
 
 from app import constants as c
 from app import create_app
+from app.models import categories
 from app.models.users import Users, delete_user, query_user, update_user
 
 
@@ -20,15 +22,44 @@ def reset_password():
             break
         print(f"Sorry, no user with email: '{email}'")
 
-    password, password_2 = 1, 2
-    while password != password_2:
-        password = input("Password : ")
-        password_2 = input("Confirm  : ")
-        if password != password_2:
+    password_1, password_2 = 1, 2
+    while password_1 != password_2:
+        password_1 = getpass.getpass("Password : ")
+        password_2 = getpass.getpass("Confirm  : ")
+        if password_1 != password_2:
             print("Sorry, passwords don't match..try again")
 
-    update_user(user, "password", password)
+    update_user(user, "password", password_1)
     print("Password reset.")
+
+
+def get_category():
+    category = None
+    while True:
+        category = input("Category : ")
+        if category in categories():
+            return category
+        categories_available = ", ".join(categories())
+        print(f"Sorry, no {category=}, must be one of: {categories_available}")
+    return None
+
+
+def reset_category():
+    """Reset the category of an existing user."""
+    user = None
+    while True:
+        email = input("Email : ")
+        user = query_user(email=email)
+        if user:
+            break
+        print(f"Sorry, no user with email: '{email}'")
+
+    category = get_category()
+    if category:
+        update_user(user, "category", category)
+        print("Category reset.")
+    else:
+        print("Nothing done.")
 
 
 def add():
@@ -37,12 +68,14 @@ def add():
 
     password, password_2 = 1, 2
     while password != password_2:
-        password = input("Password : ")
-        password_2 = input("Confirm  : ")
+        password = getpass.getpass("Password : ")
+        password_2 = getpass.getpass("Confirm  : ")
         if password != password_2:
             print("Sorry, passwords don't match..try again")
 
-    user = Users.factory(email=email, password=password)
+    category = get_category()
+
+    user = Users.factory(email=email, password=password, category=category)
     try:
         user.save()
         print(f"New user successfully created [{user.id}]")
@@ -85,8 +118,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--database",
-        help=f"Database environment, eg. {', '.join(c.DB_ENVS)}. Default is 'local'.",
-        default="local",
+        help=f"Database environment, eg. {', '.join(c.DB_ENVS)}. Default is 'development'.",
+        default="development",
     )
 
     ARGS = parser.parse_args()
@@ -108,6 +141,9 @@ if __name__ == "__main__":
 
     elif ARGS.action.casefold() == "reset-password":
         reset_password()
+
+    elif ARGS.action.casefold() == "reset-category":
+        reset_category()
 
     elif ARGS.action.casefold() == "delete":
         delete()

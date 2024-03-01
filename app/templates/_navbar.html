@@ -21,26 +21,26 @@
 
   <div class="navbar-menu" id="navbar_menu">
 
-    {# The *left* part of the menu, appearing right after navbar-brand #}
+    {# The *LEFT* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
       # if not no_search:
       <div class="navbar-item">
 	<div class="field">
-	    <style>
-	      me { max-width: 300px; min-width: 150px; width: 200px; }
-	    </style>
-	    <div class="control">
-	      {# Use this if we're doing a full page refresh: #}
-	      {# _="on htmx:afterRequest set my value to ''" #}
-	      <input
-		class="input"
-		autofocus
-		hx-post="/search"
-		hx-target="#id_documents_table"
-		placeholder="Search..."
-		type="search"
-		name="search"
-	      >
+	  <style>
+	   me { max-width: 300px; min-width: 150px; width: 200px; }
+	  </style>
+	  <div class="control">
+	    {# Use this if we're doing a full page refresh: #}
+	    {# _="on htmx:afterRequest set my value to ''" #}
+	    <input
+	      class="input"
+	      autofocus
+	      hx-post="/search"
+	      hx-target="#id_documents_table"
+	      placeholder="Search..."
+	      type="search"
+	      name="search"
+	    >
 	  </div>
 	</div>
       </div>
@@ -58,23 +58,37 @@
 
     </div>
 
+    {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-end">
+
+      <div class="navbar-item">
+	<div class="select is-rounded is-small mr-4">
+	  <select name="category" hx-post="/user/category" hx-target="#id_documents_table">
+	    # for category in categories:
+	    <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+	    # endfor
+	  </select>
+	</div>
+      </div>
+
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
 	  <i class="fa-solid fa-plus is-size-4"></i>
 	</a>
       </div>
+
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
 	  <i class="fa-solid fa-tags is-size-4"></i>
 	</a>
       </div>
+
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('auth.logout') }}">
 	  <i class="fa-solid fa-arrow-right-from-bracket is-size-4"></i>
 	</a>
-	</div>
-      </div><!-- navbar-end -->
+      </div>
+    </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
 
