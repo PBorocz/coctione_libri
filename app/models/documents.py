@@ -9,8 +9,6 @@ from mongoengine.context_managers import switch_collection
 from app.models import Category, Rating
 from app.models.users import Users
 
-TAG_SEP: str = ","  # Separator for adding/editing tags..
-
 
 class Documents(me_.Document):
 
@@ -20,30 +18,37 @@ class Documents(me_.Document):
     ################################################################################
     # Required Fields
     ################################################################################
-    user         = me_.ReferenceField(Users, required=True)                            # FK to user
-    title        = me_.StringField(max_length=120, required=True)                      # Display title, eg. 'Cook Me!'
-    category     = me_.StringField(required=True, choices=[d.value for d in Category]) # Document's category
-    created      = me_.DateTimeField(required=True, default=dt.datetime.utcnow)        # Date stamp when created
+    user     = me_.ReferenceField(Users, required=True)                            # FK to user
+    title    = me_.StringField(max_length=120, required=True)                      # Display title, eg. 'Cook Me!'
+    category = me_.StringField(required=True, choices=[d.value for d in Category]) # Document's category
+    created  = me_.DateTimeField(required=True, default=dt.datetime.utcnow)        # Date stamp when created
 
     ################################################################################
     # Optional Fields
     ################################################################################
     # Generic (but optional) "document" fields, ie. common across all document categories:
-    file_        = me_.FileField()                                      # GridFS link to actual pdf/file content
-    notes        = me_.StringField()                                    # "Notes" in MD format
-    source       = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
-    tags         = me_.SortedListField(me_.StringField(max_length=50))  # List of tags in "Titled" display format
-    updated      = me_.DateTimeField()                                  # When doc was last "touched"
-    url_         = me_.StringField(max_length=2038)                     # URL associated with the document.
+    file_    = me_.FileField()                                      # GridFS link to actual pdf/file content
+    notes    = me_.StringField()                                    # "Notes" in MD format
+    source   = me_.StringField()                                    # Logical source of doc, e.g. NY, FN, etc.
+    tags     = me_.SortedListField(me_.StringField(max_length=50))  # List of tags in "Titled" display format
+    updated  = me_.DateTimeField()                                  # When doc was last "touched"
+    url_     = me_.StringField(max_length=2038)                     # URL associated with the document.
+
+    ################################################################################
+    # Recipe Category Specific Fields (and thus, all optional)
+    ################################################################################
+    dates_cooked = me_.ListField(me_.DateTimeField())                                        # List "cooked" dates
+    quality      = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
+    complexity   = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
+    # fmt: on
 
     # fmt: on
-    meta = {"indexes": ["tags"], "allow_inheritance": True}
+    meta = {"indexes": ["tags"]}
 
     @classmethod
     def pre_save(cls, sender, document, **kwargs):
         """Perform any/all PRE-SAVE data updates/checks (ie. either on create or update)."""
-        if document.id:
-            # Only update "updated" if we're doing an update!
+        if document.id:  # Only update "updated" if we're saving an existing document
             document.updated = dt.datetime.utcnow()
 
     @property
@@ -57,12 +62,13 @@ class Documents(me_.Document):
         return Rating(self.complexity) if self.complexity else None
 
     @property
-    def tags_as_str(self) -> list[str] | None:
+    def tags_for_sort(self) -> list[str] | None:
         """Convert the list of tags to a lower-case, sorted comma-separated list."""
+        # This is only used for sorting documents by the "tags" column, NOT for display!
         if not self.tags:
             return None
         normalised = [tag.lower() for tag in sorted(self.tags)]
-        return TAG_SEP.join(normalised)
+        return "|".join(normalised)
 
     @property
     def cooked(self) -> int:
@@ -93,51 +99,14 @@ class Documents(me_.Document):
         """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
         return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
-    def set_tags_from_str(self, s_tags: str):
-        """Set the tags in this document based on a comma-delimited list."""
-        self.tags = [tag.strip().title() for tag in s_tags.split(TAG_SEP)]
-
     @classmethod
     def as_user(cls, user: Users) -> str:
         """Return the user's current category's document partition/ollection name."""
-        return f"{Category(user.category).collection_root}-{user.id}"
-
-
-class Recipes(Documents):
-
-    """Recipe Category Documents."""
-
-    # If we're using the 'Recipes' class explicitly (for instance, during import procedure),
-    # then the as_user method only reflects the specific user's Recipe collection (for example).
-    #
-    # It's expected the most of the time, we'll use Documents as a general and it's as_user
-    # method will return the db collection associated with the user's current category (which
-    # might be "recipes" but can change!)
-
-    # fmt: off
-    dates_cooked = me_.ListField(me_.DateTimeField())                                        # List "cooked" dates
-    quality      = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
-    complexity   = me_.IntField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
-    # fmt: on
-
-    @classmethod
-    def as_user(cls, user: Users) -> str:
-        """Return the user's collection name for this category."""
-        return f"{Category(cls.__name__).collection_root}-{user.id}"
-
-
-class Cooking(Documents):
-
-    """Cooking Category Documents."""
-
-    @classmethod
-    def as_user(cls, user: Users) -> str:
-        """Return the user's collection name for this category (see note above on Recipes)."""
-        return f"{Category(cls.__name__).collection_root}-{user.id}"
+        return f"documents-{Category(user.category).collection_root}-{user.id}"
 
 
 ################################################################################
-# Signal support
+# Signal support (similar do django signals ;-)!)
 ################################################################################
 signals.pre_save.connect(Documents.pre_save, sender=Documents)
 

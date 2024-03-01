@@ -143,6 +143,7 @@ def render_delete_document(url: str = "main.render_display") -> Response:
 
 
 ################################################################################
+##
 @bp.route("/new", methods=["GET", "POST"])
 @login_required
 @log_route_info
@@ -157,7 +158,7 @@ def render_new_document() -> Response:
     """
     if request.method == "GET":
         return render_template(
-            "main/edit.html", no_search=True, document=None, form=FlaskForm(), categories=categories()
+            "main/new.html", no_search=True, document=None, form=FlaskForm(), categories=categories()
         )
 
     # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
@@ -177,6 +178,9 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
+        log.debug(f"{fl.current_user.category=}")
+        log.debug(f"{user_documents=}")
+        log.debug(f"{document._cls=}")
         return_ = {
             "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
             "sources": sources_available(fl.current_user),  # Source pulldown options for user

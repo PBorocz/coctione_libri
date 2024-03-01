@@ -3,11 +3,15 @@
      hx-get="/document/last_updated/{{document.id}}"
      hx-swap="outerHTML">
   <div class="field-label">
-    <label class="label">Last Updated:</label>
+    <label class="label is-size-7">
+      # if document.updated
+      Last Updated:
+      # endif
+    </label>
   </div>
   <div class="field-body">
     <div class="control">
-      <div class="content">{{ document.updated_display }}</div>
+      <div class="content is-size-7">{{ document.updated_display }}</div>
     </div>
   </div>
 </div>

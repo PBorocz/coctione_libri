@@ -1,4 +1,4 @@
-<div class="field is-horizontal" id="field_notes">
+<div class="field is-horizontal mt-4" id="field_notes">
   <div class="field-label is-medium">
     <label class="label">Notes</label>
   </div>
@@ -6,7 +6,7 @@
     <div class="control is-flex is-align-items-center">
       <textarea class="textarea form-input"
 		name="notes"
-		rows="10"
+		rows="6"
 		style="min-width: auto;"
 		hx-post="/edit/notes/{{ document.id }}"
 		hx-target="#field_notes"

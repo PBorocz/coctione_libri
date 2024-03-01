@@ -300,23 +300,23 @@ def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
     # fmt: off
     if sort.is_ascending():
-        # These are a bit more complex but allow us to make sure that "None" entries of the
-        # sort.by field are always at the bottom, irrespective of sort.order.
+        # These are a bit complex *but* allow us to make sure that "None" entries of the
+        # respective `sort.by` field are always at the bottom, irrespective of `sort.order`.
         sort_lambdas = {
-            "complexity" : lambda doc: (doc.complexity  is None, doc.complexity),
-            "last_cooked": lambda doc: (doc.last_cooked is None, doc.last_cooked),
-            "quality"    : lambda doc: (doc.quality     is None, doc.quality),
-            "source"     : lambda doc: (doc.source      is None, doc.source),
-            "tags"       : lambda doc: (doc.tags_as_str is None, doc.tags_as_str),
+            "complexity" : lambda doc: (doc.complexity    is None, doc.complexity    ),
+            "last_cooked": lambda doc: (doc.last_cooked   is None, doc.last_cooked   ),
+            "quality"    : lambda doc: (doc.quality       is None, doc.quality       ),
+            "source"     : lambda doc: (doc.source        is None, doc.source        ),
+            "tags"       : lambda doc: (doc.tags_for_sort is None, doc.tags_for_sort ),
             "title"      : lambda doc:  doc.title,
         }
     else:
         sort_lambdas = {
-            "complexity" : lambda doc: (doc.complexity  is not None, doc.complexity),
-            "last_cooked": lambda doc: (doc.last_cooked is not None, doc.last_cooked),
-            "quality"    : lambda doc: (doc.quality     is not None, doc.quality),
-            "source"     : lambda doc: (doc.source      is not None, doc.source),
-            "tags"       : lambda doc: (doc.tags_as_str is not None, doc.tags_as_str),
+            "complexity" : lambda doc: (doc.complexity    is not None, doc.complexity    ),
+            "last_cooked": lambda doc: (doc.last_cooked   is not None, doc.last_cooked   ),
+            "quality"    : lambda doc: (doc.quality       is not None, doc.quality       ),
+            "source"     : lambda doc: (doc.source        is not None, doc.source        ),
+            "tags"       : lambda doc: (doc.tags_for_sort is not None, doc.tags_for_sort ),
             "title"      : lambda doc:  doc.title,
         }
     # fmt: on
@@ -325,7 +325,7 @@ def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict
         log.error(f"Sorry, ran into a case where cookies.sort.by is unrecognized? '{sort.by}'")
         sort_lambda = sort_lambdas.get("title")
 
-    # Apply sort direction..
+    # Apply sort order/direction:
     sorted_kwargs = {} if sort.is_ascending() else {"reverse": True}
 
     return sorted(documents, key=sort_lambda, **sorted_kwargs)

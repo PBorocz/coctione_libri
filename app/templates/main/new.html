@@ -93,20 +93,25 @@
 
 {% block content %}
 
-{% include "main/partials/edit_field_title.html" %}
-{% include "main/partials/edit_field_file_.html" %}
-{% include "main/partials/edit_field_url_.html" %}
-{% include "main/partials/edit_field_source.html" %}
-{% include "main/partials/edit_field_tag.html" %}
-{% include "main/partials/edit_field_notes.html" %}
-<hr/>
-{% include "main/partials/edit_field_quality.html" %}
-{% include "main/partials/edit_field_complexity.html" %}
-{% include "main/partials/edit_field_dates_cooked.html" %}
-<hr/>
-{% include "main/partials/edit_category.html" %}
-{% include "main/partials/edit_created.html" %}
-{% include "main/partials/edit_last_updated.html" %}
-{% include "main/partials/edit_form_delete.html" %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+
+  <div class="field is-horizontal" id="field_title">
+    <div class="field-label is-medium">
+      <label class="label">Title</label>
+    </div>
+    <div class="field-body">
+      <div class="control is-flex is-align-items-center">
+	<input autofocus
+	       name="title"
+	       class="input mr-4 form-input"
+	       placeholder="New {{ current_user.category }} document..."
+	>
+      </div>
+    </div>
+  </div>
+
+</form>
+
 
 {% endblock %}
