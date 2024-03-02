@@ -8,6 +8,7 @@ debug_tb_intercept_redirects=false
 flask_debug=true
 log_level="debug"
 mongo_db="mongodb://127.0.0.1:27017/coctione_libri_development?directConnection=true&serverSelectionTimeoutMS=2000&appName=coctione_libri_development"
+secret_key="a5986128c4020b4300e22d5e3fb11072cf23eaf2ccff85ac"
 
 [production]
 flask_debug=false

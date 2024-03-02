@@ -139,13 +139,6 @@ shell = """
   flask run --debug --host localhost --port 5001
 """
 
-[tool.poe.tasks.dev_run_production]
-interpreter = "fish"
-shell = """
-  set -x FLASK_ENV "production"
-  flask run --debug --host localhost --port 5001
-  """
-
 ################################################################################
 # Backups!
 ################################################################################
