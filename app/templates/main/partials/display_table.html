@@ -10,20 +10,20 @@
   <caption style="caption-side: top; text-align: left;" class="is-family-monospace">
     # if documents
 
-      # if search:
-        {{ documents|length }} Documents Matched
-      # else
-        {{ documents|length }} Total Documents
-      # endif
+    # if search:
+    {{ documents|length }} Documents Matched
+    # else
+    {{ documents|length }} Total Documents
+    # endif
 
     # else:
 
-      {# No documents, why? nothing matches search or empty db? #}
-      # if search
-        Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
-      # else:
-        Sorry, you have no '{{ current_user.category }}' documents (yet)!
-      # endif
+    {# No documents, why? nothing matches search or empty db? #}
+    # if search
+    Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>.
+    # else:
+    Sorry, you have no '{{ current_user.category }}' documents (yet)!
+    # endif
 
     # endif
 
@@ -35,81 +35,89 @@
     <tr class="has-background-grey-dark">
 
       {# ######################## #}
-      {# Edit?                    #}
-      {# ######################## #}
-      <th scope="col" class="disable-sort"></th>
-
-      {# ######################## #}
       {# Quality                  #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "quality"):
       <th id="th_quality"
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	Q{{ render_sort_icon("quality") }}
       </th>
+      # endif
 
       {# ######################## #}
       {# Complexity               #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "complexity"):
       <th id="th_complexity"
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	C{{ render_sort_icon("complexity") }}
       </th>
+      # endif
 
       {# ######################## #}
-      {# Title        	        #}
+      {# Title        	          #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "title"):
       <th id="th_title"
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	Title{{ render_sort_icon("title") }}
       </th>
+      # endif
 
       {# ######################## #}
       {# Tags         	          #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "tags"):
       <th id="th_tags"
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	Tags{{ render_sort_icon("tags") }}
       </th>
+      # endif
 
       {# ######################## #}
       {# Source        	          #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "source"):
       <th id="th_source"
 	  scope="col"
 	  class="has-text-white"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	Source{{ render_sort_icon("source") }}
       </th>
+      # endif
 
       {# ######################## #}
       {# Last Cooked              #}
       {# ######################## #}
+      # if render_display_column(current_user.category, "last_cooked"):
       <th id="th_last_cooked"
 	  scope="col"
 	  class="has-text-white has-text-centered"
     	  hx-target="closest table"
-	  hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-      >
+	  hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	Last{{ render_sort_icon("last_cooked") }}
       </th>
+      # endif
+
+      {# ######################## #}
+      {# Edit?                    #}
+      {# ######################## #}
+      # if render_display_column(current_user.category, "edit"):
+      <th scope="col" class="disable-sort"></th>
+      # endif
 
     </tr>
   </thead>

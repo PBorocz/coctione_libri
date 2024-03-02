@@ -81,12 +81,11 @@ def create_app(setup_logging=True, log_level: str | None = None):
         ################################################################################
         # Connect and setup our database environment.
         ################################################################################
-        db = MongoEngine()
         app_db_settings = application.config["mongo_db"]
         application.config["MONGODB_SETTINGS"] = [
             {"host": app_db_settings, "alias": "default"},
         ]
-        db.init_app(application)
+        MongoEngine().init_app(application)
         log.debug(f"...connected to MongoDB: {app_db_settings[0:40]}")
 
         ################################################################################
@@ -104,6 +103,10 @@ def create_app(setup_logging=True, log_level: str | None = None):
         application.register_blueprint(blueprint_auth)
         application.register_blueprint(blueprint_main)
         application.register_blueprint(blueprint_tags)
+
+        from app.blueprints.main import render_display_column
+
+        application.jinja_env.globals.update(render_display_column=render_display_column)
 
         log.debug("...registered blueprints")
 

@@ -39,9 +39,6 @@ def log_route_info(func):
 @log_route_info
 def render_display(template="main/display.html") -> Response:
     """Render our main page on a full refresh."""
-    # Pull the user-state/query parameters from the (cookie and form) obo the current user:
-    # cookies: Cookies = Cookies.factory(fl.current_user, request)
-
     # Get any sort info (probably not on initial display)
     sort = Sort.factory(request)
     log.debug(sort)
@@ -51,10 +48,6 @@ def render_display(template="main/display.html") -> Response:
 
     # Render our template
     return render_template(template, documents=documents, sort=sort, categories=categories())
-    # template = render_template(template, documents=documents, sort=sort)
-    # response: Response = make_response(template)
-    # response.set_cookie(c.COOKIE_NAME, cookies.as_cookie())
-    # return response
 
 
 ################################################################################

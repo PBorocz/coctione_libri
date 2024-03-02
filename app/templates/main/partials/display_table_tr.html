@@ -1,32 +1,30 @@
 <tr style="background-color: white;">
 
-  {# Edit Icon #}
-  <td class="has-text-centered"  style="vertical-align: middle;">
-    <a href="/edit/{{ document.id }}">
-      <span class="icon is-small is-right is-size-6">
-	<i class="fa-regular fa-pen-to-square"></i>
-      </span>
-    </a>
-  </td>
-
   {# Quality #}
+  # if render_display_column(current_user.category, "quality"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.quality_enum | default("", true) }}
   </td>
+  # endif
 
   {# Complexity #}
+  # if render_display_column(current_user.category, "complexity"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.complexity_enum | default("", true) }}
   </td>
+  # endif
 
   {# Title #}
+  # if render_display_column(current_user.category, "title"):
   <td style="vertical-align: middle;">
     <a href="/view/{{ document.id }}">
       {{ document.title }}
     </a>
   </td>
+  # endif
 
   {# Tag(s) #}
+  # if render_display_column(current_user.category, "tags"):
   <td style="vertical-align: middle;">
     <div class="field">
       <div class="control">
@@ -40,15 +38,31 @@
       </div>
     </div>
   </td>
+  # endif
 
   {# Source #}
+  # if render_display_column(current_user.category, "source"):
   <td style="vertical-align: middle;">
     {{ document.source | default("", true) }}
   </td>
+  # endif
 
   {# Last Cooked #}
+  # if render_display_column(current_user.category, "last_cooked"):
   <td style="vertical-align: middle;">
     {{ document.last_cooked | default("", true) }}
   </td>
+  # endif
+
+  {# Edit Icon #}
+  # if render_display_column(current_user.category, "edit"):
+  <td class="has-text-centered"  style="vertical-align: middle;">
+    <a href="/edit/{{ document.id }}">
+      <span class="icon is-small is-right is-size-6">
+	<i class="fa-regular fa-pen-to-square"></i>
+      </span>
+    </a>
+  </td>
+  # endif
 
 </tr>
