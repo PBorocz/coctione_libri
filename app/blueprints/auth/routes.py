@@ -46,8 +46,10 @@ def login(template: str = "auth/login.html"):
     import flask as f
 
     if flask_login.current_user.is_authenticated:
+        # User already logged in? Easy, take 'em directly to home page..
         return f.redirect(f.url_for("main.render_display"))
 
+    # User not logged in yet, allow them to do so!
     form = LoginForm()
     if form.validate_on_submit():
         log.info(f"Login request: {form.email.data=}")
@@ -55,7 +57,9 @@ def login(template: str = "auth/login.html"):
 
         # Does user exist or not match on password?
         if not user or not user.check_password(form.password.data):
-            f.flash("Invalid email address or password, please try again.", "is-danger")
+            msg = "Invalid email address or password, please try again."
+            log.warning(msg)
+            f.flash(msg, "is-danger")
             return f.redirect(f.url_for("auth.login"))
 
         # Yep, log'em in!
@@ -67,6 +71,7 @@ def login(template: str = "auth/login.html"):
             return f.abort(400)
 
         f.flash("You were successfully logged in.")
+        log.info("User successfully logged in.")
         return f.redirect(next_ or f.url_for("main.render_display"))
 
     # First time in, render the login page

@@ -130,11 +130,13 @@ def update_user(user: Users, attr, value) -> Users:
     if attr == "password":
         # Password update needs to calculate and store a hash, ie. *not* the password itself!
         user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
+        user.updated = datetime.utcnow
         user.save()
 
     else:
         # All other attributes..
         setattr(user, attr, value)
+        user.updated = datetime.utcnow
         user.save()
 
     if attr == "email":
@@ -142,6 +144,7 @@ def update_user(user: Users, attr, value) -> Users:
         # to calculate a new user id and save it away as well.
         user.email = value
         user.user_id = email_to_hash(user.email)
+        user.updated = datetime.utcnow
         user.save()
 
     return user

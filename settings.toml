@@ -10,4 +10,4 @@ log_level="debug"
 
 [production]
 flask_debug=false
-log_level="info"
+log_level="debug"

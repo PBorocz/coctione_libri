@@ -154,7 +154,7 @@ interpreter = "fish"
 shell = """
   echo "Doing dump from local database..."
   mkdir -p ./__dumps__/working
-  mongodump --db=coctione_libri --out=./__dumps__/working
+  mongodump --db=coctione_libri_development --out=./__dumps__/working
 
   echo "Compressing to single backup file..."
   set backup_filename (date +"backup_local_%Y%m%dT%H%M.tar.gz")
