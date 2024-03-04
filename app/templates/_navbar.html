@@ -2,11 +2,8 @@
 
   <div class="navbar-brand", id="navbar_brand">
 
-    <a class="navbar-item" href="/">
-      <i class="fa-solid fa-kitchen-set is-size-3"></i>
-      &nbsp;&nbsp;&nbsp;
-      <span class="is-size-3">Coctione Libri</span>
-      &nbsp;
+    <a class="navbar-item responsive-font-banner" href="/">
+      <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
     </a>
 
     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar_menu">
@@ -23,28 +20,6 @@
 
     {# The *LEFT* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
-      # if not no_search:
-      <div class="navbar-item">
-	<div class="field">
-	  <style>
-	   me { max-width: 300px; min-width: 150px; width: 200px; }
-	  </style>
-	  <div class="control">
-	    {# Use this if we're doing a full page refresh: #}
-	    {# _="on htmx:afterRequest set my value to ''" #}
-	    <input
-	      class="input"
-	      autofocus
-	      hx-post="/search"
-	      hx-target="#id_documents_div"
-	      placeholder="Search..."
-	      type="search"
-	      name="search"
-	    >
-	  </div>
-	</div>
-      </div>
-      # endif
 
       # if watermark:
       <div class="navbar-item is-hidden-lt-widescreen">
@@ -60,10 +35,44 @@
 
     {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-end">
+      
+      # if not no_search:
+      <div class="navbar-item">
+	<div class="field">
+	  <div class="control">
+	    {# If we're doing a full page refresh: #}
+	    {# _="on htmx:afterRequest set my value to ''" #}
+	    <style>
+	     .input {
+	       width: 70px;
+	       font-size: 0.7rem;
+	     }
+	     .input:focus {
+	       width: 150px;
+	     }
+	    </style>
+	    <input
+	      class="input"
+	      autofocus
+	      hx-post="/search"
+	      hx-target="#id_documents_div"
+	      placeholder="Search..."
+	      type="search"
+	      name="search"
+	    >
+	  </div>
+	</div>
+      </div>
+      # endif
 
       <div class="navbar-item">
-	<div class="select is-rounded is-small mr-4">
-	  <select name="category" hx-post="/user/category" hx-target="#id_documents_div">
+	<style>
+	 .select {
+	   font-size: 0.6rem;
+	 }
+	</style>
+	<div class="select is-rounded mr-4">
+	  <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
 	    # for category in categories:
 	    <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
 	    # endfor
@@ -73,19 +82,19 @@
 
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
-	  <i class="fa-solid fa-plus is-size-4"></i>
+	  <i class="fas fa-plus"></i>
 	</a>
       </div>
 
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
-	  <i class="fa-solid fa-tags is-size-4"></i>
+	  <i class="fas fa-tags"></i>
 	</a>
       </div>
 
       <div class="navbar-item">
 	<a class="navbar-item" href="{{ url_for('auth.logout') }}">
-	  <i class="fa-solid fa-arrow-right-from-bracket is-size-4"></i>
+	  <i class="fas fa-arrow-right-from-bracket"></i>
 	</a>
       </div>
     </div><!-- navbar-end -->

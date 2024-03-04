@@ -8,40 +8,34 @@
 
 <div id="statusMessage"></div>
 
-<div class="columns is-mobile is-multiline is-vcentered is-centered">
-  <div class="column is-half is-offset-one-quarter">
-    <div class="table-container">
-      <table id="table_tags" class="table is-responsive">
+<div class="table-container">
+  <table id="table_tags" class="table is-narrow is-striped responsive-font">
 
-        <thead>
-          <tr class="has-background-grey-dark">
-            <th class="has-text-centered">
-              <a class="has-text-white"
-		 href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
-                Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
-              </a>
-            </th>
-            <th class="has-text-centered">
-              <a class="link has-text-white"
-		 href="/tags?sort=count&order={{ 'asc' if sort == 'count' and order == 'desc' else 'desc' }}">
-                Count{% if sort == "count" %}{{ render_sort_icon() }}{% endif %}
-	      </a>
-            </th>
-            <th class="has-text-centered has-text-white disable-sort">Actions</th>
-          </tr>
-        </thead>
+    <thead>
+      <tr class="has-background-grey-dark">
+        <th class="has-text-centered">
+          <a class="has-text-white"
+	     href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
+            Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
+          </a>
+        </th>
+        <th class="has-text-centered">
+          <a class="link has-text-white"
+	     href="/tags?sort=count&order={{ 'asc' if sort == 'count' and order == 'desc' else 'desc' }}">
+            Count{% if sort == "count" %}{{ render_sort_icon() }}{% endif %}
+	  </a>
+        </th>
+        <th class="has-text-centered has-text-white disable-sort">Actions</th>
+      </tr>
+    </thead>
 
-        <tbody>
-          # for tag, count in tags:
-          {% include "tags/partials/tr.html" %}
-          # endfor
-        </tbody>
+    <tbody>
+      # for tag, count in tags:
+      {% include "tags/partials/tr.html" %}
+      # endfor
+    </tbody>
 
-      </table>
-
-    </div>
-
-  </div>
+  </table>
 
 </div>
 

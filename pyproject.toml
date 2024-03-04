@@ -114,6 +114,7 @@ verbosity = 2
 import = "python ./app/cli/import_from_raindrop.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = "sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+sass_watch = "sass --watch app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 
 ################################################################################
 # Import
@@ -135,8 +136,8 @@ shell = """
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
-  sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
-  and flask run --debug --host localhost --port 5001
+  # sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
+  flask run --debug --host localhost --port 5001
 """
 
 ################################################################################

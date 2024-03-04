@@ -10343,4 +10343,30 @@ tr.htmx-swapping td {
   }
 }
 
+@media only screen and (min-width: 0px) {
+  .responsive-font-banner {
+    font-size: 1.2rem;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .responsive-font-banner {
+    font-size: 1.4rem;
+  }
+}
+@media only screen and (min-width: 1023px) {
+  .responsive-font-banner {
+    font-size: 1.6rem;
+  }
+}
+@media only screen and (min-width: 1215px) {
+  .responsive-font-banner {
+    font-size: 1.8rem;
+  }
+}
+@media only screen and (min-width: 1407px) {
+  .responsive-font-banner {
+    font-size: 2rem;
+  }
+}
+
 /*# sourceMappingURL=coctione_libri.css.map */

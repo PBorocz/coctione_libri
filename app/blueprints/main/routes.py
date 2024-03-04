@@ -17,7 +17,7 @@ from app.blueprints.main.operations import (
     get_search_documents,
     update_document_attribute,
 )
-from app.models import Sort, categories
+from app.models import Sort, categories_available
 from app.models.documents import Documents, sources_available, tags_available
 
 
@@ -47,7 +47,7 @@ def render_display(template="main/display.html") -> Response:
     documents = get_all_documents(fl.current_user, sort)
 
     # Render our template
-    return render_template(template, documents=documents, sort=sort, categories=categories())
+    return render_template(template, documents=documents, sort=sort, categories=categories_available())
 
 
 ################################################################################
@@ -151,7 +151,7 @@ def render_new_document() -> Response:
     """
     if request.method == "GET":
         return render_template(
-            "main/new.html", no_search=True, document=None, form=FlaskForm(), categories=categories()
+            "main/new.html", no_search=True, document=None, form=FlaskForm(), categories=categories_available()
         )
 
     # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
@@ -180,7 +180,6 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
             "tags": tags_available(fl.current_user),  # Tag pulldown options for user
             "no_search": True,
             "document": document,
-            "categories": categories(),
         }
         return render_template(template, **return_)
 

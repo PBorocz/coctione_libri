@@ -23,7 +23,7 @@ class Category(StrEnum):
     COOKING_PRODUCTS = "Cooking-Products"
 
 
-def categories() -> list[str]:
+def categories_available() -> list[str]:
     return [category._value_ for category in Category]
 
 

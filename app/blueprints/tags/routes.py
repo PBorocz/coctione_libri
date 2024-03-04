@@ -9,6 +9,7 @@ from flask_login import login_required
 
 from app.blueprints.tags import bp
 from app.blueprints.tags.operations import get_all_tags, get_tag_count, remove_tag, update_tag
+from app.models import categories_available
 
 
 ################################################################################
@@ -19,7 +20,9 @@ def manage_tags(template: str = "tags/tags.html") -> Response:
     sort = request.args.get("sort", "tag")
     order = request.args.get("order", "asc")
     tags = get_all_tags(fl.current_user, sort, order)
-    return f.render_template(template, tags=tags, sort=sort, order=order, no_search=True)
+    return f.render_template(
+        template, tags=tags, sort=sort, order=order, no_search=True, categories=categories_available()
+    )
 
 
 ################################################################################

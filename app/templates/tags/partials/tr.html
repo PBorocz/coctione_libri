@@ -1,7 +1,7 @@
-<tr style="background-color: white;">
+<tr>
 
   {# Tag name itself #}
-  <td class="has-text-left is-size-5" style="vertical-align: middle;">
+  <td class="has-text-left" style="vertical-align: middle;">
     {{ tag }}
   </td>
 
@@ -21,9 +21,8 @@
       hx-post="/tag/update"
       hx-trigger="click"
       hx-vals='{"name": "{{ tag }}"}'
-      hx-swap="outerHTML"
-    >
-      <span class="icon is-small is-size-7">
+      hx-swap="outerHTML">
+      <span class="icon is-small">
 	<i class="fa-regular fa-pen-to-square"></i>
       </span>
     </button>
@@ -35,9 +34,8 @@
       hx-swap="outerHTML"
       hx-delete="/tag/delete"
       hx-target="closest tr"
-      hx-vals='{"name": "{{ tag }}"}'
-    >
-      <span class="icon is-small is-size-7">
+      hx-vals='{"name": "{{ tag }}"}'>
+      <span class="icon is-small">
 	<i class="fa-regular fa-trash-can"></i>
       </span>
     </button>
