@@ -19,7 +19,8 @@ class Category(StrEnum):
         return obj
 
     COOKING_RECIPES = "Recipes"
-    COOKING_GENERAL = "General"
+    COOKING_SKILLS = "Cooking-Skills"
+    COOKING_PRODUCTS = "Cooking-Products"
 
 
 def categories() -> list[str]:

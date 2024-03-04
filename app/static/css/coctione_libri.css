@@ -10293,4 +10293,54 @@ tr.htmx-swapping td {
   overflow: auto;
 }
 
+@media only screen and (max-width: 768px) {
+  .is-hidden-lt-tablet {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 1023px) {
+  .is-hidden-lt-desktop {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 1215px) {
+  .is-hidden-lt-widescreen {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 1407px) {
+  .is-hidden-lt-fullhd {
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 0px) {
+  .responsive-font {
+    font-size: 0.6rem;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .responsive-font {
+    font-size: 0.7rem;
+  }
+}
+@media only screen and (min-width: 1023px) {
+  .responsive-font {
+    font-size: 0.9rem;
+  }
+}
+@media only screen and (min-width: 1215px) {
+  .responsive-font {
+    font-size: 1rem;
+  }
+}
+@media only screen and (min-width: 1407px) {
+  .responsive-font {
+    font-size: 1.2rem;
+  }
+}
+
 /*# sourceMappingURL=coctione_libri.css.map */

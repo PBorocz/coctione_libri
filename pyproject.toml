@@ -125,7 +125,7 @@ interpreter = "fish"
 shell = """
   python -c "import tomli_w"
   python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
-  # ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
+  # python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
 """
 
 ################################################################################
@@ -136,7 +136,7 @@ interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
   sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
-  flask run --debug --host localhost --port 5001
+  and flask run --debug --host localhost --port 5001
 """
 
 ################################################################################

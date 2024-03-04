@@ -95,7 +95,7 @@ def partial_search(template="main/partials/display_table.html") -> Response:
     else:
         documents = get_search_documents(fl.current_user, search_term_s, sort)
 
-    return render_template(template, documents=documents, sort=sort)
+    return render_template(template, documents=documents, sort=sort, search=search_term_s)
 
 
 ################################################################################

@@ -36,7 +36,7 @@
 	      class="input"
 	      autofocus
 	      hx-post="/search"
-	      hx-target="#id_documents_table"
+	      hx-target="#id_documents_div"
 	      placeholder="Search..."
 	      type="search"
 	      name="search"
@@ -47,7 +47,7 @@
       # endif
 
       # if watermark:
-      <div class="navbar-item">
+      <div class="navbar-item is-hidden-lt-widescreen">
 	<div class="field">
 	  <div class="control has-text-danger-dark is-size-3">
 	    {{ watermark|title }}
@@ -63,7 +63,7 @@
 
       <div class="navbar-item">
 	<div class="select is-rounded is-small mr-4">
-	  <select name="category" hx-post="/user/category" hx-target="#id_documents_table">
+	  <select name="category" hx-post="/user/category" hx-target="#id_documents_div">
 	    # for category in categories:
 	    <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
 	    # endfor

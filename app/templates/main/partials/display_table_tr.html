@@ -9,7 +9,7 @@
 
   {# Complexity #}
   # if render_display_column(current_user.category, "complexity"):
-  <td class="has-text-centered is-size-7" style="vertical-align: middle;">
+  <td class="has-text-centered is-size-7 is-hidden-lt-tablet" style="vertical-align: middle;">
     {{ document.complexity_enum | default("", true) }}
   </td>
   # endif
@@ -26,37 +26,38 @@
   {# Tag(s) #}
   # if render_display_column(current_user.category, "tags"):
   <td style="vertical-align: middle;">
-    <div class="field">
-      <div class="control">
-	<div class="tags">
-	  # for tag in document.tags|sort:
-	  <span class="tag is-link is-light is-normal">
-	    {{ tag }}
-	  </span>
-	  # endfor
-	</div>
-      </div>
-    </div>
+    <style>
+     .my-tag {
+       background-color: #bfefff;
+       border-radius: 4px;
+       padding: 3px 6px;
+       font-size: 0.7em;
+       margin: 2px;
+     }
+    </style>
+    # for tag in document.tags|sort:
+    <span class="my-tag">{{ tag }}</span>
+    # endfor
   </td>
   # endif
 
   {# Source #}
   # if render_display_column(current_user.category, "source"):
-  <td style="vertical-align: middle;">
+  <td class="is-hidden-lt-desktop" style="vertical-align: middle;">
     {{ document.source | default("", true) }}
   </td>
   # endif
 
   {# Last Cooked #}
   # if render_display_column(current_user.category, "last_cooked"):
-  <td style="vertical-align: middle;">
+  <td class="has-text-centered is-hidden-lt-desktop" style="vertical-align: middle;">
     {{ document.last_cooked | default("", true) }}
   </td>
   # endif
 
   {# Edit Icon #}
   # if render_display_column(current_user.category, "edit"):
-  <td class="has-text-centered"  style="vertical-align: middle;">
+  <td class="has-text-centered is-hidden-lt-desktop" style="vertical-align: middle;">
     <a href="/edit/{{ document.id }}">
       <span class="icon is-small is-right is-size-6">
 	<i class="fa-regular fa-pen-to-square"></i>

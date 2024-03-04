@@ -1,10 +1,37 @@
 {% extends "__root.html" %}
 
+{% block js_local %}
+<script>
+ // Get all elements with 'tag' class
+ var elements = document.querySelectorAll('.tag');
+
+ function toggleClass() {
+   // Check window width
+   var width = window.innerWidth;
+   // console.log("New window.innerWidth: " + width)
+
+   // Loop through all elements
+   elements.forEach(function(element){
+     // Toggle the classes based on window width
+     if (width < 1000) {
+       element.classList.remove('is-medium');
+       element.classList.add('is-normal');
+     } else {
+       element.classList.remove('is-normal');
+       element.classList.add('is-medium');
+     }
+   });
+ }
+ // Call function once at page load
+ toggleClass();
+ 
+ // Attach event listener for window resize
+ window.addEventListener('resize', toggleClass);
+ 
+</script>
+
+{% endblock %}
+
 {% block content %}
-
-{# Render the primary table of listings! #}
-<div class="table-container">
-  {% include "main/partials/display_table.html" %}
-</div>
-
+{% include "main/partials/display_table.html" %} {# Separated out for partial loading #}
 {% endblock %}
