@@ -17,6 +17,7 @@
 	       type="date"
 	       placeholder="Click to add a new date"
 	       hx-swap="outerHTML"
+	       hx-trigger="input delay:500ms"	       
 	       hx-target="#div_dates_cooked"
 	       hx-post="/edit/dates_cooked/{{ document.id }}"
 	>

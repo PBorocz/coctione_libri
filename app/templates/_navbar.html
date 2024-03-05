@@ -43,23 +43,36 @@
 	    {# If we're doing a full page refresh: #}
 	    {# _="on htmx:afterRequest set my value to ''" #}
 	    <style>
-	     .input {
-	       width: 70px;
-	       font-size: 0.7rem;
+	     .search {
+	       border-radius: 10px;
+	       border: 2px solid #eee;
+	       margin-right: 10px;
+	       outline: 0;
+	       padding: 4px 6px;
+	       transition: all .2s ease-in-out;
+	       width: 3.0rem;
 	     }
-	     .input:focus {
-	       width: 150px;
+	     .search::placeholder {
+	       text-align: right;
+	       font-size: 1.0rem;
+	     }
+	     .search:hover, .search:not(:placeholder-shown) {
+	       border: 2px solid var(--midBlue);
+	     }
+	     .search:active, .search:focus, .search:not(:placeholder-shown) {
+	       width: 10rem;
+	       font-size: 0.7rem;
 	     }
 	    </style>
 	    <input
-	      class="input"
-	      autofocus
+	      class="input search"
+	      name="search"
 	      hx-post="/search"
 	      hx-target="#id_documents_div"
-	      placeholder="Search..."
+	      placeholder="🔍"
 	      type="search"
-	      name="search"
 	    >
+	    <!-- autofocus -->
 	  </div>
 	</div>
       </div>
@@ -68,7 +81,7 @@
       <div class="navbar-item">
 	<style>
 	 .select {
-	   font-size: 0.6rem;
+	   font-size: 0.7rem;
 	 }
 	</style>
 	<div class="select is-rounded mr-4">

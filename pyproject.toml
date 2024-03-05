@@ -136,7 +136,7 @@ shell = """
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
-  # sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
+  sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
   flask run --debug --host localhost --port 5001
 """
 
