@@ -6,7 +6,12 @@
       <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
     </a>
 
-    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar_menu">
+    <a role="button"
+       class="navbar-burger"
+       aria-label="menu"
+       aria-expanded="false"
+       data-target="navbar_menu"
+       _="on click toggle .is-active on .navbar-menu then toggle .is-active on me">
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
@@ -20,17 +25,15 @@
 
     {# The *LEFT* part of the menu, appearing right after navbar-brand #}
     <div class="navbar-start">
-
       # if watermark:
-      <div class="navbar-item is-hidden-lt-widescreen">
-	<div class="field">
-	  <div class="control has-text-danger-dark is-size-3">
-	    {{ watermark|title }}
+        <div class="navbar-item is-hidden-lt-widescreen">
+	  <div class="field">
+	    <div class="control has-text-danger-dark responsive-font">
+	      {{ watermark|title }}
+	    </div>
 	  </div>
 	</div>
-      </div>
       # endif
-
     </div>
 
     {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
@@ -60,7 +63,7 @@
 	       border: 2px solid var(--midBlue);
 	     }
 	     .search:active, .search:focus, .search:not(:placeholder-shown) {
-	       width: 10rem;
+	       width: 16rem;
 	       font-size: 0.7rem;
 	     }
 	    </style>
@@ -72,44 +75,59 @@
 	      placeholder="🔍"
 	      type="search"
 	    >
-	    <!-- autofocus -->
 	  </div>
 	</div>
       </div>
       # endif
 
-      <div class="navbar-item">
-	<style>
-	 .select {
-	   font-size: 0.7rem;
-	 }
-	</style>
-	<div class="select is-rounded mr-4">
-	  <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
-	    # for category in categories:
-	    <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
-	    # endfor
-	  </select>
+      <nav class="navbar" role="navigation" aria-label="dropdown navigation">
+
+	<div class="navbar-item has-dropdown is-hoverable">
+
+	  <a class="navbar-link is-arrowless">
+	    <i class="fas fa-bars"></i>
+	  </a>
+
+	  <div class="navbar-dropdown is-right">
+
+	    <a class="navbar-item">
+	      <style>
+	       .select {
+		 font-size: 0.7rem;
+	       }
+	      </style>
+	      <div class="select is-rounded mr-4">
+		<select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
+		  # for category in categories:
+		  <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+		  # endfor
+		</select>
+	      </div>
+	    </a>
+
+	    <hr class="navbar-divider">
+
+	    <a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
+	      <i class="fas fa-plus mr-2"></i>
+	      New Document
+	    </a>
+
+	    <a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
+	      <i class="fas fa-tags mr-2"></i>
+	      Manage Tags
+	    </a>
+
+	    <hr class="navbar-divider">
+
+	    <a class="navbar-item" href="{{ url_for('auth.logout') }}">
+	      <i class="fas fa-arrow-right-from-bracket mr-3"></i>
+	      Logout
+	    </a>
+
+	  </div>
 	</div>
-      </div>
+      </nav>
 
-      <div class="navbar-item">
-	<a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
-	  <i class="fas fa-plus"></i>
-	</a>
-      </div>
-
-      <div class="navbar-item">
-	<a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
-	  <i class="fas fa-tags"></i>
-	</a>
-      </div>
-
-      <div class="navbar-item">
-	<a class="navbar-item" href="{{ url_for('auth.logout') }}">
-	  <i class="fas fa-arrow-right-from-bracket"></i>
-	</a>
-      </div>
     </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
