@@ -17,10 +17,9 @@
 	       type="date"
 	       placeholder="Click to add a new date"
 	       hx-swap="outerHTML"
-	       hx-trigger="input delay:500ms"	       
+	       hx-trigger="blur"
 	       hx-target="#div_dates_cooked"
-	       hx-post="/edit/dates_cooked/{{ document.id }}"
-	>
+	       hx-post="/edit/dates_cooked/{{ document.id }}">
 	<br/>
 	{% include "main/partials/_status_icon.html" %}
       </div>
@@ -41,8 +40,7 @@
 		       hx-delete="/edit/dates_cooked/{{ document.id}}"
 		       hx-swap="outerHTML"
 		       hx-target="#div_dates_cooked"
-		       hx-vals='{"date_cooked": "{{ date_cooked_yyyymmdd }}"}'
-	  >
+		       hx-vals='{"date_cooked": "{{ date_cooked_yyyymmdd }}"}'>
 	    <i class="fas fa-xmark"></i>
 	  </span>
 	</span>
