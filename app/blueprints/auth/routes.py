@@ -70,7 +70,6 @@ def login(template: str = "auth/login.html"):
         if not is_safe_url(next_):
             return f.abort(400)
 
-        f.flash("You were successfully logged in.")
         log.info("User successfully logged in.")
         return f.redirect(next_ or f.url_for("main.render_display"))
 

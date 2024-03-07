@@ -1,16 +1,9 @@
-{% with messages = get_flashed_messages(with_categories=true) %}
-  # if messages:
-    # for category, message in messages:
-      <div class="notification">
-	<button class="delete"></button>
-	# if category == 'error':
-        <span class="has-background-danger-light">{{ message }}</span>
-        <br/>
-	# elif category == 'success':
-        <span class="has-background-success-light">{{ message }}</span>
-        <br/>
-	# endif
-      </div>
-    # endfor
- # endif
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification is-primary" _="on click transition opacity to 0 then remove me">
+  {{ messages[0] }}
+  <button class="delete"></button>
+</div>
+{% endif %}
+
 {% endwith %}

@@ -6,6 +6,7 @@
       <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
     </a>
 
+    {# Ref: https://www.marcusahnve.se/posts/2023/hamburger-menu-with-bulma-and-hyperscript/ #}
     <a role="button"
        class="navbar-burger"
        aria-label="menu"
@@ -24,108 +25,84 @@
   <div class="navbar-menu" id="navbar_menu">
 
     {# The *LEFT* part of the menu, appearing right after navbar-brand #}
+    # if watermark:
     <div class="navbar-start">
-      # if watermark:
-        <div class="navbar-item is-hidden-lt-widescreen">
-	  <div class="field">
-	    <div class="control has-text-danger-dark responsive-font">
-	      {{ watermark|title }}
-	    </div>
-	  </div>
-	</div>
-      # endif
-    </div>
-
-    {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
-    <div class="navbar-end">
-      
-      # if not no_search:
-      <div class="navbar-item">
+      <div class="navbar-item is-hidden-lt-widescreen">
 	<div class="field">
-	  <div class="control">
-	    {# If we're doing a full page refresh: #}
-	    {# _="on htmx:afterRequest set my value to ''" #}
-	    <style>
-	     .search {
-	       border-radius: 10px;
-	       border: 2px solid #eee;
-	       margin-right: 10px;
-	       outline: 0;
-	       padding: 4px 6px;
-	       transition: all .2s ease-in-out;
-	       width: 3.0rem;
-	     }
-	     .search::placeholder {
-	       text-align: right;
-	       font-size: 1.0rem;
-	     }
-	     .search:hover, .search:not(:placeholder-shown) {
-	       border: 2px solid var(--midBlue);
-	     }
-	     .search:active, .search:focus, .search:not(:placeholder-shown) {
-	       width: 16rem;
-	       font-size: 0.7rem;
-	     }
-	    </style>
-	    <input
-	      class="input search"
-	      name="search"
-	      hx-post="/search"
-	      hx-target="#id_documents_div"
-	      placeholder="🔍"
-	      type="search"
-	    >
+	  <div class="control has-text-danger-dark responsive-font">
+	    {{ watermark|title }}
 	  </div>
 	</div>
       </div>
-      # endif
+    </div>
+    # endif
+
+    {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
+    <div class="navbar-end">
 
       <nav class="navbar" role="navigation" aria-label="dropdown navigation">
 
-	<div class="navbar-item has-dropdown is-hoverable">
-
-	  <a class="navbar-link is-arrowless">
-	    <i class="fas fa-bars"></i>
-	  </a>
-
-	  <div class="navbar-dropdown is-right">
-
-	    <a class="navbar-item">
-	      <style>
-	       .select {
-		 font-size: 0.7rem;
-	       }
-	      </style>
-	      <div class="select is-rounded mr-4">
-		<select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
-		  # for category in categories:
-		  <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
-		  # endfor
-		</select>
-	      </div>
-	    </a>
-
-	    <hr class="navbar-divider">
-
-	    <a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
-	      <i class="fas fa-plus mr-2"></i>
-	      New Document
-	    </a>
-
-	    <a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
-	      <i class="fas fa-tags mr-2"></i>
-	      Manage Tags
-	    </a>
-
-	    <hr class="navbar-divider">
-
-	    <a class="navbar-item" href="{{ url_for('auth.logout') }}">
-	      <i class="fas fa-arrow-right-from-bracket mr-3"></i>
-	      Logout
-	    </a>
-
+	<a class="navbar-item">
+	  <style>
+	   .select {
+	     font-size: 0.6rem;
+	   }
+	  </style>
+	  <div class="select is-rounded">
+	    <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
+	      # for category in categories:
+	      <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+	      # endfor
+	    </select>
 	  </div>
+	</a>
+
+	<style>
+	 .tooltip {
+	   position: relative;
+	   display: inline-block;
+	   font-size: 0.8rem;
+	 }
+	 .tooltip .tooltiptext {
+	   background-color: #fff;
+	   bottom: 100%;
+	   right: -100%;
+	   opacity: 0;
+	   padding: 5px;
+	   position: absolute;
+	   transition: opacity 0.3s;
+	   visibility: hidden;
+	   white-space: nowrap;
+	   z-index: 1;
+	 }
+	 .tooltip:hover .tooltiptext {
+	   visibility: visible;
+	   opacity: 1;
+	</style>
+
+
+	<div class="navbar-item">
+	  <a class="tooltip" href="{{ url_for('main.render_new_document') }}">
+	    <i class="fas fa-plus"></i>
+	    <div class="tooltiptext invisible" id="id_tooltip_text_new_document" >Add New Document</div>
+	  </a>
 	</div>
+
+
+	<div class="navbar-item">
+	  <a class="tooltip" href="{{ url_for('tags.manage_tags') }}">
+	    <i class="fas fa-tags"></i>
+	    <div class="tooltiptext invisible" id="id_tooltip_text_manage_tags" >Manage Tags</div>
+	  </a>
+	</div>
+
+	<div class="navbar-item">
+	  <a class="tooltip" href="{{ url_for('auth.logout') }}">
+	    <i class="fas fa-arrow-right-from-bracket"></i>
+	    <div class="tooltiptext invisible" id="id_tooltip_text_logout" >Logout</div>
+	</a>
+	</div>
+
       </nav>
 
     </div><!-- navbar-end -->
