@@ -145,12 +145,14 @@ class Documents(Document):
         return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
     @classmethod
-    def as_user(cls, user: Users) -> str:
+    def as_user(cls, user: Users, category: Category | None = None) -> str:
         """Return the user's current category's document partition/ollection name.
 
         Our convention is "documents-<userId>-<documentCategory" (obo of a hierarchical namespace).
+
         """
-        return f"documents-{user.id}-{Category(user.category).collection_root}"
+        o_category = category if category else Category(user.category)
+        return f"documents-{user.id}-{o_category.collection_root}"
 
 
 ################################################################################

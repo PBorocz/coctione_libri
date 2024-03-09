@@ -14,10 +14,10 @@ from flask_mongoengine import MongoEngine
 import app.constants as c
 
 
-def create_app(setup_logging=True, log_level: str | None = None):
+def create_app(logging=True, log_level: str | None = None):
+    """Set our Flask application object and configure the hell out of it!."""
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
-    log.debug("...created application object")
 
     with application.app_context():
         ################################################################################
@@ -34,7 +34,10 @@ def create_app(setup_logging=True, log_level: str | None = None):
         # Setup Logging and default log level if requested. There are cases where we
         # call create_app NOT part of wsgi, eg. testing, cli etc. hence, the override.
         ################################################################################
-        if setup_logging:
+        if logging is None:
+            log.getLogger().setLevel(log.CRITICAL)  # Effectively turn logging OFF!
+
+        elif logging:
             level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
             log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
 

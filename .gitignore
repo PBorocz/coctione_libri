@@ -1,7 +1,7 @@
 # PERSONAL/LOCAL FILES:
 .env
 .envrc
-.secrets.*
+.secrets*
 __raindrop_data__/
 # Database backups..
 __dumps__/

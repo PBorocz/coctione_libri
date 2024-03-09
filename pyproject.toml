@@ -113,7 +113,7 @@ verbosity = 2
 [tool.poe.tasks]
 import = "python ./app/cli/import_from_raindrop.py"
 dynaconf_list = "dynaconf -i config.settings list"
-build_css = "sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+build_css = " sass         app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 sass_watch = "sass --watch app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 
 ################################################################################
@@ -126,7 +126,7 @@ interpreter = "fish"
 shell = """
   python -c "import tomli_w"
   python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
-  # python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
+  python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
 """
 
 ################################################################################
@@ -137,6 +137,13 @@ interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
   sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
+  flask run --debug --host localhost --port 5001
+  """
+
+[tool.poe.tasks.dev_run_production]
+interpreter = "fish"
+shell = """
+  set -x FLASK_ENV "production"
   flask run --debug --host localhost --port 5001
 """
 

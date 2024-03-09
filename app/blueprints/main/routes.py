@@ -171,9 +171,6 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
-        log.debug(f"{fl.current_user.category=}")
-        log.debug(f"{user_documents=}")
-        log.debug(f"{document._cls=}")
         return_ = {
             "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
             "sources": sources_available(fl.current_user),  # Source pulldown options for user
