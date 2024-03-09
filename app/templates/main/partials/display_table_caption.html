@@ -1,21 +1,40 @@
-# if documents:
+<style>
+ .myCaption {
+   width: 100%;
+   display: flex;
+   justify-content: space-between;
+ }
 
-<caption style="caption-side: top; text-align: left;" class="is-family-monospace">
-  # if search:
-  {{ documents|length }} Documents Matched
-  # else
-  {{ documents|length }} Total Documents
-  # endif
+</style>
+<caption id="myCaption" class="mb-2">
+
+  <div class="level">
+
+    <div class="level-left">
+      <div class="level-item">
+	{% include "main/partials/display_search_control.html" %}
+      </div>
+    </div>
+
+    <div class="level-right">
+      <div class="level-item is-family-monospace is-size-6">
+	# if documents:
+	# if search:
+	{{ documents|length }} Documents Matched
+	# else
+	{{ documents|length }} Total Documents
+	# endif
+	# else:
+	# if search
+	Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>
+	# else:
+	Sorry, you have no '{{ current_user.category }}' documents.
+	# endif
+	# endif
+      </div>
+
+    </div>
+
+  </div>
+
 </caption>
-
-# else:
-
-<caption style="caption-centered: top; text-align: center;" class="is-family-monospace">
-  # if search
-  Sorry, no documents meet your search criteria: <span class="is-italic">{{ search }}</span>
-  # else:
-  Sorry, you have no '{{ current_user.category }}' documents.
-  # endif
-</caption>
-
-# endif

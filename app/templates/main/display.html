@@ -2,41 +2,7 @@
 
 {% block content %}
 
-{# --------------------------------------------------------------------------- #}
-{# Render the search input control
-   {# --------------------------------------------------------------------------- #}
-<div class="field">
-  <div class="control">
-    {# If we're doing a full page refresh: #}
-    {# _="on htmx:afterRequest set my value to ''" #}
-    <style>
-     .search {
-       border-radius: 10px;
-       border: 2px solid #eee;
-       margin-right: 10px;
-       outline: 0;
-       padding: 4px 6px;
-       transition: all .1s ease-in-out;
-       width: 7.0rem;
-     }
-     .search::placeholder {
-       text-align: left;
-     }
-     .search:active, .search:focus, .search:not(:placeholder-shown) {
-       width: 16rem;
-     }
-    </style>
-    <input
-      autofocus
-      class="input search responsive-font"
-      name="search"
-      hx-post="/search"
-      hx-target="#id_documents_div"
-      placeholder="Search.."
-      type="search"
-    >
-  </div>
-</div>
+{# include "main/partials/display_search_control.html" #}
 
 {# --------------------------------------------------------------------------- #}
 {# Render the display table of all/searched documents
