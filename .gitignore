@@ -1,8 +1,9 @@
 # PERSONAL/LOCAL FILES:
+.DS_Store
 .env
 .envrc
 .secrets*
-__*
+__*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

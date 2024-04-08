@@ -1,4 +1,5 @@
 """Sole "Application" Creator Factory Method."""
+
 import logging as log
 import warnings
 

@@ -7,7 +7,7 @@
     <th id="th_quality"
 	scope="col"
 	class="has-text-white has-text-centered"
-    	hx-target="closest div"
+	hx-target="closest div"
 	hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       Q{{ render_sort_icon("quality") }}
     </th>
@@ -18,7 +18,7 @@
     <th id="th_complexity"
 	scope="col"
 	class="has-text-white has-text-centered is-hidden-lt-tablet"
-    	hx-target="closest div"
+	hx-target="closest div"
 	hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       C{{ render_sort_icon("complexity") }}
     </th>
@@ -29,7 +29,7 @@
     <th id="th_title"
 	scope="col"
 	class="has-text-white"
-    	hx-target="closest div"
+	hx-target="closest div"
 	hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       Title{{ render_sort_icon("title") }}
     </th>
@@ -40,7 +40,7 @@
     <th id="th_tags"
 	scope="col"
 	class="has-text-white"
-    	hx-target="closest div"
+	hx-target="closest div"
 	hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       Tags{{ render_sort_icon("tags") }}
     </th>
@@ -51,7 +51,7 @@
     <th id="th_source"
 	    scope="col"
 	    class="has-text-white is-hidden-lt-desktop"
-    	    hx-target="closest div"
+	    hx-target="closest div"
 	    hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
     >
       Source{{ render_sort_icon("source") }}
@@ -63,7 +63,7 @@
     <th id="th_last_cooked"
 	scope="col"
 	class="has-text-white has-text-centered is-hidden-lt-desktop"
-    	hx-target="closest div"
+	hx-target="closest div"
 	hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       Last{{ render_sort_icon("last_cooked") }}
     </th>
@@ -77,5 +77,5 @@
     # endif
 
   </tr>
-  
+
 </thead>

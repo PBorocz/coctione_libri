@@ -46,9 +46,10 @@
 	  <style>
 	   .select {
 	     font-size: 0.6rem;
+	     border-radius: 6px;
 	   }
 	  </style>
-	  <div class="select is-rounded">
+	  <div class="select">
 	    <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
 	      # for category in categories:
 	      <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
@@ -61,16 +62,16 @@
 	 .tooltip {
 	   position: relative;
 	   display: inline-block;
-	   font-size: 0.8rem;
+	   font-size: 0.7rem;
 	 }
 	 .tooltip .tooltiptext {
 	   background-color: #fff;
 	   bottom: 100%;
 	   right: -100%;
 	   opacity: 0;
-	   padding: 5px;
+	   /* padding: 15px; */
 	   position: absolute;
-	   transition: opacity 0.3s;
+	   transition: opacity 0.1s;
 	   visibility: hidden;
 	   white-space: nowrap;
 	   z-index: 1;
@@ -84,7 +85,7 @@
 	<div class="navbar-item">
 	  <a class="tooltip" href="{{ url_for('main.render_new_document') }}">
 	    <i class="fas fa-plus"></i>
-	    <div class="tooltiptext invisible" id="id_tooltip_text_new_document" >Add New Document</div>
+	    <div class="tooltiptext invisible" id="id_tooltip_text_new_document" >Add New Doc</div>
 	  </a>
 	</div>
 
@@ -92,7 +93,7 @@
 	<div class="navbar-item">
 	  <a class="tooltip" href="{{ url_for('tags.manage_tags') }}">
 	    <i class="fas fa-tags"></i>
-	    <div class="tooltiptext invisible" id="id_tooltip_text_manage_tags" >Manage Tags</div>
+	    <div class="tooltiptext invisible" id="id_tooltip_text_manage_tags" >Tags</div>
 	  </a>
 	</div>
 

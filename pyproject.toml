@@ -113,8 +113,8 @@ verbosity = 2
 [tool.poe.tasks]
 import = "python ./app/cli/import_from_raindrop.py"
 dynaconf_list = "dynaconf -i config.settings list"
-build_css = " sass         app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
-sass_watch = "sass --watch app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 
 ################################################################################
 # Import
@@ -136,7 +136,7 @@ shell = """
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
-  sass app/static/css/sass/styles.scss app/static/css/coctione_libri.css
+  sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
   flask run --debug --host localhost --port 5001
   """
 
@@ -154,29 +154,31 @@ shell = """
 interpreter = "fish"
 shell = """
   echo "Doing dump from local database..."
-  mkdir -p ./__dumps__/working
-  mongodump --db=coctione_libri_development --out=./__dumps__/working
+  mkdir -p ./__backups__/working
+  mongodump --db=coctione_libri_development --out=./__backups__/working
 
   echo "Compressing to single backup file..."
   set backup_filename (date +"backup_local_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__dumps__/$backup_filename ./__dumps__/working
-  rm                                    ./__dumps__/working
+  tar -czf ./__backups__/$backup_filename ./__backups__/working
+  rm                                      ./__backups__/working
   """
 
 [tool.poe.tasks.backup_production]
 interpreter = "fish"
 shell = """
-  mkdir -p ./__dumps__/working
+  mkdir -p ./__backups__/working
   if not set -q mongodb; or not string length -q $mongodb
-      echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
-      exit 1
+	  echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
+	  exit 1
   end
+
   echo "Doing dump from PRODUCTION database..."
-  mongodump --db=coctione_libri --out=./__dumps__/working --uri=$mongodb
+  mongodump --db=coctione_libri --out=./__backups__/working --uri=$mongodb
+
   echo "Compressing to single backup file..."
   set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__dumps__/$backup_filename ./__dumps__/working
-  rm                                    ./__dumps__/working
+  tar -czf ./__backups__/$backup_filename ./__backups__/working
+  rm                                      ./__backups__/working
 """
 
 ################################################################################
@@ -186,8 +188,9 @@ shell = """
 interpreter = "fish"
 args = ["db_from", "db_to", "backup_directory_path"]
 shell = """
-  # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__dumps__/workin  # mkdir -p ./__dumps__/working
-  # tar -xzf {$backup_directory_path} -C ./__dumps__/working
+  # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__backups__/working
+  # mkdir -p ./__backups__/working
+  # tar -xzf {$backup_directory_path} -C ./__backups__/working
   echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
-  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* ./__dumps__/working
+  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* ./__backups__/working
   """
