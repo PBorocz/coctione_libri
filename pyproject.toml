@@ -23,7 +23,7 @@ flask-mongoengine = {git = "https://github.com/idoshr/flask-mongoengine.git"}
 wtforms = "^3.1.2"
 flask-wtf = "^1.2.1"
 email-validator = "^2.1.0.post1"
-gunicorn = "^21.2.0"
+gunicorn = "^22.0.0"
 dynaconf = "^3.2.4"
 flask-debugtoolbar = "^0.14.1"
 tomli-w = "^1.0.0"
