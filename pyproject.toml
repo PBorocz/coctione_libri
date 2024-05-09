@@ -41,7 +41,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-ignore = [
+lint.ignore = [
   "D100",    # Ok, I hate the 'Missing docstring in public module'   message, sue me!
   "D102",    # Ok, I hate the 'Missing docstring in public method'   "
   "D101",    # Ok, I hate the 'Missing docstring in public class'    "
@@ -49,6 +49,7 @@ ignore = [
   "D104",    # Ok, I hate the 'Missing docstring in public package'  "
   "D105",    # Ok, I hate the 'Missing docstring in magic method'    "
   "D107",    # Ok, I hate the 'Missing docstring in __init__ method' "
+  "D203",    # Get rid of requirement for blank line before class docstring (conflicts with linter)
   "D211",    # Get rid of conflict with D203
   "D213",    # Get rid of conflict with D212 (leaving D212 active.)
   "E402",    # Get rid of message about imports not being at the top (need for flask blueprints)
@@ -56,7 +57,7 @@ ignore = [
   "RUF012",  # Something to do with default values on bunnet class variables not being typed.
   "COM812",  # OBO of ruff format but not sure where this is an issue.
 ]
-select = [
+lint.select = [
   # Which Ruff suites are we running?
   # (presented in order from the Ruff documentation page)
   "F",                          # Pyflakes
@@ -95,10 +96,10 @@ select = [
   "RUF",                        # Ruff-specific rules
 ]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 12
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "config.py" = [
   "N802",  # We want all Config properties to be uppercase (even if from a methoc)
   "N805",  # We have classmethods defined that use 'cls' as arg, not 'self'!

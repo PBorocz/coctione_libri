@@ -1,4 +1,5 @@
 """Base application document model."""
+
 import datetime as dt
 from zoneinfo import ZoneInfo
 
@@ -16,26 +17,44 @@ from mongoengine import (
 from mongoengine.context_managers import switch_collection
 from mongoengine.fields import BaseField
 
-from app.models import Category, Rating
+from app.models import Category, RatingComplexity, RatingQuality
 from app.models.users import Users
 
 
-class RatingField(BaseField):
+class RatingQualityField(BaseField):
     def to_python(self, value):
         """Convert the string value held in the DB to a strongly-typed Rating instance."""
-        return Rating(value)
+        return RatingQuality(value)
 
     def to_mongo(self, value):
         """Convert the strongly-typed Category Enum instance to an integer for storage."""
-        if isinstance(value, Rating):
+        if isinstance(value, RatingQuality):
             return int(value)
         return value
 
     def validate(self, value):
         try:
-            Rating(value)
+            RatingQuality(value)
         except ValueError as exc:
-            raise errors.ValidationError(f"Invalid value for Rating: {value=}") from exc
+            raise errors.ValidationError(f"Invalid value for RatingQuality: {value=}") from exc
+
+
+class RatingComplexityField(BaseField):
+    def to_python(self, value):
+        """Convert the string value held in the DB to a strongly-typed Rating instance."""
+        return RatingComplexity(value)
+
+    def to_mongo(self, value):
+        """Convert the strongly-typed Category Enum instance to an integer for storage."""
+        if isinstance(value, RatingComplexity):
+            return int(value)
+        return value
+
+    def validate(self, value):
+        try:
+            RatingComplexity(value)
+        except ValueError as exc:
+            raise errors.ValidationError(f"Invalid value for RatingComplexity: {value=}") from exc
 
 
 class CategoryField(BaseField):
@@ -57,7 +76,6 @@ class CategoryField(BaseField):
 
 
 class Documents(Document):
-
     """Base Documents."""
 
     # fmt: off
@@ -83,9 +101,9 @@ class Documents(Document):
     ################################################################################
     # Recipe Category Specific Fields (and thus, all optional)
     ################################################################################
-    dates_cooked = ListField(DateTimeField())                                               # List "cooked" dates
-    quality      = RatingField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Quality rating
-    complexity   = RatingField(min_value=0, max_value=5, choices=[e.value for e in Rating]) # Complexity rating
+    dates_cooked = ListField(DateTimeField()) # List "cooked" dates
+    quality      = RatingQualityField(min_value=0, max_value=5, choices=[e.value for e in RatingQuality])
+    complexity   = RatingComplexityField(min_value=0, max_value=5, choices=[e.value for e in RatingComplexity])
     # fmt: on
 
     meta = {"indexes": ["tags"]}
@@ -97,14 +115,14 @@ class Documents(Document):
             document.updated = dt.datetime.utcnow()
 
     @property
-    def quality_enum(self) -> Rating | None:
+    def quality_enum(self) -> RatingQuality | None:
         """Return the uptyped quality field as "Rating" instead of int."""
-        return Rating(self.quality) if self.quality else None
+        return RatingQuality(self.quality) if self.quality else None
 
     @property
-    def complexity_enum(self) -> Rating | None:
+    def complexity_enum(self) -> RatingComplexity | None:
         """Return the uptyped complexity field as "Rating" instead of int."""
-        return Rating(self.complexity) if self.complexity else None
+        return RatingComplexity(self.complexity) if self.complexity else None
 
     @property
     def tags_for_sort(self) -> list[str] | None:

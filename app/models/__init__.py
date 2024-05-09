@@ -1,4 +1,5 @@
 """."""
+
 from __future__ import annotations
 
 from enum import IntEnum, StrEnum
@@ -27,7 +28,7 @@ def categories_available() -> list[str]:
     return [category._value_ for category in Category]
 
 
-class Rating(IntEnum):
+class RatingQuality(IntEnum):
     ZER = 0
     ONE = 1
     TWO = 2
@@ -36,14 +37,25 @@ class Rating(IntEnum):
     FIV = 5
 
     def __str__(self):
-        return "★" * self.value  # "•"
+        return "★" * self.value
+
+
+class RatingComplexity(IntEnum):
+    ZER = 0
+    ONE = 1
+    TWO = 2
+    THR = 3
+    FOR = 4
+    FIV = 5
+
+    def __str__(self):
+        return "↓" * self.value
 
 
 ################################################################################
 # Miscellaneous/utility classes
 ################################################################################
 class Sort:
-
     """Encapsulate all semantics controlling sorting on from/main page."""
 
     def __init__(self):
