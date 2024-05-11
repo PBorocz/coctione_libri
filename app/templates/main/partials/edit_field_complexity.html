@@ -5,18 +5,18 @@
   <div class="field-body">
 	<div class="control is-flex is-align-items-center">
 	  <div class="select is-rounded is-small mr-4">
-	<select name="complexity"
-		hx-post="/edit/complexity/{{ document.id }}"
-		hx-swap="outerHTML"
-		hx-target="#field_complexity"
-	>
-	  <option class="is-size-6" {% if not document.complexity  %}selected{% endif %} value="0">Complexity</option>
-	  <option {% if document.complexity == 1 %}selected{% endif %} value="1">↓</option>
-	  <option {% if document.complexity == 2 %}selected{% endif %} value="2">↓↓</option>
-	  <option {% if document.complexity == 3 %}selected{% endif %} value="3">↓↓↓</option>
-	  <option {% if document.complexity == 4 %}selected{% endif %} value="4">↓↓↓↓</option>
-	  <option {% if document.complexity == 5 %}selected{% endif %} value="5">↓↓↓↓↓</option>
-	</select>
+		<select name="complexity"
+				hx-post="/edit/complexity/{{ document.id }}"
+				hx-swap="outerHTML"
+				hx-target="#field_complexity"
+				>
+		  <option class="is-size-5" {% if not document.complexity  %}selected{% endif %} value="0">Complexity</option>
+		  <option {% if document.complexity == 1 %}selected{% endif %} value="1">⚙</option>
+		  <option {% if document.complexity == 2 %}selected{% endif %} value="2">⚙ ⚙</option>
+		  <option {% if document.complexity == 3 %}selected{% endif %} value="3">⚙ ⚙ ⚙</option>
+		  <option {% if document.complexity == 4 %}selected{% endif %} value="4">⚙ ⚙ ⚙ ⚙ ⚙</option>
+		  <option {% if document.complexity == 5 %}selected{% endif %} value="5">⚙ ⚙ ⚙ ⚙ ⚙ ⚙</option>
+		</select>
 	  </div>
 	  {% include "main/partials/_status_icon.html" %}
 	</div>

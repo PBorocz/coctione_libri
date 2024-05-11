@@ -49,7 +49,7 @@ class RatingComplexity(IntEnum):
     FIV = 5
 
     def __str__(self):
-        return "↓" * self.value
+        return "⚙" * self.value
 
 
 ################################################################################

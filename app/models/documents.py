@@ -125,6 +125,14 @@ class Documents(Document):
         return RatingComplexity(self.complexity) if self.complexity else None
 
     @property
+    def quality_by_complexity(self) -> float | None:
+        """Return the bang for buck, ie. quality / complexity."""
+        try:
+            return self.quality / self.complexity
+        except TypeError:
+            return None
+
+    @property
     def tags_for_sort(self) -> list[str] | None:
         """Convert the list of tags to a lower-case, sorted comma-separated list."""
         # This is only used for sorting documents by the "tags" column, NOT for display!

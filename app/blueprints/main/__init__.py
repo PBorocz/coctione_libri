@@ -1,4 +1,5 @@
 """Main Page Blueprint."""
+
 import logging as log
 
 from flask import Blueprint
@@ -13,13 +14,14 @@ def render_display_column(category: Category, field: str) -> bool:
     # fmt: off
     display_fields = {
         Category.COOKING_RECIPES: {
-            "complexity"  : True,
-            "edit"        : True,
-            "last_cooked" : True,
-            "quality"     : True,
-            "source"      : True,
-            "tags"        : True,
-            "title"       : True,
+            "complexity"            : True,
+            "edit"                  : True,
+            "last_cooked"           : True,
+            "quality"               : True,
+            "quality_by_complexity" : True,
+            "source"                : True,
+            "tags"                  : True,
+            "title"                 : True,
         },
         "default": { # All other categories..
             "complexity"  : False,

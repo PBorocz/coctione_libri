@@ -1,23 +1,23 @@
 <div class="field is-horizontal mt-4" id="field_quality">
   <div class="field-label is-medium">
-    <label class="label">Quality</label>
+	<label class="label">Quality</label>
   </div>
   <div class="field-body">
-    <div class="control is-flex is-align-items-center">
-      <div class="select is-rounded is-small mr-4">
-	<select name="quality"
-		      hx-post="/edit/quality/{{ document.id }}"
-		      hx-swap="outerHTML"
-		      hx-target="#field_quality">
-	  <option {% if not document.quality  %}selected{% endif %} value="0">Quality</option>
-	  <option {% if document.quality == 1 %}selected{% endif %} value="1">★</option>
-	  <option {% if document.quality == 2 %}selected{% endif %} value="2">★★</option>
-	  <option {% if document.quality == 3 %}selected{% endif %} value="3">★★★</option>
-	  <option {% if document.quality == 4 %}selected{% endif %} value="4">★★★★</option>
-	  <option {% if document.quality == 5 %}selected{% endif %} value="5">★★★★★</option>
-	</select>
-      </div>
-      {% include "main/partials/_status_icon.html" %}
-    </div>
+	<div class="control is-flex is-align-items-center">
+	  <div class="select is-rounded is-small mr-4">
+		<select name="quality"
+				hx-post="/edit/quality/{{ document.id }}"
+				hx-swap="outerHTML"
+				hx-target="#field_quality">
+		  <option {% if not document.quality  %}selected{% endif %} value="0">Quality</option>
+		  <option {% if document.quality == 1 %}selected{% endif %} value="1">★</option>
+		  <option {% if document.quality == 2 %}selected{% endif %} value="2">★ ★</option>
+		  <option {% if document.quality == 3 %}selected{% endif %} value="3">★ ★ ★</option>
+		  <option {% if document.quality == 4 %}selected{% endif %} value="4">★ ★ ★ ★</option>
+		  <option {% if document.quality == 5 %}selected{% endif %} value="5">★ ★ ★ ★ ★</option>
+		</select>
+	  </div>
+	  {% include "main/partials/_status_icon.html" %}
+	</div>
   </div>
 </div>

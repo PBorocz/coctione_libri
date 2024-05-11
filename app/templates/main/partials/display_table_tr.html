@@ -9,8 +9,15 @@
 
   {# Complexity #}
   # if render_display_column(current_user.category, "complexity"):
-  <td class="has-text-centered is-size-6 is-hidden-lt-tablet" style="vertical-align: middle;">
+  <td class="has-text-centered is-size-5 is-hidden-lt-tablet" style="vertical-align: middle;">
 	{{ document.complexity_enum | default("", true) }}
+  </td>
+  # endif
+
+  {# Quality_By_Complexity #}
+  # if render_display_column(current_user.category, "quality_by_complexity"):
+  <td class="has-text-centered is-size-7" style="vertical-align: middle;">
+	{{ document.quality_by_complexity | default("", true) }}
   </td>
   # endif
 

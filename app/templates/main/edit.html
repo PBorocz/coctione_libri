@@ -20,29 +20,29 @@
    event.preventDefault();
    Swal.fire({
 
-     title: "Are you sure you want to delete this entry?",
-     text: "You will not be able to revert this!",
-     icon: "warning",
+	 title: "Are you sure you want to delete this entry?",
+	 text: "You will not be able to revert this!",
+	 icon: "warning",
 
-     confirmButtonColor: "#d33",
-     confirmButtonText: "Yes",
+	 confirmButtonColor: "#d33",
+	 confirmButtonText: "Yes",
 
-     showCancelButton: true,
-     cancelButtonColor: "#3085d6",
-     cancelButtonText: "Cancel",
+	 showCancelButton: true,
+	 cancelButtonColor: "#3085d6",
+	 cancelButtonText: "Cancel",
 
    }).then((result) => {
-     if (result.isConfirmed) {
+	 if (result.isConfirmed) {
 
-       var input = document.createElement("input");	// Create a new input element to simulate the button press
-       input.setAttribute("type", "hidden");		// Set its type to "hidden", so it's not visible on the page
-       input.setAttribute("name", btnName);		// The name should match the name of the button you're simulating
-       input.setAttribute("value", btnValue);		// The value should match the value of the button you're simulating
+	   var input = document.createElement("input");	// Create a new input element to simulate the button press
+	   input.setAttribute("type", "hidden");		// Set its type to "hidden", so it's not visible on the page
+	   input.setAttribute("name", btnName);		// The name should match the name of the button you're simulating
+	   input.setAttribute("value", btnValue);		// The value should match the value of the button you're simulating
 
-       var form = document.getElementById(formId);
-       form.appendChild(input);
-       form.submit()
-     }
+	   var form = document.getElementById(formId);
+	   form.appendChild(input);
+	   form.submit()
+	 }
    });
  }
 
@@ -71,21 +71,21 @@
  /* For landscape phones and down to portrait tablets: */
  @media (min-width: 576px) {
    .form-input {
-     width: 90%;
+	 width: 90%;
    }
  }
 
  /* For landscape tablets and down to desktops: */
  @media (min-width: 768px) {
    .form-input {
-     width: 80%;
+	 width: 80%;
    }
  }
 
  /* For large desktops: */
  @media (min-width: 1200px) {
    .form-input {
-     width: 70%;  /* Or any desired width */
+	 width: 70%;  /* Or any desired width */
    }
  }
 
@@ -96,14 +96,13 @@
 
 {% include "main/partials/edit_field_title.html" %}
 {% include "main/partials/edit_field_file_.html" %}
-{% include "main/partials/edit_field_url_.html" %}
 {% include "main/partials/edit_field_source.html" %}
+{% include "main/partials/edit_field_url_.html" %}
 {% include "main/partials/edit_field_tag.html" %}
-{% include "main/partials/edit_field_notes.html" %}
-<hr/>
 {% include "main/partials/edit_field_quality.html" %}
 {% include "main/partials/edit_field_complexity.html" %}
 {% include "main/partials/edit_field_dates_cooked.html" %}
+{% include "main/partials/edit_field_notes.html" %}
 <hr/>
 {% include "main/partials/edit_category.html" %}
 {% include "main/partials/edit_created.html" %}
