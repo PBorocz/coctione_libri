@@ -34,16 +34,24 @@
   # if render_display_column(current_user.category, "tags"):
   <td style="vertical-align: middle;">
 	<style>
-	 .my-tag {
+	 .tag-style {
 	   background-color: #bfefff;
 	   border-radius: 4px;
+	   cursor: pointer;
 	   padding: 3px 6px;
 	   font-size: 0.7em;
 	   margin: 2px;
 	 }
 	</style>
 	# for tag in document.tags|sort:
-	<span class="my-tag">{{ tag }}</span>
+	<span class="tag-style"
+		  name="tag"
+		  hx-post="/search"
+		  hx-target="#id_documents_div"
+		  hx-vals='{"search": "{{ tag }}"}'
+		  >
+	  {{ tag }}
+	</span>
 	# endfor
   </td>
   # endif
@@ -51,7 +59,20 @@
   {# Source #}
   # if render_display_column(current_user.category, "source"):
   <td class="is-hidden-lt-desktop" style="vertical-align: middle;">
-	{{ document.source | default("", true) }}
+	<style>
+	 .source-style {
+	   cursor: pointer;
+	   color: #485FC7;
+	 }
+	</style>
+	<span class="source-style"
+		  name="source"
+		  hx-post="/search"
+		  hx-target="#id_documents_div"
+		  hx-vals='{"search": "{{ document.source }}"}'
+		  >
+	  {{ document.source | default("", true) }}
+	</span>
   </td>
   # endif
 

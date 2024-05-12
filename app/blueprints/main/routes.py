@@ -1,4 +1,5 @@
 """Core Application Routes."""
+
 import logging as log
 from functools import wraps
 from io import BytesIO
@@ -86,8 +87,15 @@ def partial_search(template="main/partials/display_table.html") -> Response:
     sort = Sort.factory(request)
     log.debug(sort)
 
-    search_term_s: str = request.form["search"]
-    log.debug(f"{search_term_s=}")
+    # Search could come in directly from the search dialog box (ie.
+    # request.form) *or* from clicking a selected tag or source
+    # (ie. request.values...)
+    if request.values.get("search"):
+        search_term_s = request.values.get("search")
+        log.debug(f"direct search: {search_term_s}")
+    else:
+        search_term_s: str = request.form["search"]
+        log.debug(f"general search: {search_term_s}")
 
     if search_term_s == "*" or not search_term_s:
         # Sometimes a "search" is not a "search" after all!
