@@ -24,13 +24,14 @@ def render_display_column(category: Category, field: str) -> bool:
             "title"                 : True,
         },
         "default": { # All other categories..
-            "complexity"  : False,
-            "edit"        : True,
-            "last_cooked" : False,
-            "quality"     : False,
-            "source"      : True,
-            "tags"        : True,
-            "title"       : True,
+            "complexity"            : False,
+            "edit"                  : True,
+            "last_cooked"           : False,
+            "quality"               : False,
+            "quality_by_complexity" : False,
+            "source"                : True,
+            "tags"                  : True,
+            "title"                 : True,
         },
     }
     # fmt: on
