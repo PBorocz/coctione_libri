@@ -5,10 +5,10 @@
 	{# Quality #}
 	# if render_display_column(current_user.category, "quality"):
 	<th id="th_quality"
-	scope="col"
-	class="has-text-white has-text-centered"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white has-text-centered"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  Q{{ render_sort_icon("quality") }}
 	</th>
 	# endif
@@ -16,10 +16,10 @@
 	{# Complexity #}
 	# if render_display_column(current_user.category, "complexity"):
 	<th id="th_complexity"
-	scope="col"
-	class="has-text-white has-text-centered"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white has-text-centered is-hidden-lt-tablet"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  C{{ render_sort_icon("complexity") }}
 	</th>
 	# endif
@@ -27,10 +27,10 @@
 	{# BangForBuck #}
 	# if render_display_column(current_user.category, "quality_by_complexity"):
 	<th id="th_quality_by_complexity"
-	scope="col"
-	class="has-text-white has-text-centered is-hidden-lt-tablet"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=quality_by_complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white has-text-centered"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=quality_by_complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  B{{ render_sort_icon("quality_by_complexity") }}
 	</th>
 	# endif
@@ -38,10 +38,10 @@
 	{# Title #}
 	# if render_display_column(current_user.category, "title"):
 	<th id="th_title"
-	scope="col"
-	class="has-text-white"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=title&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  Title{{ render_sort_icon("title") }}
 	</th>
 	# endif
@@ -49,10 +49,10 @@
 	{# Tags #}
 	# if render_display_column(current_user.category, "tags"):
 	<th id="th_tags"
-	scope="col"
-	class="has-text-white"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=tags&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  Tags{{ render_sort_icon("tags") }}
 	</th>
 	# endif
@@ -72,10 +72,10 @@
 	{# Last Cooked #}
 	# if render_display_column(current_user.category, "last_cooked"):
 	<th id="th_last_cooked"
-	scope="col"
-	class="has-text-white has-text-centered is-hidden-lt-desktop"
-	hx-target="closest div"
-	hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+		scope="col"
+		class="has-text-white has-text-centered is-hidden-lt-desktop"
+		hx-target="closest div"
+		hx-get="/sort?sort_by=last_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
 	  Last{{ render_sort_icon("last_cooked") }}
 	</th>
 	# endif
@@ -83,7 +83,7 @@
 	{# Edit? #}
 	# if render_display_column(current_user.category, "edit"):
 	<th scope="col"
-	class="disable-sort">
+		class="disable-sort">
 	</th>
 	# endif
 

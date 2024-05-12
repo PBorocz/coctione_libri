@@ -128,7 +128,7 @@ class Documents(Document):
     def quality_by_complexity(self) -> float | None:
         """Return the bang for buck, ie. quality / complexity."""
         try:
-            return self.quality / self.complexity
+            return f"{self.quality / self.complexity:.2f}"
         except TypeError:
             return None
 
