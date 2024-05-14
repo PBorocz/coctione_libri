@@ -15,7 +15,7 @@ pydantic = "^2.5.3"
 python-dotenv = "^1.0.0"
 secure = "^0.3.0"
 rich = "^13.7.0"
-mongoengine = "^0.27.0"
+mongoengine = "^0.28.0"
 
 # Using fork here https://github.com/idoshr/flask-mongoengine since regular mongoengine isn't being maintained anymore.
 # More context: https://stackoverflow.com/questions/76570896/importerror-cannot-import-name-jsonencoder-from-flask-json
