@@ -1,5 +1,4 @@
 """Tag Management Routes."""
-import logging as log
 
 import flask as f
 import flask_login as fl
@@ -8,7 +7,7 @@ from flask.wrappers import Response
 from flask_login import login_required
 
 from app.blueprints.tags import bp
-from app.blueprints.tags.operations import get_all_tags, get_tag_count, remove_tag, update_tag
+from app.blueprints.tags.operations import create_figure, get_all_tags, get_tag_count, remove_tag, update_tag
 from app.models import categories_available
 
 
@@ -20,8 +19,15 @@ def manage_tags(template: str = "tags/tags.html") -> Response:
     sort = request.args.get("sort", "tag")
     order = request.args.get("order", "asc")
     tags = get_all_tags(fl.current_user, sort, order)
+    fn_fig = create_figure(tags)
     return f.render_template(
-        template, tags=tags, sort=sort, order=order, no_search=True, categories=categories_available()
+        template,
+        tags=tags,
+        sort=sort,
+        order=order,
+        no_search=True,
+        filename=fn_fig,
+        categories=categories_available(),
     )
 
 
@@ -40,7 +46,6 @@ def render_tag_edit(template: str = "tags/partials/edit.html") -> Response:
 def delete_tag() -> Response:
     """Delete the specified tag and return to the tag management page."""
     tag = request.values.get("name")
-    log.info(f"Delete ENTIRE {tag=}")
     remove_tag(fl.current_user, tag)
     return "", 200
 

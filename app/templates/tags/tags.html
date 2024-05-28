@@ -8,34 +8,41 @@
 
 <div id="statusMessage"></div>
 
-<div class="table-container">
-  <table id="table_tags" class="table is-narrow is-striped responsive-font">
+<div class="columns">
 
-    <thead>
-      <tr class="has-background-grey-dark">
-        <th class="has-text-centered">
-          <a class="has-text-white"
-	     href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
-            Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
-          </a>
-        </th>
-        <th class="has-text-centered">
-          <a class="link has-text-white"
-	     href="/tags?sort=count&order={{ 'asc' if sort == 'count' and order == 'desc' else 'desc' }}">
-            Count{% if sort == "count" %}{{ render_sort_icon() }}{% endif %}
-	  </a>
-        </th>
-        <th class="has-text-centered has-text-white disable-sort">Actions</th>
-      </tr>
-    </thead>
+  <div class="column is-quarter">
+	<div id="chart" class="chart">
+	  <img src="{{ url_for('static', filename=filename) }}">
+	</div>
+  </div>
 
-    <tbody>
-      # for tag, count in tags:
-      {% include "tags/partials/tr.html" %}
-      # endfor
-    </tbody>
+  <div class="column is-quarter">
+	<div class="table-container">
+	  <table id="table_tags" class="table is-narrow is-striped responsive-font">
 
-  </table>
+		<thead>
+		  <tr class="has-background-grey-dark">
+			<th class="has-text-centered">
+			  <a class="has-text-white"
+				 href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
+				Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
+			  </a>
+			</th>
+			<th class="has-text-centered has-text-white disable-sort">Actions</th>
+		  </tr>
+		</thead>
+
+		<tbody>
+		  # for tag, count in tags:
+		  {% include "tags/partials/tr.html" %}
+		  # endfor
+		</tbody>
+
+	  </table>
+	</div>
+
+  <div class="column is-half">
+  </div>
 
 </div>
 

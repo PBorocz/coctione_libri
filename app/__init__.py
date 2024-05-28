@@ -44,6 +44,9 @@ def create_app(logging=True, log_level: str | None = None):
 
             # See *all* inbound requests for local/development environment (but not in production)
             log.getLogger("werkzeug").disabled = True if application.config["production"] else False
+            log.getLogger("pymongo.command").setLevel(log.WARNING)
+            log.getLogger("pymongo.serverSelection").setLevel(log.WARNING)
+            log.getLogger("matplotlib").setLevel(log.WARNING)
 
             log.debug(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
 
