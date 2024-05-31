@@ -45,7 +45,7 @@
 		<a class="navbar-item">
 		  <style>
 			.select {
-			  font-size: 0.75rem;
+			  font-size: 0.8rem;
 			  border-radius: 6px;
 			}
 		  </style>
@@ -60,16 +60,21 @@
 
 		<div class="navbar-item has-dropdown is-hoverable">
 
-		  <a class="navbar-link" style="font-size: 1.0rem;">⋯</a>
+		  <a class="navbar-link"></a>
 
-		  <div class="navbar-dropdown is-right">
+		  <style>
+			.smaller-navbar-item {
+			  font-size: 0.75rem;
+			}
+		  </style>
+		  <div class="navbar-dropdown is-right smaller-navbar-item">
 
 			<a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
 			  <i class="fas fa-plus"></i>&nbsp;Add New Doc
 			</a>
 
 			<a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
-			  <i class="fas fa-tags"></i>&nbsp;Tags
+			  <i class="fas fa-tags"></i>&nbsp;Manage Tags
 			</a>
 
 			<a class="navbar-item" href="{{ url_for('stats.statistics') }}">
