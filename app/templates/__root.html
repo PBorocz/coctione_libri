@@ -3,18 +3,15 @@
   <head>
 	<meta charset="utf-8">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
-	<title>
-	  {% block title %}Coctione Libri{% endblock title %}
-	</title>
+	<title>{% block title %}Coctione Libri{% endblock title %}</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="description" content="Coctione Libri PDF Library">
 	<meta name="author" content="Peter Borocz">
 
 	<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
-	{# Primary CSS framework #}
+	{# Primary CSS #}
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css') }}"/>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
 	<link rel="stylesheet" href="https://unpkg.com/flatpickr/dist/flatpickr.min.css">
 
@@ -33,11 +30,11 @@
 	  {% include "_messages.html" %}
 	  <main>
 
-	<hr/> {# Appears on every page to separate navbar from body of app #}
+		<hr/> {# Appears on every page to separate navbar from body of app #}
 
-	{% block content %}
-	{# CORE content goes here! #}
-	{% endblock %}
+		{% block content %}
+		{# CORE content goes here! #}
+		{% endblock %}
 
 	  </main>
 
@@ -50,11 +47,11 @@
 	{# Le javascript: Keep at the end of the document for faster page load #}
 	{% block javascript %}
 
-	{# Setup our FontAwesome environment #}
+	{# setup FontAwesome #}
 	<script defer src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
 
 	{# htmx & hyperscript libraries #}
-	<script defer src="https://unpkg.com/htmx.org@latest"></script> {# As of last update: 1.9.9 #}
+	<script defer src="https://unpkg.com/htmx.org@latest"></script>        {# As of last update: 1.9.9  #}
 	<script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
 
 	{# allow for inline/scoped css #}
@@ -63,11 +60,8 @@
 	{# Sweetalert confirmation system #}
 	<script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-	{# calendar widget du-jour #}
-	<!-- <script defer src="https://unpkg.com/flatpickr"></script> -->
-
 	<script type="text/javascript">
-	 /* If any! */
+	 /* If any!? */
 	</script>
 
 	{% block js_local %}
