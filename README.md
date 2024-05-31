@@ -9,7 +9,7 @@ After trying Evernote, Notion and a few others, I picked Raindrop due to its pri
 
 Now, how hard could it be to store a set of pdf's with some meta-data with a simple web front-end? Thus, "Coctione Libri" (literally "cooking books" in Latin) was developed.
 
-# Salient Features:
+## Salient Features:
 
 - Uses [MongoDB](https://www.mongodb.com/) for both storage (of both meta data *and* uploaded files).
 
@@ -33,6 +33,10 @@ Now, how hard could it be to store a set of pdf's with some meta-data with a sim
   - Any number of "dates cooked" (I like to track when and how often I've cooked something).
 
 - My personal production deployment is hosted on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model) with database hosting on [Atlas](https://www.mongodb.com/products/platform/atlas-database).
+
+## Screen Shot
+
+![Home Page](https://github.com/PBorocz/coctione_libri/blob/trunk/app/static/images/readme_use/MainScreen-2024-05-31.png)
 
 ## Repository
 
