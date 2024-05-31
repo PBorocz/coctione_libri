@@ -1,48 +1,50 @@
-{% macro render_sort_icon() %}
-<span class="icon is-size-6"><i class="fas {{ 'fa-arrow-down-a-z' if order == 'desc' else 'fa-arrow-up-a-z' }}"></i></span>
-{% endmacro %}
-
 {% extends "__root.html" %}
 
 {% block content %}
 
-<div id="statusMessage"></div>
-
 <div class="columns">
 
-  <div class="column is-quarter">
-	<div id="chart" class="chart">
-	  <img src="{{ url_for('static', filename=filename) }}">
-	</div>
-  </div>
+  # for tags_subset in tags:
+  <div class="column is-2">
 
-  <div class="column is-quarter">
 	<div class="table-container">
-	  <table id="table_tags" class="table is-narrow is-striped responsive-font">
-
-		<thead>
-		  <tr class="has-background-grey-dark">
-			<th class="has-text-centered">
-			  <a class="has-text-white"
-				 href="/tags?sort=tag&order={{ 'asc' if sort == 'tag' and order == 'desc' else 'desc' }}">
-				Tag{% if sort == "tag" %}{{ render_sort_icon() }}{% endif %}
-			  </a>
-			</th>
-			<th class="has-text-centered has-text-white disable-sort">Actions</th>
-		  </tr>
-		</thead>
-
+	  <table id="table_tags" class="table responsive-font">
 		<tbody>
-		  # for tag, count in tags:
-		  {% include "tags/partials/tr.html" %}
+		  # for tag, count in tags_subset:
+		  <tr>
+			<td style="vertical-align: middle;">
+			  <button
+				class="button"
+				style="border: none;"
+				hx-confirm="{{ count }} recipes using this tag - Are you sure?"
+				hx-swap="outerHTML"
+				hx-delete="/tag/delete"
+				hx-target="closest tr"
+				hx-vals='{"name": "{{ tag }}"}'>
+				<span class="icon is-small">
+				  <i class="fa-regular fa-trash-can"></i>
+				</span>
+			  </button>
+			  <button
+				class="button"
+				style="border: none;"
+				hx-target="closest tr"
+				hx-get="/tag/edit"
+				hx-post="/tag/update"
+				hx-trigger="click"
+				hx-vals='{"name": "{{ tag }}"}'
+				hx-swap="outerHTML">
+				{{ tag }}&nbsp;<sup>({{ count }})</sup>
+			  </button>
+			</td>
+		  </tr>
 		  # endfor
 		</tbody>
-
 	  </table>
 	</div>
 
-  <div class="column is-half">
   </div>
+  # endfor
 
 </div>
 

@@ -2,21 +2,21 @@
 
   <div class="navbar-brand", id="navbar_brand">
 
-    <a class="navbar-item responsive-font-banner" href="/">
-      <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
-    </a>
+	<a class="navbar-item responsive-font-banner" href="/">
+	  <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
+	</a>
 
-    {# Ref: https://www.marcusahnve.se/posts/2023/hamburger-menu-with-bulma-and-hyperscript/ #}
-    <a role="button"
-       class="navbar-burger"
-       aria-label="menu"
-       aria-expanded="false"
-       data-target="navbar_menu"
-       _="on click toggle .is-active on .navbar-menu then toggle .is-active on me">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-    </a>
+	{# Ref: https://www.marcusahnve.se/posts/2023/hamburger-menu-with-bulma-and-hyperscript/ #}
+	<a role="button"
+	   class="navbar-burger"
+	   aria-label="menu"
+	   aria-expanded="false"
+	   data-target="navbar_menu"
+	   _="on click toggle .is-active on .navbar-menu then toggle .is-active on me">
+	  <span aria-hidden="true"></span>
+	  <span aria-hidden="true"></span>
+	  <span aria-hidden="true"></span>
+	</a>
 
   </div><!-- navbar-brand -->
 
@@ -24,37 +24,37 @@
 
   <div class="navbar-menu" id="navbar_menu">
 
-    {# The *LEFT* part of the menu, appearing right after navbar-brand #}
-    # if watermark:
-    <div class="navbar-start">
-      <div class="navbar-item is-hidden-lt-widescreen">
+	{# The *LEFT* part of the menu, appearing right after navbar-brand #}
+	# if watermark:
+	<div class="navbar-start">
+	  <div class="navbar-item is-hidden-lt-widescreen">
 	<div class="field">
 	  <div class="control has-text-danger-dark responsive-font">
-	    {{ watermark|title }}
+		{{ watermark|title }}
 	  </div>
 	</div>
-      </div>
-    </div>
-    # endif
+	  </div>
+	</div>
+	# endif
 
-    {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
-    <div class="navbar-end">
+	{# The *RIGHT* part of the menu, appearing right after navbar-brand #}
+	<div class="navbar-end">
 
-      <nav class="navbar" role="navigation" aria-label="dropdown navigation">
+	  <nav class="navbar" role="navigation" aria-label="dropdown navigation">
 
 	<a class="navbar-item">
 	  <style>
 	   .select {
-	     font-size: 0.6rem;
-	     border-radius: 6px;
+		 font-size: 0.6rem;
+		 border-radius: 6px;
 	   }
 	  </style>
 	  <div class="select">
-	    <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
-	      # for category in categories:
-	      <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
-	      # endfor
-	    </select>
+		<select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
+		  # for category in categories:
+		  <option {% if current_user.category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+		  # endfor
+		</select>
 	  </div>
 	</a>
 
@@ -84,29 +84,35 @@
 
 	<div class="navbar-item">
 	  <a class="tooltip" href="{{ url_for('main.render_new_document') }}">
-	    <i class="fas fa-plus"></i>
-	    <div class="tooltiptext invisible" id="id_tooltip_text_new_document" >Add New Doc</div>
+		<i class="fas fa-plus"></i>
+		<div class="tooltiptext invisible" id="id_tooltip_text_new_document" >Add New Doc</div>
 	  </a>
 	</div>
 
-
 	<div class="navbar-item">
 	  <a class="tooltip" href="{{ url_for('tags.manage_tags') }}">
-	    <i class="fas fa-tags"></i>
-	    <div class="tooltiptext invisible" id="id_tooltip_text_manage_tags" >Tags</div>
+		<i class="fas fa-tags"></i>
+		<div class="tooltiptext invisible" id="id_tooltip_text_manage_tags" >Tags</div>
+	  </a>
+	</div>
+
+	<div class="navbar-item">
+	  <a class="tooltip" href="{{ url_for('stats.statistics') }}">
+		<i class="far fa-chart-bar"></i>
+		<div class="tooltiptext invisible" id="id_tooltip_text_statistics" >Statistics</div>
 	  </a>
 	</div>
 
 	<div class="navbar-item">
 	  <a class="tooltip" href="{{ url_for('auth.logout') }}">
-	    <i class="fas fa-arrow-right-from-bracket"></i>
-	    <div class="tooltiptext invisible" id="id_tooltip_text_logout" >Logout</div>
+		<i class="fas fa-arrow-right-from-bracket"></i>
+		<div class="tooltiptext invisible" id="id_tooltip_text_logout" >Logout</div>
 	</a>
 	</div>
 
-      </nav>
+	  </nav>
 
-    </div><!-- navbar-end -->
+	</div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
 

@@ -7,7 +7,7 @@ from flask.wrappers import Response
 from flask_login import login_required
 
 from app.blueprints.tags import bp
-from app.blueprints.tags.operations import create_figure, get_all_tags, get_tag_count, remove_tag, update_tag
+from app.blueprints.tags.operations import get_all_tags, get_tag_count, remove_tag, update_tag
 from app.models import categories_available
 
 
@@ -19,14 +19,13 @@ def manage_tags(template: str = "tags/tags.html") -> Response:
     sort = request.args.get("sort", "tag")
     order = request.args.get("order", "asc")
     tags = get_all_tags(fl.current_user, sort, order)
-    fn_fig = create_figure(tags)
+    tags = split_list(tags)  # Return a list of the tags "subsetted".
     return f.render_template(
         template,
         tags=tags,
         sort=sort,
         order=order,
         no_search=True,
-        filename=fn_fig,
         categories=categories_available(),
     )
 
@@ -34,7 +33,7 @@ def manage_tags(template: str = "tags/tags.html") -> Response:
 ################################################################################
 @bp.get("/tag/edit")
 @login_required
-def render_tag_edit(template: str = "tags/partials/edit.html") -> Response:
+def render_tag_edit(template: str = "tags/partials/tr_edit.html") -> Response:
     """Return our tag editor form for a single tag table cell."""
     tag = request.values.get("name")
     return f.render_template(template, tag=tag)
@@ -69,3 +68,18 @@ def render_tag_update(template: str = "tags/partials/tr.html") -> Response:
     tag_count = get_tag_count(fl.current_user, tag_return)
 
     return f.render_template(template, tag=tag_return, count=tag_count)
+
+
+################################################################################
+def split_list(input_list, split=3):
+    """Split the input list to the specified number of parts."""
+    # Calculate the base size of each part and how many have one extra item.
+    size_base = len(input_list) // split
+    extra_items = len(input_list) % split
+    sublists = []
+    start = 0
+    for i in range(split):
+        end = start + size_base + (1 if i < extra_items else 0)
+        sublists.append(input_list[start:end])
+        start = end
+    return sublists

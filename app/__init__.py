@@ -44,9 +44,10 @@ def create_app(logging=True, log_level: str | None = None):
 
             # See *all* inbound requests for local/development environment (but not in production)
             log.getLogger("werkzeug").disabled = True if application.config["production"] else False
-            log.getLogger("pymongo.command").setLevel(log.WARNING)
-            log.getLogger("pymongo.serverSelection").setLevel(log.WARNING)
-            log.getLogger("matplotlib").setLevel(log.WARNING)
+
+            # Some of our underlying modules are quite "chatty"...shut 'em up ;-)
+            for module in ("pymongo.command", "pymongo.serverSelection", "matplotlib"):
+                log.getLogger(module).setLevel(log.WARNING)
 
             log.debug(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
 
@@ -105,11 +106,13 @@ def create_app(logging=True, log_level: str | None = None):
         ################################################################################
         from app.blueprints.auth import bp as blueprint_auth
         from app.blueprints.main import bp as blueprint_main
+        from app.blueprints.stats import bp as blueprint_stats
         from app.blueprints.tags import bp as blueprint_tags
 
         application.register_blueprint(blueprint_auth)
         application.register_blueprint(blueprint_main)
         application.register_blueprint(blueprint_tags)
+        application.register_blueprint(blueprint_stats)
 
         from app.blueprints.main import render_display_column
 
