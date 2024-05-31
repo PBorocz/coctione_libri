@@ -5,9 +5,9 @@
 
 Several years ago, our family needed a single place to store links and pdf's of our most commonly cooked recipes (and those we'd /like/ to cook).
 
-After trying Evernote, Notion and a few others, I picked Raindrop due to its pricing model, simple tagging scheme and multi-platform support. However, after a few years, we became "disenchanted" (primarily due to inability to export data that I've already entered!").
+After trying Evernote, Notion and a few others, I picked Raindrop due to its pricing model, simple tagging scheme and multi-platform support. However, after a few years, I became disenchanted (inability to export my own data, ui inconsistencies et cetera).
 
-Now, how hard could it be to store a set of pdf's with some meta-data with a simple web front-end? Thus, "Coctione Libri" (literally "cooking books" in Latin) was developed.
+Now...how hard could it *really* be to store a set of pdf's with some meta-data access through a simple web front-end? Thus was `Coctione Libri` (literally *cooking books* in Latin) conceived and developed.
 
 ## Salient Features:
 
@@ -40,4 +40,4 @@ Now, how hard could it be to store a set of pdf's with some meta-data with a sim
 
 ## Repository
 
-I've made this repository public simply to provide anyone else with a sample to learn from and/or build upon. Provided with *NO* guarantees beyond ~works for me!~!
+I've made this repository public simply to provide anyone else with a sample to learn from and/or build upon. Provided with *NO* guarantees beyond *works for me*!
