@@ -25,14 +25,22 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
 
 - Support multiple document categories. Right now, I store PDF's on behalf of recipes, cooking /skills/ and cooking /products/.
 
+- Supports simple search capability.
+
+- Mostly responsive from 4K down to iPhone 12 Mini screen-sizes.
+
 - Customised fields for each document include (all optional):
   - URL to source
   - Name of the source (eg. NewYorkTimes-Recipes)
-  - Any number of tags
+  - Any number of arbitrarily-defined tags
   - Scoring metrics obo "Quality" of the respective dish and "Complexity" associated with it's preparation.
   - Any number of "dates cooked" (I like to track when and how often I've cooked something).
 
-- My personal production deployment is hosted on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model) with database hosting on [Atlas](https://www.mongodb.com/products/platform/atlas-database).
+- Developed with 12-Factor app model in mind (use of private settings.toml and environment variables through [DynaConf](https://www.dynaconf.com/) library.
+
+- My personal production deployment is:
+  - Server hosting on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model).
+  - Database hosting on [Atlas](https://www.mongodb.com/products/platform/atlas-database).
 
 ## Screen Shot
 
