@@ -1,5 +1,5 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
-[![license](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/PBorocz/coctione-libri/blob/trunk/LICENSE)
+[![license](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/PBorocz/coctione_libri/blob/trunk/LICENSE)
 
 # Coctione-Libri
 
