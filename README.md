@@ -1,5 +1,5 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
-
+[![license](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/PBorocz/coctione-libri/blob/trunk/LICENSE)
 
 # Coctione-Libri
 
@@ -36,7 +36,7 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
   - Scoring metrics obo "Quality" of the respective dish and "Complexity" associated with it's preparation.
   - Any number of "dates cooked" (I like to track when and how often I've cooked something).
 
-- Developed with 12-Factor app model in mind (use of private settings.toml and environment variables through [DynaConf](https://www.dynaconf.com/) library.
+- Developed with 12-Factor app model in mind, ie. private settings.toml and .envrc with [DynaConf](https://www.dynaconf.com/) library).
 
 - My personal production deployment is:
   - Server hosting on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model).
