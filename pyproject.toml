@@ -44,9 +44,10 @@ build-backend = "poetry.core.masonry.api"
 target-version = "py311"
 line-length = 120
 lint.ignore = [
-  "D100",    # Ok, I hate the 'Missing docstring in public module'   message, sue me!
-  "D102",    # Ok, I hate the 'Missing docstring in public method'   "
+  "COM812",  # OBO of ruff format but not sure where this is an issue.
+  "D100",    # Ok, I hate the 'Missing docstring in public module' message, sue me!
   "D101",    # Ok, I hate the 'Missing docstring in public class'    "
+  "D102",    # Ok, I hate the 'Missing docstring in public method'   "
   "D103",    # Ok, I hate the 'Missing docstring in public function' "
   "D104",    # Ok, I hate the 'Missing docstring in public package'  "
   "D105",    # Ok, I hate the 'Missing docstring in magic method'    "
@@ -57,7 +58,6 @@ lint.ignore = [
   "E402",    # Get rid of message about imports not being at the top (need for flask blueprints)
   "F401",    # Allows for imports without use (e.g. __init__.py)
   "RUF012",  # Something to do with default values on bunnet class variables not being typed.
-  "COM812",  # OBO of ruff format but not sure where this is an issue.
 ]
 lint.select = [
   # Which Ruff suites are we running?
