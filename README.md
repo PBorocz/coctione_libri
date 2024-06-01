@@ -42,6 +42,12 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
   - Server hosting on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model).
   - Database hosting on [Atlas](https://www.mongodb.com/products/platform/atlas-database).
 
+- Internal development tools used:
+  - [PreCommit](https://pre-commit.com/)
+  - [Ruff](https://docs.astral.sh/ruff/)
+  - [Poetry](https://python-poetry.org/)
+  - [Poe](https://poethepoet.natn.io/)
+
 ## Screen Shot
 
 ![Home Page](https://github.com/PBorocz/coctione_libri/blob/trunk/app/static/images/readme_use/MainScreen-2024-05-31.png)
