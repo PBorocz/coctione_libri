@@ -1,6 +1,7 @@
 """Main/home view, essentially the master table itself, either all or from search."""
 
 import logging as log
+import mimetypes
 import shlex
 import sys
 from collections.abc import Callable
@@ -184,13 +185,13 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
     # Did we get a new file to upload?
     if file := request.files["file_"]:
         filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-        msg = (
-            f"Saving a new file: {filename=}!"
+        mime_type, _ = mimetypes.guess_type(filename)
+        log.debug(
+            f"Saving a new file: {filename=} with {mime_type=}!"
             if document.file_
             else f"Replacing existing file {document.file_.filename=} with: {filename=}!"
         )
-        log.debug(msg)
-        document.file_.replace(file, fileName=filename, contentType="application/pdf")
+        document.file_.replace(file, fileName=filename, contentType=mime_type)
         changed = True
 
     return document, changed
@@ -231,7 +232,8 @@ def update_document_attribute(document: Documents, field: str, request) -> [Docu
         case "file_":
             file = request.files["file_"]
             filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-            document.file_.replace(file, fileName=filename, contentType="application/pdf")
+            mime_type, _ = mimetypes.guess_type(filename)
+            document.file_.replace(file, fileName=filename, contentType=mime_type)
 
         ##############################
         # Special Attribute: List of string obo Tag
