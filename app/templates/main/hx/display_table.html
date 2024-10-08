@@ -19,15 +19,15 @@
 		table-arrows
 		table-sort">
 
-    {% include "main/partials/display_table_caption.html" %}
+    {% include "main/hx/display_table_caption.html" %}
 
     # if documents:
-    {% include "main/partials/display_table_thead.html" %}
+    {% include "main/hx/display_table_thead.html" %}
     # endif
 
     <tbody>
       # for document in documents:
-      {% include "main/partials/display_table_tr.html" %}
+      {% include "main/hx/display_table_tr.html" %}
       # endfor
     </tbody>
   </table>

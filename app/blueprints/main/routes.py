@@ -55,7 +55,7 @@ def render_display(template="main/display.html") -> Response:
 @bp.get("/sort")
 @login_required
 @log_route_info
-def hx_display(template="main/partials/display_table.html") -> Response:
+def hx_display(template="main/hx/display_table.html") -> Response:
     """Re-render just our partial/main table for re-sort."""
     sort = Sort.factory(request)  # Get any sort info (probably not on initial display)
 
@@ -82,7 +82,7 @@ def hx_user_category_change() -> Response:
 @bp.post("/search")
 @login_required
 @log_route_info
-def hx_search(template="main/partials/display_table.html") -> Response:
+def hx_search(template="main/hx/display_table.html") -> Response:
     """Render just the results table based on a *SEARCH* request."""
     sort = Sort.factory(request)
     log.debug(sort)
@@ -240,7 +240,7 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
         return_args["status"] = {"icon": {"color": "has-text-success", "icon": "fa-solid fa-circle-check"}}
 
     # (naming the templates after the respective field makes this easy!)
-    template = render_template(f"main/partials/edit_field_{field}.html", **return_args)
+    template = render_template(f"main/hx/edit_field_{field}.html", **return_args)
     response: Response = make_response(template)
 
     # Trigger any other events based on an newly updated document...
@@ -254,7 +254,7 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
 @bp.get("/document/last_updated/<doc_id>")
 @login_required
 @log_route_info
-def hx_last_updated(doc_id: str, template: str = "main/partials/edit_last_updated.html") -> Response:
+def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]

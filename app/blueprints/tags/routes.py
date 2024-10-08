@@ -33,7 +33,7 @@ def manage_tags(template: str = "tags/tags.html") -> Response:
 ################################################################################
 @bp.get("/tag/edit")
 @login_required
-def render_tag_edit(template: str = "tags/partials/tr_edit.html") -> Response:
+def render_tag_edit(template: str = "tags/hx/tr_edit.html") -> Response:
     """Return our tag editor form for a single tag table cell."""
     tag = request.values.get("name")
     return f.render_template(template, tag=tag)
@@ -52,7 +52,7 @@ def delete_tag() -> Response:
 ################################################################################
 @bp.post("/tag/update")
 @login_required
-def render_tag_update(template: str = "tags/partials/tr.html") -> Response:
+def render_tag_update(template: str = "tags/hx/tr.html") -> Response:
     """Process a potentially updated tag value and display the entry with the new value."""
     action = request.values.get("action")
     tag_new = request.form.get("tag_new")
