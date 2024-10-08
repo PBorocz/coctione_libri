@@ -1,0 +1,27 @@
+<tr>
+  <td style="vertical-align: middle;">
+    <button
+      class="button"
+	     style="border: none;"
+	     hx-confirm="{{ count }} recipes using this tag - Are you sure?"
+	     hx-swap="outerHTML"
+	     hx-delete="/tag/delete"
+	     hx-target="closest tr"
+	     hx-vals='{"name": "{{ tag }}"}'>
+      <span class="icon is-small">
+	<i class="fa-regular fa-trash-can"></i>
+      </span>
+    </button>
+    <button
+      class="button"
+	     style="border: none;"
+	     hx-target="closest tr"
+	     hx-get="/tag/edit"
+	     hx-post="/tag/update"
+	     hx-trigger="click"
+	     hx-vals='{"name": "{{ tag }}"}'
+	     hx-swap="outerHTML">
+      {{ tag }}&nbsp;<sup>({{ count }})</sup>
+    </button>
+  </td>
+</tr>

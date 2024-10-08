@@ -55,7 +55,7 @@ def import_pdfs(args):
     assert args.category, f"Sorry, you need to specify a valid category: {','.join(categories_available())}"
     o_category = CategoryField().to_python(args.category)
 
-    with open(Path(args.file), "rb") as fh_toml:
+    with open(Path(args.directory) / Path(args.file), "rb") as fh_toml:
         pdfs = tomllib.load(fh_toml)
 
     print("Checking: ", end="")
@@ -118,6 +118,7 @@ if __name__ == "__main__":
         "-f",
         "--file",
         help="Specific file to import, e.g. my_pdfs.toml",
+        default="import.toml",
     )
 
     parser.add_argument(
