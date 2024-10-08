@@ -307,7 +307,7 @@ def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict
         # respective `sort.by` field are always at the bottom, irrespective of `sort.order`.
         sort_lambdas = {
             "complexity"            : lambda doc: (doc.complexity            is None, doc.complexity            ),
-            "last_cooked"           : lambda doc: (doc.last_cooked           is None, doc.last_cooked           ),
+            "times_cooked"          : lambda doc: (doc.times_cooked          is None, doc.times_cooked           ),
             "quality"               : lambda doc: (doc.quality               is None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is None, doc.source                ),
@@ -317,7 +317,7 @@ def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict
     else:
         sort_lambdas = {
             "complexity"            : lambda doc: (doc.complexity            is not None, doc.complexity            ),
-            "last_cooked"           : lambda doc: (doc.last_cooked           is not None, doc.last_cooked           ),
+            "times_cooked"          : lambda doc: (doc.times_cooked          is not None, doc.times_cooked           ),
             "quality"               : lambda doc: (doc.quality               is not None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is not None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is not None, doc.source                ),

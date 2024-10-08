@@ -3,95 +3,95 @@
   {# Quality #}
   # if render_display_column(current_user.category, "quality"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
-	{{ document.quality_enum | default("", true) }}
+    {{ document.quality_enum | default("", true) }}
   </td>
   # endif
 
   {# Complexity #}
   # if render_display_column(current_user.category, "complexity"):
   <td class="has-text-centered is-size-5 is-hidden-lt-tablet" style="vertical-align: middle;">
-	{{ document.complexity_enum | default("", true) }}
+    {{ document.complexity_enum | default("", true) }}
   </td>
   # endif
 
   {# Quality_By_Complexity #}
   # if render_display_column(current_user.category, "quality_by_complexity"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
-	{{ document.quality_by_complexity | default("", true) }}
+    {{ document.quality_by_complexity | default("", true) }}
   </td>
   # endif
 
   {# Title #}
   # if render_display_column(current_user.category, "title"):
   <td style="vertical-align: middle;">
-	<a href="/view/{{ document.id }}">
-	  {{ document.title }}
-	</a>
+    <a href="/view/{{ document.id }}">
+      {{ document.title }}
+    </a>
   </td>
   # endif
 
   {# Tag(s) #}
   # if render_display_column(current_user.category, "tags"):
   <td style="vertical-align: middle;">
-	<style>
-	 .tag-style {
-	   background-color: #bfefff;
-	   border-radius: 4px;
-	   cursor: pointer;
-	   padding: 3px 6px;
-	   font-size: 0.7em;
-	   margin: 2px;
-	 }
-	</style>
-	# for tag in document.tags|sort:
-	<span class="tag-style"
-		  name="tag"
-		  hx-post="/search"
-		  hx-target="#id_documents_div"
-		  hx-vals='{"search": "{{ tag }}"}'
-		  >
-	  {{ tag }}
-	</span>
-	# endfor
+    <style>
+     .tag-style {
+       background-color: #bfefff;
+       border-radius: 4px;
+       cursor: pointer;
+       padding: 3px 6px;
+       font-size: 0.7em;
+       margin: 2px;
+     }
+    </style>
+    # for tag in document.tags|sort:
+    <span class="tag-style"
+	  name="tag"
+	  hx-post="/search"
+	  hx-target="#id_documents_div"
+	  hx-vals='{"search": "{{ tag }}"}'
+    >
+      {{ tag }}
+    </span>
+    # endfor
   </td>
   # endif
 
   {# Source #}
   # if render_display_column(current_user.category, "source"):
   <td class="is-hidden-lt-desktop" style="vertical-align: middle;">
-	<style>
-	 .source-style {
-	   cursor: pointer;
-	   color: #485FC7;
-	 }
-	</style>
-	<span class="source-style"
-		  name="source"
-		  hx-post="/search"
-		  hx-target="#id_documents_div"
-		  hx-vals='{"search": "{{ document.source }}"}'
-		  >
-	  {{ document.source | default("", true) }}
-	</span>
+    <style>
+     .source-style {
+       cursor: pointer;
+       color: #485FC7;
+     }
+    </style>
+    <span class="source-style"
+	  name="source"
+	  hx-post="/search"
+	  hx-target="#id_documents_div"
+	  hx-vals='{"search": "{{ document.source }}"}'
+    >
+      {{ document.source | default("", true) }}
+    </span>
   </td>
   # endif
 
-  {# Last Cooked #}
-  # if render_display_column(current_user.category, "last_cooked"):
+  {# Times Cooked #}
+  # if render_display_column(current_user.category, "times_cooked"):
   <td class="has-text-centered is-hidden-lt-desktop" style="vertical-align: middle;">
-	{{ document.last_cooked | default("", true) }}
+    {{ document.times_cooked | default("", true) }}
   </td>
   # endif
 
   {# Edit Icon #}
   # if render_display_column(current_user.category, "edit"):
   <td class="has-text-centered" style="vertical-align: middle;">
-	<a href="/edit/{{ document.id }}">
+    <a href="/edit/{{ document.id }}">
 
-	  <span class="icon is-small is-right responsive-font">
+      <span class="icon is-small is-right responsive-font">
 	<i class="fa-regular fa-pen-to-square"></i>
-	  </span>
-	</a>
+      </span>
+    </a>
   </td>
   # endif
 

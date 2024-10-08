@@ -16,7 +16,7 @@ def render_display_column(category: Category, field: str) -> bool:
         Category.COOKING_RECIPES: {
             "complexity"            : True,
             "edit"                  : True,
-            "last_cooked"           : True,
+            "times_cooked"           : True,
             "quality"               : True,
             "quality_by_complexity" : True,
             "source"                : True,
@@ -26,7 +26,7 @@ def render_display_column(category: Category, field: str) -> bool:
         "default": { # All other categories..
             "complexity"            : False,
             "edit"                  : True,
-            "last_cooked"           : False,
+            "times_cooked"           : False,
             "quality"               : False,
             "quality_by_complexity" : False,
             "source"                : True,

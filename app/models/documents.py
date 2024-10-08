@@ -157,12 +157,10 @@ class Documents(Document):
         return dt_as_local(self.updated) if self.updated else ""
 
     @property
-    def last_cooked(self) -> str | None:
-        """Return the most recent date we've cooked this."""
+    def times_cooked(self) -> str | None:
+        """Return the number of times we've cooked this."""
         if self.dates_cooked:
-            count = len(self.dates_cooked)
-            sdate = max(self.dates_cooked).strftime("%Y-%m-%d")
-            return f"{sdate} ({count})"
+            return str(len(self.dates_cooked))
         return None
 
     @property
