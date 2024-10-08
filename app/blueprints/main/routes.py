@@ -103,7 +103,18 @@ def hx_search(template="main/partials/display_table.html") -> Response:
     else:
         documents = get_search_documents(fl.current_user, search_term_s, sort)
 
-    return render_template(template, documents=documents, sort=sort, search=search_term_s)
+    doc_ids = [str(doc.id) for doc in documents]
+    print(doc_ids)
+
+    render_args = {
+        "documents": documents,
+        "sort": sort,
+        "search": search_term_s,
+        "form": FlaskForm(),
+        "doc_ids": "|".join(doc_ids),
+        "num_docs": len(documents),
+    }
+    return render_template(template, **render_args)
 
 
 ################################################################################
@@ -140,6 +151,18 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
     delete_document(fl.current_user, request.values["doc_id"])
+    return redirect(url_for(url))
+
+
+################################################################################
+@bp.post("/documents/delete")
+@login_required
+@log_route_info
+def render_delete_documents(url: str = "main.render_display") -> Response:
+    """Delete the specified Documents."""
+    doc_ids = request.values["doc_ids"]
+    for doc_id in doc_ids.split("|"):
+        delete_document(fl.current_user, doc_id)
     return redirect(url_for(url))
 
 

@@ -1,74 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-	<meta charset="utf-8">
-	<meta http-equiv="x-ua-compatible" content="ie=edge">
-	<title>{% block title %}Coctione Libri{% endblock title %}</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="Coctione Libri PDF Library">
-	<meta name="author" content="Peter Borocz">
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>{% block title %}Coctione Libri{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Coctione Libri PDF Library">
+    <meta name="author" content="Peter Borocz">
 
-	<link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}">
 
-	{# Primary CSS #}
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
-	<link rel="stylesheet" href="https://unpkg.com/flatpickr/dist/flatpickr.min.css">
+    {# Primary CSS #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/coctione_libri.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-divider.min.css') }}"/>
+    <link rel="stylesheet" href="https://unpkg.com/flatpickr/dist/flatpickr.min.css">
 
-	{% block extra_css %}
-	{# Any optional/page-specific css can be injected here... #}
-	{% endblock %}
+    {% block extra_css %}
+    {# Any optional/page-specific css can be injected here... #}
+    {% endblock %}
 
   </head>
 
   <body>
 
-	<div class="watermark"></div>
+    <div class="watermark"></div>
 
-	<section class="section">
-	  {% include "_navbar.html"   %}
-	  {% include "_messages.html" %}
-	  <main>
+    <section class="section">
+      {% include "_navbar.html"   %}
+      {% include "_messages.html" %}
+      <main>
 
-		<hr/> {# Appears on every page to separate navbar from body of app #}
+	<hr/> {# Appears on every page to separate navbar from body of app #}
 
-		{% block content %}
-		{# CORE content goes here! #}
-		{% endblock %}
-
-	  </main>
-
-	  {% block footer %}
-	  {# Any optional footer go here. #}
-	  {% endblock %}
-
-	</section>
-
-	{# Le javascript: Keep at the end of the document for faster page load #}
-	{% block javascript %}
-
-	{# setup FontAwesome #}
-	<script defer src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
-
-	{# htmx & hyperscript libraries #}
-	<script defer src="https://unpkg.com/htmx.org@latest"></script>        {# As of last update: 1.9.9  #}
-	<script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
-
-	{# allow for inline/scoped css #}
-	<script defer src="https://cdn.jsdelivr.net/gh/gnat/css-scope-inline@main/script.js"></script>
-
-	{# Sweetalert confirmation system #}
-	<script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-	<script type="text/javascript">
-	 /* If any!? */
-	</script>
-
-	{% block js_local %}
-	{# Any page-specific JS can be populated #}
+	{% block content %}
+	{# CORE content goes here! #}
 	{% endblock %}
 
-	{% endblock %}
+      </main>
+
+      {% block footer %}
+      {# Any optional footer go here. #}
+      {% endblock %}
+
+    </section>
+
+    {# Le javascript: Keep at the end of the document for faster page load #}
+    {% block javascript %}
+
+    {# setup FontAwesome #}
+    <script defer src="https://kit.fontawesome.com/4ab3aa20ca.js" crossorigin="anonymous"></script>
+
+    {# htmx & hyperscript libraries #}
+    <script defer src="https://unpkg.com/htmx.org@latest"></script>        {# As of last update: 1.9.9  #}
+    <script defer src="https://unpkg.com/hyperscript.org@latest"></script> {# As of last update: 0.9.11 #}
+
+    {# allow for inline/scoped css #}
+    <script defer src="https://cdn.jsdelivr.net/gh/gnat/css-scope-inline@main/script.js"></script>
+
+    {# Sweetalert confirmation system #}
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+
+     /* Sweet Alert confirmation dialog for document deletion. */
+     function confirm_form_delete(title, event, formId, btnName, btnValue) {
+       event.preventDefault();
+       Swal.fire({
+
+	 title: title,
+	 text: "You will not be able to revert this!",
+	 icon: "warning",
+
+	 confirmButtonColor: "#d33",
+	 confirmButtonText: "Yes",
+
+	 showCancelButton: true,
+	 cancelButtonColor: "#3085d6",
+	 cancelButtonText: "Cancel",
+
+       }).then((result) => {
+	 if (result.isConfirmed) {
+
+	   var input = document.createElement("input");   // Create a new input element to simulate the button press
+	   input.setAttribute("type", "hidden");	      // Set its type to "hidden", so it's not visible on the page
+	   input.setAttribute("name", btnName);	      // The name should match the name of the button you're simulating
+	   input.setAttribute("value", btnValue);	      // The value should match the value of the button you're simulating
+
+	   var form = document.getElementById(formId);
+	   form.appendChild(input);
+	   form.submit()
+	 }
+       });
+     }
+    </script>
+
+    {% block js_local %}
+    {# Any page-specific JS can be populated #}
+    {% endblock %}
+
+    {% endblock %}
 
   </body>
+
 </html>

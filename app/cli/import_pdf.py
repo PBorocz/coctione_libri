@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Import a set of pdf's, in 2 passes."""
+
 import argparse
 import os
+import re
 import time
 import tomllib
 from pathlib import Path
@@ -34,10 +36,14 @@ def main(args: argparse.Namespace):
 def create_toml(args):
     path_pdfs = Path(args.directory)
     pdfs = []
+    pattern = re.compile(r"(?<!^)(?=[A-Z])")
     for path_pdf in path_pdfs.glob("*.pdf"):
+        name = pattern.sub(" ", path_pdf.name.replace(".pdf", "").replace("_", " "))
         pdf = {
             "path": str(path_pdf),
-            "name": path_pdf.name.replace(".pdf", "").replace("_", " "),
+            "name": name,
+            "tags": [],
+            "source": "<aSource>",
         }
         pdfs.append(pdf)
 
@@ -54,22 +60,22 @@ def import_pdfs(args):
 
     print("Checking: ", end="")
     for pdf in pdfs.get("pdfs"):
-        if "name" not in pdf:
-            print(f"Sorry, can't name for {pdf['path']=}")
+        assert "name" in pdf, f"Sorry, no 'name' attribute in entry?: {pdf['path']}"
+        assert "path" in pdf, f"Sorry, no 'path' attribute in entry?: {pdf['name']}"
         if not Path(pdf["path"]).exists():
-            print(f"Sorry, can't file for {pdf['name']} ({pdf['path']})")
+            print(f"Sorry, can't find file for: {pdf['name']} from: ({pdf['path']})")
         print("•", end="", flush=True)
     print()
 
     print("Importing: ", end="")
     for pdf in pdfs.get("pdfs"):
-        __import_raindrop(user, o_category, pdf)
+        __import_pdf(user, o_category, pdf)
         print("•", end="", flush=True)
         time.sleep(0.25)
     print()
 
 
-def __import_raindrop(user, o_category: Category, pdf: dict) -> str:
+def __import_pdf(user, o_category: Category, pdf: dict) -> str:
     with switch_collection(Documents, Documents.as_user(user, o_category)) as user_documents:
         doc = user_documents(user=user, title=pdf.get("name"), category=o_category)
         if "source" in pdf:

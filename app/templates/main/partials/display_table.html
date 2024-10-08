@@ -18,18 +18,37 @@
 		responsive-font
 		table-arrows
 		table-sort">
-    
+
     {% include "main/partials/display_table_caption.html" %}
 
     # if documents:
     {% include "main/partials/display_table_thead.html" %}
     # endif
-    
+
     <tbody>
       # for document in documents:
       {% include "main/partials/display_table_tr.html" %}
       # endfor
     </tbody>
   </table>
-  
+
+  # if search:
+  <form action="/documents/delete" method="post" id="form_delete">
+    {{ form.hidden_tag() }}
+    <div class="field is-horizontal" id="div_delete">
+      <div class="field-body">
+	<div class="control is-primary" style="overflow:hidden;">
+	  <input class="button is-danger is-light"
+		 type="submit"
+		 id="doc_id"
+		 name="doc_id"
+		 value="Delete {{ num_docs }} Documents?"
+		 onclick="confirm_form_delete('Are you sure you want to delete these entries?', event, 'form_delete', 'doc_ids', '{{ doc_ids }}')">
+	</div>
+      </div>
+    </div>
+  </form>
+
+  # endif
+
 </div>

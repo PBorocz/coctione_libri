@@ -114,7 +114,7 @@ max-complexity = 12
 verbosity = 2
 
 [tool.poe.tasks]
-import = "python ./app/cli/import_from_raindrop.py"
+import = "python ./app/cli/import_pdf.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
