@@ -3,6 +3,7 @@
 import datetime as dt
 from zoneinfo import ZoneInfo
 
+import humanize
 from mongoengine import (
     DateTimeField,
     Document,
@@ -82,21 +83,21 @@ class Documents(Document):
     ################################################################################
     # Required Fields
     ################################################################################
-    user     = ReferenceField(Users, required=True)                     # FK to user
-    title    = StringField(max_length=120, required=True)               # Display title, eg. 'Cook Me!'
-    category = CategoryField(required=True)                             # Document's category
-    created  = DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
+    user         = ReferenceField(Users, required=True)                     # FK to user
+    title        = StringField(max_length=120, required=True)               # Display title, eg. 'Cook Me!'
+    category     = CategoryField(required=True)                             # Document's category
+    created      = DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
 
     ################################################################################
     # Optional Fields
     ################################################################################
     # Generic (but optional) "document" fields, ie. common across all document categories:
-    file_    = FileField()                                 # GridFS link to actual pdf/file content
-    notes    = StringField()                               # "Notes" in MD format
-    source   = StringField()                               # Logical source of doc, e.g. NY, FN, etc.
-    tags     = SortedListField(StringField(max_length=50)) # List of tags in "Titled" display format
-    updated  = DateTimeField()                             # When doc was last "touched"
-    url_     = StringField(max_length=2038)                # URL associated with the document.
+    file_        = FileField()                                 # GridFS link to actual pdf/file content
+    notes        = StringField()                               # "Notes" in MD format
+    source       = StringField()                               # Logical source of doc, e.g. NY, FN, etc.
+    tags         = SortedListField(StringField(max_length=50)) # List of tags in "Titled" display format
+    updated      = DateTimeField()                             # When doc was last "touched"
+    url_         = StringField(max_length=2038)                # URL associated with the document.
 
     ################################################################################
     # Recipe Category Specific Fields (and thus, all optional)
@@ -150,6 +151,13 @@ class Documents(Document):
     def created_display(self) -> str:
         """Return created attr in local and nicely formatted."""
         return dt_as_local(self.created)
+
+    @property
+    def filesize_display(self) -> str | None:
+        """Return the filesize of the current document in human-readable format (if file_ defined)."""
+        if self.file_:
+            return humanize.naturalsize(self.file_.length)
+        return ""
 
     @property
     def updated_display(self) -> str:

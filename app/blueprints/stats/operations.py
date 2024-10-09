@@ -7,6 +7,7 @@ from collections import defaultdict
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
+from mongoengine import Q
 from mongoengine.context_managers import switch_collection
 
 from app.models.documents import Documents
@@ -31,9 +32,9 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
 
     https://towardsdatascience.com/making-economist-style-plots-in-matplotlib-e7de6d679739
     """
-    from pprint import pprint
+    # from pprint import pprint
 
-    pprint(datum)
+    # pprint(datum)
     render_top_n = 30
 
     # Setup plot size.
@@ -140,3 +141,14 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
         facecolor="white",  # Set background color to white
     )
     return fn_fig_render
+
+
+################################################################################
+def top_files(user: Users) -> list[Documents]:
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+        docs = (
+            user_documents.objects(Q(__raw__={"file_": {"$exists": True, "$ne": None}}))
+            .only("id", "title", "file_")
+            .limit(10)
+        )
+    return sorted(docs, key=lambda doc: doc.file_.length, reverse=True)

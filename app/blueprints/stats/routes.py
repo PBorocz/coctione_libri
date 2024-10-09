@@ -6,7 +6,7 @@ from flask.wrappers import Response
 from flask_login import login_required
 
 from app.blueprints.stats import bp
-from app.blueprints.stats.operations import create_bar_chart, get_all_sources
+from app.blueprints.stats.operations import create_bar_chart, get_all_sources, top_files
 from app.blueprints.tags.operations import get_all_tags
 from app.models import categories_available
 
@@ -35,5 +35,6 @@ def statistics(template: str = "stats/stats.html") -> Response:
         template,
         fn_tag_chart=fn_tag_chart,
         fn_source_chart=fn_source_chart,
+        top_files=top_files(fl.current_user),
         categories=categories_available(),
     )

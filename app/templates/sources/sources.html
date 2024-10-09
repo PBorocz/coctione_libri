@@ -1,0 +1,25 @@
+{% extends "__root.html" %}
+
+{% block content %}
+
+<div class="columns">
+
+  # for sources_subset in sources:
+  <div class="column is-2">
+
+	<div class="table-container">
+	  <table id="table_sources" class="table responsive-font">
+		<tbody>
+		  # for source, count in sources_subset:
+		  # include "sources/hx/tr.html"
+		  # endfor
+		</tbody>
+	  </table>
+	</div>
+
+  </div>
+  # endfor
+
+</div>
+
+{% endblock %}

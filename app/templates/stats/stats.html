@@ -18,4 +18,33 @@
 
 </div>
 
+<h2 class="title">Largest Documents</h2>
+
+<table class="table">
+    <thead>
+      <tr>
+	<th>Document</th>
+	<th>Size</th>
+      </tr>
+    </thead>
+    <tbody>
+      # for document in top_files
+      <tr>
+	<td>
+	  <a href="/edit/{{ document.id }}">
+	    <span class="icon is-small is-right responsive-font">
+	      <i class="fa-regular fa-pen-to-square"></i>
+	    </span>
+	  </a>
+	  &nbsp;
+	  <a href="/view/{{ document.id }}">
+	    {{ document.title }}
+	  </a>
+	</td>
+	<td class="is-family-monospace">{{ document.filesize_display }}</td>
+      </tr>
+      # endfor
+    </tbody>
+</table>
+
 {% endblock %}

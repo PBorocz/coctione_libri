@@ -1,0 +1,16 @@
+<tr style="background-color: white;">
+  <td
+    style="vertical-align: middle;"
+    class="has-text-centered"
+    colspan="4"
+  >
+  <form hx-swap="outerHTML" hx-target="closest tr">
+    <input type="hidden" name="source_old" value="{{ source }}">
+    <input type="text"   name="source_new" value="{{ source }}" class="input">
+    <br/>
+    <button style="vertical-align: middle;" class="button is-small is-link"          hx-post="/source/update" hx-trigger="click" type="submit" hx-vals='{"action": "save"}'>Save</button>
+    <button style="vertical-align: middle;" class="button is-small is-link is-light" hx-post="/source/update" hx-trigger="click" type="submit" hx-vals='{"action": "cancel"}'>Cancel</button>
+  </form>
+</td>
+
+</tr>

@@ -29,6 +29,7 @@ flask-debugtoolbar = "^0.14.1"
 tomli-w = "^1.0.0"
 pandas = "^2.2.2"
 matplotlib = "^3.9.0"
+humanize = "^4.11.0"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"

@@ -62,8 +62,7 @@ def import_pdfs(args):
     for pdf in pdfs.get("pdfs"):
         assert "name" in pdf, f"Sorry, no 'name' attribute in entry?: {pdf['path']}"
         assert "path" in pdf, f"Sorry, no 'path' attribute in entry?: {pdf['name']}"
-        if not Path(pdf["path"]).exists():
-            print(f"Sorry, can't find file for: {pdf['name']} from: ({pdf['path']})")
+        assert Path(pdf["path"]).exists(), f"Sorry, can't find file for: {pdf['name']} from: ({pdf['path']})"
         print("•", end="", flush=True)
     print()
 

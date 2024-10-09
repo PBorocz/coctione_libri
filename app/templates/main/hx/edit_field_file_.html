@@ -9,23 +9,23 @@
     </div>
     <div class="field-body">
       <div class="control is-flex is-align-items-center">
-        <div class="field">
-          <div class="file has-name is-primary">
-            <label class="file-label">
+	<div class="field">
+	  <div class="file has-name is-primary">
+	    <label class="file-label">
 	      <input class="file-input" id="file_" name="file_" type="file" hx-swap="closest form">
-              <span class="file-cta">
-                <span class="file-label"></span>
-                <span class="file-icon"><i class="fas fa-upload"></i></span>
-              </span>
-              <span id="file-name" name="file-name" class="file-name is-large mr-4 form-input">
+	      <span class="file-cta">
+		<span class="file-label"></span>
+		<span class="file-icon"><i class="fas fa-upload"></i></span>
+	      </span>
+	      <span id="file-name" name="file-name" class="file-name is-large mr-4 form-input">
 		# if document.file_:
 		{{ document.file_.fileName|default("", true) }}
 		# endif
 	      </span>
-            </label>
-	    {% include "main/hx/_status_icon.html" %}
-          </div>
-        </div>
+	    </label>
+	    # include "main/hx/_status_icon.html"
+	  </div>
+	</div>
       </div>
     </div>
   </div>
