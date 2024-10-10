@@ -108,10 +108,10 @@ def create_app(logging=True, log_level: str | None = None):
         from app.blueprints.main import bp as blueprint_main
         from app.blueprints.stats import bp as blueprint_stats
 
-        application.register_blueprint(blueprint_admin)
         application.register_blueprint(blueprint_auth)
         application.register_blueprint(blueprint_main)
         application.register_blueprint(blueprint_stats)
+        application.register_blueprint(blueprint_admin)
 
         from app.blueprints.main import render_display_column
 

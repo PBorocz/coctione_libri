@@ -5,9 +5,9 @@ import flask_login as fl
 from flask.wrappers import Response
 from flask_login import login_required
 
+from app.blueprints.admin.operations import get_all_tags
 from app.blueprints.stats import bp
 from app.blueprints.stats.operations import create_bar_chart, get_all_sources, top_files
-from app.blueprints.tags.operations import get_all_tags
 from app.models import categories_available
 
 
