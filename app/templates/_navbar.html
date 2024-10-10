@@ -73,11 +73,11 @@
 			  <i class="fas fa-plus"></i>&nbsp;Add New Doc
 			</a>
 
-			<a class="navbar-item" href="{{ url_for('sources.manage_sources') }}">
+			<a class="navbar-item" href="{{ url_for('admin.manage_st', entity='source') }}">
 			  <i class="fas fa-book"></i>&nbsp;Manage Sources
 			</a>
 
-			<a class="navbar-item" href="{{ url_for('tags.manage_tags') }}">
+			<a class="navbar-item" href="{{ url_for('admin.manage_st', entity='tag') }}">
 			  <i class="fas fa-tags"></i>&nbsp;Manage Tags
 			</a>
 

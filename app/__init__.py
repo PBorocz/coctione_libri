@@ -103,17 +103,15 @@ def create_app(logging=True, log_level: str | None = None):
         ################################################################################
         # Finally, setup and register all our application blueprints
         ################################################################################
+        from app.blueprints.admin import bp as blueprint_admin
         from app.blueprints.auth import bp as blueprint_auth
         from app.blueprints.main import bp as blueprint_main
-        from app.blueprints.sources import bp as blueprint_sources
         from app.blueprints.stats import bp as blueprint_stats
-        from app.blueprints.tags import bp as blueprint_tags
 
+        application.register_blueprint(blueprint_admin)
         application.register_blueprint(blueprint_auth)
         application.register_blueprint(blueprint_main)
-        application.register_blueprint(blueprint_sources)
         application.register_blueprint(blueprint_stats)
-        application.register_blueprint(blueprint_tags)
 
         from app.blueprints.main import render_display_column
 

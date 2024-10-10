@@ -1,0 +1,30 @@
+<tr>
+  <td style="vertical-align: middle;">
+
+    <button
+      class="button"
+      style="border: none;"
+      hx-confirm="{{ count }} recipes using this entry - Are you sure?"
+      hx-swap="outerHTML"
+      hx-delete="{{ url_for('admin.delete_st', entity=entity) }}"
+      hx-target="closest tr"
+      hx-vals='{"name": "{{ entity_value }}"}'>
+      <span class="icon is-small">
+	<i class="fa-regular fa-trash-can"></i>
+      </span>
+    </button>
+
+    <button
+      class="button"
+      style="border: none;"
+      hx-target="closest tr"
+      hx-get="{{ url_for('admin.render_st_edit', entity=entity) }}"
+      hx-post="{{ url_for('admin.render_st_update', entity=entity) }}"
+      hx-trigger="click"
+      hx-vals='{"name": "{{ entity_value }}"}'
+      hx-swap="outerHTML">
+      {{ entity_value }}&nbsp;<sup>({{ count }})</sup>
+    </button>
+
+  </td>
+</tr>
