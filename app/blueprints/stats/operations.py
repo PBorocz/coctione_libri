@@ -11,12 +11,12 @@ from mongoengine import Q
 from mongoengine.context_managers import switch_collection
 
 from app.models.documents import Documents
-from app.models.users import Users
+from app.models.user import User
 
 matplotlib.use("agg")
 
 
-def get_all_sources(user: Users) -> list[str, int]:
+def get_all_sources(user: User) -> list[str, int]:
     """Return a sorted list of all current sources & counts (ie. those attached to documents)."""
     sources = defaultdict(int)
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
@@ -144,7 +144,7 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
 
 
 ################################################################################
-def top_files(user: Users) -> list[Documents]:
+def top_files(user: User) -> list[Documents]:
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         docs = (
             user_documents.objects(Q(__raw__={"file_": {"$exists": True, "$ne": None}}))

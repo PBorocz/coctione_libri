@@ -6,7 +6,6 @@ from zoneinfo import ZoneInfo
 import humanize
 from mongoengine import (
     DateTimeField,
-    Document,
     FileField,
     ListField,
     ReferenceField,
@@ -15,11 +14,12 @@ from mongoengine import (
     errors,
     signals,
 )
+from mongoengine import Document as MongoEngine_Document
 from mongoengine.context_managers import switch_collection
 from mongoengine.fields import BaseField
 
 from app.models import Category, RatingComplexity, RatingQuality
-from app.models.users import Users
+from app.models.user import User
 
 
 class RatingQualityField(BaseField):
@@ -76,14 +76,14 @@ class CategoryField(BaseField):
             raise errors.ValidationError(f"Invalid value for Category: {value=}") from exc
 
 
-class Documents(Document):
+class Documents(MongoEngine_Document):
     """Base Documents."""
 
     # fmt: off
     ################################################################################
     # Required Fields
     ################################################################################
-    user         = ReferenceField(Users, required=True)                     # FK to user
+    user         = ReferenceField(User, required=True)                     # FK to user
     title        = StringField(max_length=120, required=True)               # Display title, eg. 'Cook Me!'
     category     = CategoryField(required=True)                             # Document's category
     created      = DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created
@@ -177,7 +177,7 @@ class Documents(Document):
         return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
     @classmethod
-    def as_user(cls, user: Users, category: Category | None = None) -> str:
+    def as_user(cls, user: User, category: Category | None = None) -> str:
         """Return the user's current category's document partition/ollection name.
 
         Our convention is "documents-<userId>-<documentCategory" (obo of a hierarchical namespace).
@@ -222,7 +222,7 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
     return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
 
 
-def sources_available(user: Users) -> list[str]:
+def sources_available(user: User) -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
     sources_available = []
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
@@ -232,7 +232,7 @@ def sources_available(user: Users) -> list[str]:
     return sources_available
 
 
-def tags_available(user: Users) -> list[str]:
+def tags_available(user: User) -> list[str]:
     """Return a sorted list of all current tags (ie. those attached to documents)."""
     tags = set()
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:

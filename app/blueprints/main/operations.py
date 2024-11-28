@@ -16,18 +16,18 @@ from werkzeug.utils import secure_filename
 
 from app.models import Sort
 from app.models.documents import Documents
-from app.models.users import Users
+from app.models.user import User
 
 
-def get_all_documents(user: Users, sort: Sort) -> tuple[list[Documents], dict]:
+def get_all_documents(user: User) -> tuple[Sort, list[Documents]]:
     """Return *all* documents."""
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         documents = user_documents.objects()
     log.debug(f"{len(documents):,d} documents found.")
-    return _sort(documents, sort)
+    return _sort(user, documents)
 
 
-def get_search_documents(user: Users, search: str, sort: Sort) -> tuple[list[Documents], dict]:
+def get_search_documents(user: User, search: str) -> tuple[Sort, list[Documents]]:
     """Return any documents matching the search term(s).
 
     Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
@@ -48,13 +48,13 @@ def get_search_documents(user: Users, search: str, sort: Sort) -> tuple[list[Doc
         documents = user_documents.objects(id__in=ids_to_query)
     log.info(f"{len(documents):,d} documents found.")
 
-    return _sort(documents, sort)
+    return _sort(user, documents)
 
 
 ################################################################################
 # Sub-search methods
 ################################################################################
-def _search_by_title(user: Users, search: str) -> list[ObjectId]:
+def _search_by_title(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(title__icontains=search).only("id")
@@ -63,7 +63,7 @@ def _search_by_title(user: Users, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _search_by_source(user: Users, search: str) -> list[ObjectId]:
+def _search_by_source(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(source__icontains=search).only("id")
@@ -72,7 +72,7 @@ def _search_by_source(user: Users, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _search_by_tag(user: Users, search: str) -> list[ObjectId]:
+def _search_by_tag(user: User, search: str) -> list[ObjectId]:
     """Search all documents by tag(s)."""
     if any(chr.isspace() for chr in search):
         # Split and "title" the search terms to match those within the database.
@@ -197,7 +197,7 @@ def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]
     return document, changed
 
 
-def delete_document(user: Users, id_: str) -> None:
+def delete_document(user: User, id_: str) -> None:
     """Delete the document with specified id for the specified user."""
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         document = user_documents.objects(id=id_)[0]
@@ -299,8 +299,10 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
 ################################################################################
 # Utility methods
 ################################################################################
-def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict]:
+def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict]:
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
+    sort: Sort = Sort.factory_from_user(user)  # Unpack the sort info from user state.
+
     # fmt: off
     if sort.is_ascending():
         # These are a bit complex *but* allow us to make sure that "None" entries of the
@@ -333,7 +335,7 @@ def _sort(documents: list[Documents], sort: Sort) -> tuple[list[Documents], dict
     # Apply sort order/direction:
     sorted_kwargs = {} if sort.is_ascending() else {"reverse": True}
 
-    return sorted(documents, key=sort_lambda, **sorted_kwargs)
+    return sort, sorted(documents, key=sort_lambda, **sorted_kwargs)
 
 
 def _find_search_methods(module: str, prefix: str) -> list[Callable]:

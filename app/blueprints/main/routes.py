@@ -20,6 +20,7 @@ from app.blueprints.main.operations import (
 )
 from app.models import Sort, categories_available
 from app.models.documents import Documents, sources_available, tags_available
+from app.models.user import update_user
 
 
 def log_route_info(func):
@@ -40,12 +41,8 @@ def log_route_info(func):
 @log_route_info
 def render_display(template="main/display.html") -> Response:
     """Render our main page on a full refresh."""
-    # Get any sort info (probably not on initial display)
-    sort = Sort.factory(request)
-    log.debug(sort)
-
-    # Query the documents (and sort by last sort field/dir if we have one)
-    documents = get_all_documents(fl.current_user, sort)
+    # Query & sort the documents..
+    sort, documents = get_all_documents(fl.current_user)
 
     # Render our template
     return render_template(template, documents=documents, sort=sort, categories=categories_available())
@@ -56,11 +53,12 @@ def render_display(template="main/display.html") -> Response:
 @login_required
 @log_route_info
 def hx_display(template="main/hx/display_table.html") -> Response:
-    """Re-render just our partial/main table for re-sort."""
-    sort = Sort.factory(request)  # Get any sort info (probably not on initial display)
+    """Re-render just our partial/main table for new sort field or direction."""
+    sort = Sort.factory_from_request(request)
+    update_user(fl.current_user, "state_last_sort", sort.__dict__)
 
     # Query all the documents for the respective category and sort based on our state requested.
-    documents = get_all_documents(fl.current_user, sort)
+    sort, documents = get_all_documents(fl.current_user)
 
     # Render our partial template of the main display table:
     return render_template(template, documents=documents, sort=sort)
@@ -84,9 +82,6 @@ def hx_user_category_change() -> Response:
 @log_route_info
 def hx_search(template="main/hx/display_table.html") -> Response:
     """Render just the results table based on a *SEARCH* request."""
-    sort = Sort.factory(request)
-    log.debug(sort)
-
     # Search could come in directly from the search dialog box (ie.
     # request.form) *or* from clicking a selected tag or source
     # (ie. request.values...)
@@ -99,12 +94,11 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 
     if search_term_s == "*" or not search_term_s:
         # Sometimes a "search" is not a "search" after all!
-        documents = get_all_documents(fl.current_user, sort)
+        sort, documents = get_all_documents(fl.current_user)
     else:
-        documents = get_search_documents(fl.current_user, search_term_s, sort)
+        sort, documents = get_search_documents(fl.current_user, search_term_s)
 
     doc_ids = [str(doc.id) for doc in documents]
-    print(doc_ids)
 
     render_args = {
         "documents": documents,

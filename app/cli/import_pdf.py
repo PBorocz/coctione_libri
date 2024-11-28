@@ -16,7 +16,7 @@ from app import create_app
 from app.cli import setup_logging
 from app.models import Category, categories_available
 from app.models.documents import CategoryField, Documents
-from app.models.users import Users
+from app.models.user import User
 
 
 def main(args: argparse.Namespace):
@@ -51,7 +51,7 @@ def create_toml(args):
 
 
 def import_pdfs(args):
-    user = Users.objects.get(email="peter.borocz@gmail.com")
+    user = User.objects.get(email="peter.borocz@gmail.com")
     assert args.category, f"Sorry, you need to specify a valid category: {','.join(categories_available())}"
     o_category = CategoryField().to_python(args.category)
 

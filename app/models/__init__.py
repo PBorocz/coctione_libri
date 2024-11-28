@@ -59,8 +59,8 @@ class Sort:
     """Encapsulate all semantics controlling sorting on from/main page."""
 
     def __init__(self):
-        self.by = "title"  # Default values...
-        self.order = "asc"  # "
+        self.by: str = None
+        self.order: str = None
 
     def is_ascending(self) -> bool:
         return self.order == "asc"
@@ -70,10 +70,16 @@ class Sort:
         return f"Sort: by={self.by} order={arrow}"
 
     @classmethod
-    def factory(cls, request: Request):
+    def factory_from_request(cls, request: Request):
         instance = cls()
         if request.values.get("sort_by"):
             instance.by = request.values.get("sort_by")
         if request.values.get("sort_order"):
             instance.order = request.values.get("sort_order")
+        return instance
+
+    @classmethod
+    def factory_from_user(cls, user):
+        instance = cls()
+        instance.__dict__ = user.state_last_sort
         return instance

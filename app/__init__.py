@@ -1,6 +1,7 @@
 """Sole "Application" Creator Factory Method."""
 
 import logging as log
+import shutil
 import warnings
 
 with warnings.catch_warnings():
@@ -13,7 +14,16 @@ from flask_login import LoginManager
 from flask_mongoengine import MongoEngine
 
 import app.constants as c
-from app.models.users import query_user
+from app.models.user import query_user
+
+TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
+
+
+def terminal_update(msg: str, last: bool = False) -> None:
+    padding = f"{' '*(TERM_SIZE.columns - len(msg))}"
+    print(f"\r{msg}{padding}", end="")
+    if last:
+        print()
 
 
 def create_app(logging=True, log_level: str | None = None):
@@ -50,9 +60,9 @@ def create_app(logging=True, log_level: str | None = None):
             for module in ("pymongo.command", "pymongo.serverSelection", "matplotlib"):
                 log.getLogger(module).setLevel(log.WARNING)
 
-            log.debug(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
+            terminal_update(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
 
-        log.debug(f"...configured configuration environment: {application.config.get('ENV')}")
+        terminal_update(f"...configured configuration environment: {application.config.get('ENV')}")
 
         ################################################################################
         # Initialise our login/authentication extension
@@ -67,7 +77,7 @@ def create_app(logging=True, log_level: str | None = None):
             """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
             return query_user(user_id=user_id)
 
-        log.debug("...initialised extension: flask_login")
+        terminal_update("...initialised extension: flask_login")
 
         ################################################################################
         # Configure extensions (if necessary)
@@ -83,7 +93,7 @@ def create_app(logging=True, log_level: str | None = None):
                 "flask_debugtoolbar.panels.template.TemplateDebugPanel",
                 "flask_debugtoolbar.panels.logger.LoggingPanel",
             ]
-            log.debug("...initialised extension: flask_debug_toolbar")
+            terminal_update("...initialised extension: flask_debug_toolbar")
 
         ################################################################################
         # Connect and setup our database environment.
@@ -93,7 +103,7 @@ def create_app(logging=True, log_level: str | None = None):
             {"host": app_db_settings, "alias": "default"},
         ]
         MongoEngine().init_app(application)
-        log.debug(f"...connected to MongoDB: {app_db_settings[0:40]}")
+        terminal_update(f"...connected to MongoDB: {app_db_settings[0:40]}")
 
         ################################################################################
         # Setup static resources..
@@ -117,7 +127,7 @@ def create_app(logging=True, log_level: str | None = None):
 
         application.jinja_env.globals.update(render_display_column=render_display_column)
 
-        log.debug("...registered blueprints")
+        terminal_update("...registered blueprints")
 
         ################################################################################
         # Add our "context processers"
@@ -128,7 +138,6 @@ def create_app(logging=True, log_level: str | None = None):
                 return {"watermark": "Development"}
             return {}
 
-        log.debug("...defined context processors")
-
-        log.debug("setup done, ready to go!...")
+        terminal_update("...defined context processors")
+        terminal_update("Ready...", last=True)
     return application

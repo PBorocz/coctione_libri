@@ -1,4 +1,5 @@
 """User-Management Blueprint."""
+
 import logging as log
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
@@ -9,7 +10,7 @@ from secure import Secure
 
 from app.blueprints.auth import bp
 from app.blueprints.auth.forms import LoginForm, RegistrationForm
-from app.models.users import Users, query_user
+from app.models.user import User, query_user
 
 
 def is_safe_url(target):
@@ -85,7 +86,7 @@ def register(template: str = "auth/register.html"):
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
-            user = Users.factory(
+            user = User.factory(
                 email=form.email.data,
                 last_login=datetime.utcnow().isoformat(),
                 password=form.password.data,

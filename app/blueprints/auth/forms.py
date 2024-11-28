@@ -1,9 +1,10 @@
 """."""
+
 import wtforms
 from flask_wtf import FlaskForm
 from wtforms import validators
 
-from app.models.users import query_user
+from app.models.user import query_user
 
 
 class LoginForm(FlaskForm):

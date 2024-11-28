@@ -81,10 +81,10 @@
        }).then((result) => {
 	 if (result.isConfirmed) {
 
-	   var input = document.createElement("input");   // Create a new input element to simulate the button press
-	   input.setAttribute("type", "hidden");	      // Set its type to "hidden", so it's not visible on the page
-	   input.setAttribute("name", btnName);	      // The name should match the name of the button you're simulating
-	   input.setAttribute("value", btnValue);	      // The value should match the value of the button you're simulating
+	   var input = document.createElement("input");  // Create a new input element to simulate the button press
+	   input.setAttribute("type", "hidden");	 // Set its type to "hidden", so it's not visible on the page
+	   input.setAttribute("name", btnName);		 // The name should match the name of the button you're simulating
+	   input.setAttribute("value", btnValue);	 // The value should match the value of the button you're simulating
 
 	   var form = document.getElementById(formId);
 	   form.appendChild(input);

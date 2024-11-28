@@ -1,4 +1,5 @@
 """User model."""
+
 from __future__ import annotations
 
 import hashlib
@@ -12,43 +13,38 @@ from app.models import Category
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
-class Users(me_.Document):
-
+class User(me_.Document):
     """User model."""
 
     # ---------------------
     # Required attributes:
     # ---------------------
-    # Model primary/unique key, eg. foo@bar.com
-    email = me_.EmailField(required=True, unique=True)
-
-    # Email hash (used as a "private" user_id on UI)
-    user_id = me_.StringField(required=True)
-
-    # Password *HASH*
-    password_hash = me_.StringField(required=True)
-
-    # When user was first saved to database.
-    created = me_.DateTimeField(required=True, default=datetime.utcnow)
-
-    # Current category user is working on.
-    category = me_.StringField(required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES)
+    # fmt: off
+    email = me_.EmailField(required=True, unique=True)                  # Model primary/unique key, eg. foo@bar.com
+    user_id = me_.StringField(required=True)                            # Email hash (used as a "private" user_id on UI)
+    password_hash = me_.StringField(required=True)                      # Password *HASH*
+    created = me_.DateTimeField(required=True, default=datetime.utcnow) # When user was first saved to database.
+    category = me_.StringField(
+        required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
+    )  # Current category user is working on.
 
     # ---------------------
     # Optional attributes:
     # ---------------------
-    # When user was last updated (None if just created
-    updated = me_.DateTimeField()
-    # Last login time, eg. # 2022-02-02T03:00:00+00:00
-    last_login = me_.DateTimeField()
+    updated = me_.DateTimeField()          # When user was last updated (None if just created)
+    last_login = me_.DateTimeField()       # Last login time, eg. # 2022-02-02T03:00:00+00:00
+
+    state_last_search = me_.StringField()  # Last search term used
+    state_last_sort = me_.DictField(default={"by": "title", "order": "desc"}) # Last sort selected
+    # fmt: on
 
     @classmethod
-    def get_or_create(cls, key: str, **kwargs) -> tuple[Users, bool]:
+    def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
         """."""
         try:
-            return Users.objects.get(email=kwargs.get("email")), False
-        except Users.DoesNotExist:
-            return Users(**kwargs).save(), True
+            return User.objects.get(email=kwargs.get("email")), False
+        except User.DoesNotExist:
+            return User(**kwargs).save(), True
 
     ################################################################################
     # Flask Login Methods
@@ -79,7 +75,7 @@ class Users(me_.Document):
         return super().save(*args, **kwargs)
 
     @classmethod
-    def factory(cls, **kwargs) -> Users:
+    def factory(cls, **kwargs) -> User:
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
 
         - Create a unique id from a hash of the user's email address (used for url management).
@@ -96,6 +92,9 @@ class Users(me_.Document):
         kwargs["updated"] = None
         kwargs["last_login"] = None
 
+        kwargs["state_last_search"] = None
+        kwargs["state_last_sort"] = {}
+
         return cls(**kwargs)
 
 
@@ -107,25 +106,25 @@ def email_to_hash(email: str) -> str:
     return hashlib.blake2s(email.encode("utf-8")).hexdigest()
 
 
-def query_user(email: str | None = None, user_id: str | None = None) -> Users | None:
+def query_user(email: str | None = None, user_id: str | None = None) -> User | None:
     """Query for the user given either an email-address or a hashed email key."""
     assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
     try:
         if email:
-            return Users.objects.get(email=email)
+            return User.objects.get(email=email)
         else:
-            return Users.objects.get(user_id=user_id)
-    except Users.DoesNotExist:
+            return User.objects.get(user_id=user_id)
+    except User.DoesNotExist:
         ...
     return None
 
 
-def query_users() -> list[Users]:
+def query_users() -> list[User]:
     """Return all users."""
-    return Users.objects()
+    return User.objects()
 
 
-def update_user(user: Users, attr, value) -> Users:
+def update_user(user: User, attr, value) -> User:
     """Update the specified user's attribute with the specified new value."""
     if attr == "password":
         # Password update needs to calculate and store a hash, ie. *not* the password itself!
@@ -153,7 +152,7 @@ def update_user(user: Users, attr, value) -> Users:
 def delete_user(email: str) -> int:
     """Delete the user with given email address, return 1 if successfully done."""
     try:
-        user = Users.objects.get(email=email)
-    except Users.DoesNotExist:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
         return 0
     return user.delete()  # Returns the number of rows deleted

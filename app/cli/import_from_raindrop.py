@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Run either delete or import of a set of pdf's to our collection."""
+
 import argparse
 import os
 import time
@@ -16,7 +17,7 @@ from app import create_app
 from app.cli import setup_logging
 from app.models import Rating
 from app.models.documents import Documents
-from app.models.users import Users
+from app.models.user import User
 
 
 def main(args: argparse.Namespace):
@@ -36,7 +37,7 @@ def main(args: argparse.Namespace):
 
 
 def delete_():
-    user = Users.objects.get(email="peter.borocz@gmail.com")
+    user = User.objects.get(email="peter.borocz@gmail.com")
     count = 0
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         for doc in user_documents.objects(user=user):
@@ -47,7 +48,7 @@ def delete_():
 
 
 def import_new_pdfs():
-    user = Users.objects.get(email="peter.borocz@gmail.com")
+    user = User.objects.get(email="peter.borocz@gmail.com")
 
     path_toml = Path("__raindrop_data__/RaindropPDF-New")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:
@@ -86,7 +87,7 @@ def import_new_pdfs():
 
 
 def import_existing_pdfs():
-    user = Users.objects.get(email="peter.borocz@gmail.com")
+    user = User.objects.get(email="peter.borocz@gmail.com")
 
     path_toml = Path("__raindrop_data__/RaindropPDF-Existing")
     with open(path_toml / Path("recipes.toml"), "rb") as fh_toml:

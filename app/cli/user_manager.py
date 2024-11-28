@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """."""
+
 import argparse
 import getpass
 import os
@@ -9,7 +10,7 @@ import mongoengine
 from app import constants as c
 from app import create_app
 from app.models import categories
-from app.models.users import Users, delete_user, query_user, update_user
+from app.models.user import User, delete_user, query_user, update_user
 
 
 def reset_password():
@@ -75,7 +76,7 @@ def add():
 
     category = get_category()
 
-    user = Users.factory(email=email, password=password, category=category)
+    user = User.factory(email=email, password=password, category=category)
     try:
         user.save()
         print(f"New user successfully created [{user.id}]")
@@ -95,7 +96,7 @@ def delete():
 def list_():
     """List db users."""
     found = False
-    for user in Users.objects():
+    for user in User.objects():
         from pprint import pprint
 
         pprint(user.to_mongo().to_dict())
