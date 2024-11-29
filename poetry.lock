@@ -272,32 +272,6 @@ Flask = ">=1.0.4"
 Werkzeug = ">=1.0.1"
 
 [[package]]
-name = "flask-mongoengine"
-version = "1.0.2"
-description = "Flask extension that provides integration with MongoEngine and WTF model forms."
-optional = false
-python-versions = ">=3.8"
-files = []
-develop = false
-
-[package.dependencies]
-Flask = ">=1.1.4"
-mongoengine = ">=0.21"
-
-[package.extras]
-dev = ["Pillow (>=7.0.0)", "black (==22.6.0)", "blinker", "mongomock @ git+https://github.com/idoshr/mongomock.git", "nox", "pre-commit", "pytest", "pytest-cov", "pytest-mock"]
-legacy = ["MarkupSafe (==2.0.1)"]
-legacy-dev = ["Pillow (>=7.0.0)", "blinker", "mongomock", "pytest", "pytest-cov", "pytest-mock"]
-toolbar = ["Flask-DebugToolbar (>=0.11.0)"]
-wtf = ["Flask-WTF (>=0.14.3)", "WTForms[email] (>=3.0.0)"]
-
-[package.source]
-type = "git"
-url = "https://github.com/idoshr/flask-mongoengine.git"
-reference = "HEAD"
-resolved_reference = "01d101dfadf652e535e1372574c97a23d84d3394"
-
-[[package]]
 name = "flask-wtf"
 version = "1.2.2"
 description = "Form rendering, validation, and CSRF protection for Flask with WTForms."
@@ -759,17 +733,20 @@ files = [
 
 [[package]]
 name = "mongoengine"
-version = "0.28.2"
+version = "0.29.1"
 description = "MongoEngine is a Python Object-Document Mapper for working with MongoDB."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "mongoengine-0.28.2-py3-none-any.whl", hash = "sha256:8e0f84a5ad3d335e5da98261454d4ab546c866241ed064adc6433fe2077d43c9"},
-    {file = "mongoengine-0.28.2.tar.gz", hash = "sha256:67c35a2ebe0ee7fd8eda3766dc251b9e0aada4489bb935f7a55b4c570d148ca7"},
+    {file = "mongoengine-0.29.1-py3-none-any.whl", hash = "sha256:9302ec407dd60f47f62cc07684d9f6cac87f1e93283c54203851788104d33df4"},
+    {file = "mongoengine-0.29.1.tar.gz", hash = "sha256:3b43abaf2d5f0b7d39efc2b7d9e78f4d4a5dc7ce92b9889ba81a5a9b8dee3cf3"},
 ]
 
 [package.dependencies]
 pymongo = ">=3.4,<5.0"
+
+[package.extras]
+test = ["Pillow (>=7.0.0)", "blinker", "coverage", "pytest", "pytest-cov"]
 
 [[package]]
 name = "numpy"
@@ -1413,4 +1390,4 @@ email = ["email-validator"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "b5897805c6ec2ce86999968d9b01217b7ab4e6b803d7488746efd37a977f9431"
+content-hash = "cc6a31dc49037d3974809e6b77912fa06d8b6cb34808c02f11ed46855157065c"

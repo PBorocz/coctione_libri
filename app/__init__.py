@@ -11,7 +11,8 @@ with warnings.catch_warnings():
 from dynaconf import FlaskDynaconf
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_login import LoginManager
-from flask_mongoengine import MongoEngine
+from mongoengine import connect
+from pymongo import MongoClient
 
 import app.constants as c
 from app.models.user import query_user
@@ -102,7 +103,8 @@ def create_app(logging=True, log_level: str | None = None):
         application.config["MONGODB_SETTINGS"] = [
             {"host": app_db_settings, "alias": "default"},
         ]
-        MongoEngine().init_app(application)
+        connect(host=app_db_settings)
+
         terminal_update(f"...connected to MongoDB: {app_db_settings[0:40]}")
 
         ################################################################################
