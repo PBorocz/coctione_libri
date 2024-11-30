@@ -1,36 +1,57 @@
 {# --------------------------------------------------------------------------- #}
 {# Render the search input control
 {# --------------------------------------------------------------------------- #}
-<div class="field">
+<div id="controls" class="field is-grouped is-grouped-multiline">
+  <style>
+   .no-border {
+     border: none !important;
+     box-shadow: none !important;
+   }
+  </style>
+
   <div class="control">
-    {# If we're doing a full page refresh: #}
-    {# _="on htmx:afterRequest set my value to ''" #}
-    <style>
-     .search {
-       border-radius: 6px;
-       border: 2px solid #eee;
-       outline: 0;
-       transition: all .1s ease-in-out;
-       width: 6.0rem;
-     }
-     .search::placeholder {
-       text-align: left;
-     }
-     .search:active, .search:focus, .search:not(:placeholder-shown) {
-       width: 16rem;
-     }
-    </style>
-    <input
-      autofocus
-      class="input search responsive-font"
-      name="search"
-      hx-post="/search"
-      hx-target="#id_documents_div"
-      placeholder="Search.."
-      type="search"
-      # if search
-      value="{{ search }}"
-      # endif
-    >
+    <p class="control has-icons-left">
+      <style>
+       .search {
+	 border-radius: 6px;
+	 border: 1px solid #eee;
+	 outline: 0;
+	 transition: all .1s ease-in-out;
+	 width: 6.0rem;
+       }
+       .search::placeholder { text-align: left; }
+       .search:active, .search:focus, .search:not(:placeholder-shown) { width: 12rem; }
+      </style>
+      <input
+	autofocus
+	class="input search responsive-font"
+	name="search"
+	hx-post="/search"
+	hx-target="#id_documents_div"
+	placeholder="Search.."
+	type="search"
+	{% if search %}value="{{ search }}"{% endif %}
+      >
+      <span class="icon is-small is-left">
+	<i class="fas fa-search"></i>
+      </span>
+    </p>
+  </div>
+
+  <div class="control">
+    <a href="/reset" class="button no-border">
+      <span class="icon"><i class="fas fa-house is-size-6"></i></span>
+    </a>
+  </div>
+
+  <div class="control">
+    <button
+      class="button no-border"
+      type="button"
+      hx-post="/"
+      hx-vals='{"refresh_only": true}'
+      hx-target="#table_listings">
+      <span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
+    </button>
   </div>
 </div>
