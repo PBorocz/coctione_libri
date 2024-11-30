@@ -56,6 +56,9 @@ def create_app(logging=True, log_level: str | None = None):
 
             # See *all* inbound requests for local/development environment (but not in production)
             log.getLogger("werkzeug").disabled = True if application.config["production"] else False
+            log.getLogger("pymongo").setLevel(log.WARNING)
+            # (use the following to see all mongodb command traffic:)
+            # log.getLogger("pymongo.command").setLevel(log.DEBUG)
 
             # Some of our underlying modules are quite "chatty"...shut 'em up ;-)
             for module in ("pymongo.command", "pymongo.serverSelection", "matplotlib"):

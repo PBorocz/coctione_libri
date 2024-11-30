@@ -19,8 +19,6 @@
 		table-arrows
 		table-sort">
 
-    {% include "main/hx/display_table_caption.html" %}
-
     # if documents:
     {% include "main/hx/display_table_thead.html" %}
     # endif
@@ -32,7 +30,7 @@
     </tbody>
   </table>
 
-  # if search:
+  # if search and doc_ids:
   <form action="/documents/delete" method="post" id="form_delete">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal" id="div_delete">
