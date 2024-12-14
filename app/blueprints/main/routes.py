@@ -23,33 +23,36 @@ from app.models.documents import Documents, sources_available, tags_available
 from app.models.user import update_user
 
 
-def log_route_info(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        log.info("-" * 80)
-        # For now, we don't need more information...
-        # log.info(f"{request.method:4s} -> {func.__name__}")
-        # log.info("-" * 80)
-        return func(*args, **kwargs)
+def log_route(path=""):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            log.info("-" * 80)
+            log.info(f" {request.method:4s} {path} -> {func.__name__}")
+            log.info("-" * 80)
+            return func(*args, **kwargs)
 
-    return wrapper
+        return wrapper
+
+    return decorator
 
 
 ################################################################################
+# Primary full-page home page query and display
+################################################################################
 @bp.get("/")
 @login_required
-@log_route_info
-def render_display(template="main/display.html") -> Response:
-    """Render our main page on a full refresh."""
+@log_route(path="/")
+def render_display() -> Response:
+    """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
     if fl.current_user.state_last_search:
         sort, documents = get_search_documents(fl.current_user, fl.current_user.state_last_search)
     else:
         sort, documents = get_all_documents(fl.current_user)
 
-    # Render our template
     return render_template(
-        template,
+        "main/display.html",
         documents=documents,
         search=fl.current_user.state_last_search,
         sort=sort,
@@ -58,9 +61,44 @@ def render_display(template="main/display.html") -> Response:
 
 
 ################################################################################
+# Render JUST the main document table (ie. on an hx-post basis)
+################################################################################
+@bp.post("/")
+@login_required
+@log_route(path="/")
+def hx_query() -> Response:
+    """Render *just* our display table on an htmx-post call."""
+    # Query & sort the documents..
+    if fl.current_user.state_last_search:
+        sort, documents = get_search_documents(fl.current_user, fl.current_user.state_last_search)
+    else:
+        sort, documents = get_all_documents(fl.current_user)
+    return render_template(
+        "main/hx/display_table.html",
+        documents=documents,
+        search=fl.current_user.state_last_search,
+        sort=sort,
+        categories=categories_available(),
+    )
+
+
+################################################################################
+# Reset the page by clearing search and simply redisplay the entire page.
+# FIXME: Could we do this with OOB?
+################################################################################
+@bp.get("/reset")
+@login_required
+@log_route(path="/reset")
+def reset() -> Response:
+    """Render our entire main page *AFTER* resetting user's search criteria."""
+    update_user(fl.current_user, "state_last_search", None)
+    return redirect(url_for("main.render_display"))
+
+
+################################################################################
 @bp.get("/sort")
 @login_required
-@log_route_info
+@log_route(path="/sort")
 def hx_display(template="main/hx/display_table.html") -> Response:
     """Re-render just our partial/main table for new sort field or direction."""
     sort = Sort.factory_from_request(request)
@@ -79,7 +117,7 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 ################################################################################
 @bp.post("/user/category")
 @login_required
-@log_route_info
+@log_route(path="/user/category")
 def hx_user_category_change() -> Response:
     """Change the display to the document category specified."""
     fl.current_user.category = request.values.get("category")
@@ -91,7 +129,7 @@ def hx_user_category_change() -> Response:
 ################################################################################
 @bp.post("/search")
 @login_required
-@log_route_info
+@log_route(path="/search")
 def hx_search(template="main/hx/display_table.html") -> Response:
     """Render the results table (only) based on a *SEARCH* request."""
     # Search could come in directly from the search dialog box (ie. request.form)
@@ -129,7 +167,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 ################################################################################
 @bp.get("/view/<doc_id>")
 @login_required
-@log_route_info
+@log_route(path="/view")
 def route_view_document(doc_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
@@ -156,7 +194,7 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 ################################################################################
 @bp.post("/document/delete")
 @login_required
-@log_route_info
+@log_route(path="/document/delete")
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
     delete_document(fl.current_user, request.values["doc_id"])
@@ -166,7 +204,7 @@ def render_delete_document(url: str = "main.render_display") -> Response:
 ################################################################################
 @bp.post("/documents/delete")
 @login_required
-@log_route_info
+@log_route(path="/documents/delete")
 def render_delete_documents(url: str = "main.render_display") -> Response:
     """Delete the specified Documents."""
     doc_ids = request.values["doc_ids"]
@@ -179,7 +217,7 @@ def render_delete_documents(url: str = "main.render_display") -> Response:
 ##
 @bp.route("/new", methods=["GET", "POST"])
 @login_required
-@log_route_info
+@log_route(path="/new")
 def render_new_document() -> Response:
     """Display/Process the Document edit page in 'new' mode.
 
@@ -206,7 +244,7 @@ def render_new_document() -> Response:
 ################################################################################
 @bp.get("/edit/<doc_id>")
 @login_required
-@log_route_info
+@log_route(path="/edit")
 def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
@@ -224,7 +262,7 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
 ################################################################################
 @bp.route("/edit/<field>/<doc_id>", methods=["POST", "DELETE"])
 @login_required
-@log_route_info
+@log_route(path="/edit")
 def hx_edit_field(field: str, doc_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
@@ -262,7 +300,7 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
 ################################################################################
 @bp.get("/document/last_updated/<doc_id>")
 @login_required
-@log_route_info
+@log_route(path="/document/last_updated")
 def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:

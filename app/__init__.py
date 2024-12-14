@@ -10,6 +10,7 @@ with warnings.catch_warnings():
 
 from dynaconf import FlaskDynaconf
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_htmx import HTMX
 from flask_login import LoginManager
 from mongoengine import connect
 from pymongo import MongoClient
@@ -18,6 +19,8 @@ import app.constants as c
 from app.models.user import query_user
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
+
+htmx = HTMX()
 
 
 def terminal_update(msg: str, last: bool = False) -> None:
@@ -86,6 +89,8 @@ def create_app(logging=True, log_level: str | None = None):
         ################################################################################
         # Configure extensions (if necessary)
         ################################################################################
+        htmx.init_app(application)  # HTMX environment (for selected endpoints)
+
         if application.config["development"]:
             toolbar = DebugToolbarExtension()
             toolbar.init_app(application)

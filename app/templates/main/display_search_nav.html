@@ -7,9 +7,13 @@
      border: none !important;
      box-shadow: none !important;
    }
+   .field.is-grouped > .control:not(:last-child) {
+     margin-right: 0rem;  /* Reduce this value to tighten the spacing */
+   }
+
   </style>
 
-  <!-- <div class="control" _="on htmx:afterSettle call document.getElementById('search').focus()"> -->
+  {# Search field #}
   <div class="control">
     <p class="control has-icons-left">
       <style>
@@ -20,8 +24,21 @@
 	 transition: all .1s ease-in-out;
 	 width: 8.0rem;
        }
-       /* .search::placeholder { text-align: left; } */
-       /* .search:active, .search:focus, .search:not(:placeholder-shown) { width: 12rem; } */
+       .control-link {
+	 display: inline-flex;
+	 align-items: center;
+	 justify-content: center;
+	 height: 2.25em;  /* Match Bulma's default button height */
+	 width: 2.25em;   /* Make it square, adjust as needed */
+	 padding: 0.375em 0.75em;  /* Matches Bulma's default button padding */
+	 background-color: transparent;
+	 border: none;
+	 cursor: pointer;
+	 text-decoration: none;
+       }
+       .control-link:hover {
+	 background-color: rgba(0, 0, 0, 0.05);  /* Light gray background on hover */
+       }
       </style>
       <input
 	autofocus
@@ -34,27 +51,23 @@
 	type="search"
 	{% if search %}value="{{ search }}"{% endif %}
       >
-      <span class="icon is-small is-left">
+      <span class="icon is-small is-left responsive-font">
 	<i class="fas fa-search"></i>
       </span>
     </p>
   </div>
 
-  <!-- Reset, ie. redisplay with search field *cleared* -->
+  {# Reset, ie. redisplay with search field *cleared* #}
   <div class="control">
-    <a href="/reset">
-      <button class="button no-border" type="button">
-	<span class="icon"><i class="fas fa-house is-size-6"></i></span>
-      </button>
+    <a href="/reset" class="control-link responsive-font" title="Reset">
+      <span class="icon"><i class="fas fa-house is-size-6"></i></span>
     </a>
   </div>
 
-  <!-- Requery -->
+  {# Requery, ie. simply requery the display table by itself using current search criteria #}
   <div class="control">
-    <a hx-post="/" hx-target="#id_documents_div" tabindex="0">
-      <button class="button no-border" type="button">
-	<span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
-      </button>
+    <a href="/" method="post" hx-post="/" hx-target="#id_documents_div" class="control-link responsive-font" title="Requery">
+      <span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
     </a>
   </div>
 </div>
