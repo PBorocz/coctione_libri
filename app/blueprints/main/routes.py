@@ -12,12 +12,7 @@ from flask_wtf import FlaskForm
 from mongoengine.context_managers import switch_collection
 
 from app.blueprints.main import bp
-from app.blueprints.main.operations import (
-    delete_document,
-    get_all_documents,
-    get_search_documents,
-    update_document_attribute,
-)
+from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
 from app.models import Sort, categories_available
 from app.models.documents import Documents, sources_available, tags_available
 from app.models.user import update_user
@@ -46,10 +41,7 @@ def log_route(path=""):
 def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
-    if fl.current_user.state_last_search:
-        sort, documents = get_search_documents(fl.current_user, fl.current_user.state_last_search)
-    else:
-        sort, documents = get_all_documents(fl.current_user)
+    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
 
     return render_template(
         "main/display.html",
@@ -69,10 +61,8 @@ def render_display() -> Response:
 def hx_query() -> Response:
     """Render *just* our display table on an htmx-post call."""
     # Query & sort the documents..
-    if fl.current_user.state_last_search:
-        sort, documents = get_search_documents(fl.current_user, fl.current_user.state_last_search)
-    else:
-        sort, documents = get_all_documents(fl.current_user)
+    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+
     return render_template(
         "main/hx/display_table.html",
         documents=documents,
@@ -105,10 +95,7 @@ def hx_display(template="main/hx/display_table.html") -> Response:
     update_user(fl.current_user, "state_last_sort", sort.__dict__)
 
     # Query respective documents for the respective category and sort based on our state requested.
-    if fl.current_user.state_last_search:
-        sort, documents = get_search_documents(fl.current_user, fl.current_user.state_last_search)
-    else:
-        sort, documents = get_all_documents(fl.current_user)
+    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
 
     # Render our partial template of the main display table:
     return render_template(template, documents=documents, sort=sort, search=fl.current_user.state_last_search)
@@ -145,10 +132,8 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     # Save the last search for next navigation back.
     update_user(fl.current_user, "state_last_search", search_term_s)
 
-    if search_term_s and search_term_s != "*":
-        sort, documents = get_search_documents(fl.current_user, search_term_s)
-    else:
-        sort, documents = get_all_documents(fl.current_user)
+    # Query for all matching documents!
+    sort, documents = get_documents(fl.current_user, search_term_s)
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]

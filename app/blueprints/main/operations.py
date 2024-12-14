@@ -19,33 +19,26 @@ from app.models.documents import Documents
 from app.models.user import User
 
 
-def get_all_documents(user: User) -> tuple[Sort, list[Documents]]:
-    """Return *all* documents."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        documents = user_documents.objects()
-    log.debug(f"{len(documents):,d} documents found.")
-    return _sort(user, documents)
-
-
-def get_search_documents(user: User, search: str) -> tuple[Sort, list[Documents]]:
-    """Return any documents matching the search term(s).
+def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Documents]]:
+    """CORE query to return documents, with or without search term(s).
 
     Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
     """
     # We do an implicit "AND", thus, we want to capture the set of ids for each search term
     # and then "AND" them together.
-    id_sets: list[set[str]] = []
-    for search_term in shlex.split(search):
-        ids = set()
-        for search_method in SEARCH_METHODS:
-            ids.update(search_method(user, search_term))
-        id_sets.append(ids)
+    if search:
+        id_sets: list[set[str]] = []
+        for search_term in shlex.split(search):
+            ids = set()
+            for search_method in SEARCH_METHODS:
+                ids.update(search_method(user, search_term))
+            id_sets.append(ids)
+        ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
-    ids_to_query = reduce(lambda a, b: a & b, id_sets)
-
-    # Return all the documents associated with the matching id's.
+    # Return either *ALL* the documents or just those associated with the search matching id's:
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        documents = user_documents.objects(id__in=ids_to_query)
+        kw_args = {"id__in": ids_to_query} if search else {}
+        documents = user_documents.objects(**kw_args)
     log.info(f"{len(documents):,d} documents found.")
 
     return _sort(user, documents)
