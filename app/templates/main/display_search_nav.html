@@ -9,6 +9,7 @@
    }
   </style>
 
+  <!-- <div class="control" _="on htmx:afterSettle call document.getElementById('search').focus()"> -->
   <div class="control">
     <p class="control has-icons-left">
       <style>
@@ -17,14 +18,15 @@
 	 border: 1px solid #eee;
 	 outline: 0;
 	 transition: all .1s ease-in-out;
-	 width: 6.0rem;
+	 width: 8.0rem;
        }
-       .search::placeholder { text-align: left; }
-       .search:active, .search:focus, .search:not(:placeholder-shown) { width: 12rem; }
+       /* .search::placeholder { text-align: left; } */
+       /* .search:active, .search:focus, .search:not(:placeholder-shown) { width: 12rem; } */
       </style>
       <input
 	autofocus
 	class="input search responsive-font"
+	id="search"
 	name="search"
 	hx-post="/search"
 	hx-target="#id_documents_div"
@@ -38,20 +40,21 @@
     </p>
   </div>
 
+  <!-- Reset, ie. redisplay with search field *cleared* -->
   <div class="control">
-    <a href="/reset" class="button no-border">
-      <span class="icon"><i class="fas fa-house is-size-6"></i></span>
+    <a href="/reset">
+      <button class="button no-border" type="button">
+	<span class="icon"><i class="fas fa-house is-size-6"></i></span>
+      </button>
     </a>
   </div>
 
+  <!-- Requery -->
   <div class="control">
-    <button
-      class="button no-border"
-      type="button"
-      hx-post="/"
-      hx-vals='{"refresh_only": true}'
-      hx-target="#table_listings">
-      <span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
-    </button>
+    <a hx-post="/" hx-target="#id_documents_div" tabindex="0">
+      <button class="button no-border" type="button">
+	<span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
+      </button>
+    </a>
   </div>
 </div>
