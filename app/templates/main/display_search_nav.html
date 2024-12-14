@@ -7,10 +7,6 @@
      border: none !important;
      box-shadow: none !important;
    }
-   .field.is-grouped > .control:not(:last-child) {
-     margin-right: 0rem;  /* Reduce this value to tighten the spacing */
-   }
-
   </style>
 
   {# Search field #}
@@ -22,7 +18,7 @@
 	 border: 1px solid #eee;
 	 outline: 0;
 	 transition: all .1s ease-in-out;
-	 width: 8.0rem;
+	 width: 10.0rem;
        }
        .control-link {
 	 display: inline-flex;
@@ -47,7 +43,7 @@
 	name="search"
 	hx-post="/search"
 	hx-target="#id_documents_div"
-	placeholder="Search.."
+	placeholder="Search..."
 	type="search"
 	{% if search %}value="{{ search }}"{% endif %}
       >
@@ -59,15 +55,18 @@
 
   {# Reset, ie. redisplay with search field *cleared* #}
   <div class="control">
-    <a href="/reset" class="control-link responsive-font" title="Reset">
-      <span class="icon"><i class="fas fa-house is-size-6"></i></span>
+    <a href="/reset" class="control-link" title="Reset">
+      <span class="icon"><i class="fas fa-house responsive-font"></i></span>
     </a>
   </div>
 
   {# Requery, ie. simply requery the display table by itself using current search criteria #}
-  <div class="control">
-    <a href="/" method="post" hx-post="/" hx-target="#id_documents_div" class="control-link responsive-font" title="Requery">
-      <span class="icon"><i class="fas fa-arrows-rotate is-size-6"></i></span>
+  <div class="control ml-2">
+    <a href="/" method="post" hx-post="/" hx-target="#id_documents_div" class="control-link" title="Requery">
+      <span class="icon"><i class="fas fa-arrows-rotate responsive-font"></i></span>
+      <span id="htmx-row-count" class="responsive-font-small ml-1">
+	{% if documents %}{{ documents|length }}{% endif %}
+      </span>
     </a>
   </div>
 </div>

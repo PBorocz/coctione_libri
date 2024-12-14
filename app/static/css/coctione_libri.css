@@ -10318,6 +10318,32 @@ tr.htmx-swapping td {
 }
 
 @media only screen and (min-width: 0px) {
+  .responsive-font-large {
+    font-size: 1.2rem;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .responsive-font-large {
+    font-size: 1.4rem;
+  }
+}
+@media only screen and (min-width: 1023px) {
+  .responsive-font-large {
+    font-size: 1.6rem;
+  }
+}
+@media only screen and (min-width: 1215px) {
+  .responsive-font-large {
+    font-size: 1.8rem;
+  }
+}
+@media only screen and (min-width: 1407px) {
+  .responsive-font-large {
+    font-size: 2rem;
+  }
+}
+
+@media only screen and (min-width: 0px) {
   .responsive-font {
     font-size: 0.6rem;
   }
@@ -10344,28 +10370,28 @@ tr.htmx-swapping td {
 }
 
 @media only screen and (min-width: 0px) {
-  .responsive-font-banner {
-    font-size: 1.2rem;
+  .responsive-font-small {
+    font-size: 0.4rem;
   }
 }
 @media only screen and (min-width: 768px) {
-  .responsive-font-banner {
-    font-size: 1.4rem;
+  .responsive-font-small {
+    font-size: 0.5rem;
   }
 }
 @media only screen and (min-width: 1023px) {
-  .responsive-font-banner {
-    font-size: 1.6rem;
+  .responsive-font-small {
+    font-size: 0.6rem;
   }
 }
 @media only screen and (min-width: 1215px) {
-  .responsive-font-banner {
-    font-size: 1.8rem;
+  .responsive-font-small {
+    font-size: 0.7rem;
   }
 }
 @media only screen and (min-width: 1407px) {
-  .responsive-font-banner {
-    font-size: 2rem;
+  .responsive-font-small {
+    font-size: 0.8rem;
   }
 }
 

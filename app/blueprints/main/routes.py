@@ -73,8 +73,7 @@ def hx_query() -> Response:
 
 
 ################################################################################
-# Reset the page by clearing search and simply redisplay the entire page.
-# FIXME: Could we do this with OOB?
+# Reset page by clearing search and going directly back to the "main" route.
 ################################################################################
 @bp.get("/reset")
 @login_required
