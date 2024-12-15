@@ -39,7 +39,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         kw_args = {"id__in": ids_to_query} if search else {}
         documents = user_documents.objects(**kw_args)
-    log.info(f"{len(documents):,d} documents found.")
+    log.debug(f"  {len(documents):,d} documents found.")
 
     return _sort(user, documents)
 
@@ -52,7 +52,7 @@ def _search_by_title(user: User, search: str) -> list[ObjectId]:
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(title__icontains=search).only("id")
     if partials:
-        log.debug(f"{len(partials):,d} documents matched against 'title'")
+        log.debug(f"{len(partials):3d} documents matched against 'title'")
     return [doc.id for doc in partials]
 
 
@@ -61,7 +61,7 @@ def _search_by_source(user: User, search: str) -> list[ObjectId]:
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         partials: QuerySet = user_documents.objects(source__icontains=search).only("id")
     if partials:
-        log.debug(f"{len(partials):,d} documents matched against 'source'")
+        log.debug(f"{len(partials):3d} documents matched against 'source'")
     return [doc.id for doc in partials]
 
 
@@ -92,14 +92,14 @@ def _search_by_tag(user: User, search: str) -> list[ObjectId]:
         with switch_collection(Documents, Documents.as_user(user)) as user_documents:
             partials: QuerySet = user_documents.objects(query).only("id")
         if partials:
-            log.debug(f"{len(partials):,d} documents matched against multiple search terms")
+            log.debug(f"{len(partials):3d} documents matched against multiple search terms")
 
     else:
         # No, use as is..
         with switch_collection(Documents, Documents.as_user(user)) as user_documents:
             partials: QuerySet = user_documents.objects(tags=search.title()).only("id")
         if partials:
-            log.debug(f"{len(partials):,d} documents matched against single search")
+            log.debug(f"{len(partials):3d} documents matched against single search")
 
     return [doc.id for doc in partials]
 

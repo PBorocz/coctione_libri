@@ -49,6 +49,7 @@ def render_display() -> Response:
         "main/display.html",
         documents=documents,
         search=fl.current_user.state_last_search,
+        search_history=fl.current_user.state_last_searches.split("|"),
         sort=sort,
         category=fl.current_user.category,
         categories=categories_available(),
@@ -120,6 +121,15 @@ def hx_user_category_change() -> Response:
 
 
 ################################################################################
+@bp.get("/update-search-history")
+@login_required
+@log_route(path="/update-search-history")
+def hx_update_search(template="main/hx/display_search_history.html") -> Response:
+    l_search_history = fl.current_user.state_last_searches.split("|")
+    return render_template(template, search_history=l_search_history)
+
+
+################################################################################
 @bp.post("/search")
 @login_required
 @log_route(path="/search")
@@ -130,17 +140,18 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     # from clicking a selected tag or source (ie. request.values)
     if request.values.get("search"):
         search_term_s = request.values.get("search")
-        log.debug(f"direct search: {search_term_s}")
+        log.debug(f"  direct search: {search_term_s}")
     else:
         search_term_s: str = request.form["search"]
-        log.debug(f"general search: {search_term_s}")
-
-    # Save the last search for next navigation back.
-    update_user(fl.current_user, "state_last_search", search_term_s)
+        log.debug(f"  general search: {search_term_s}")
 
     # Query for all matching documents!
     sort, documents = get_documents(fl.current_user, search_term_s)
     update_user(fl.current_user, "state_last_count", len(documents))
+
+    # Only update the user obo their last search performed if successful.
+    if documents:
+        fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]

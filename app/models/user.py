@@ -35,6 +35,7 @@ class User(me_.Document):
     last_login = me_.DateTimeField()       # Last login time, eg. # 2022-02-02T03:00:00+00:00
 
     state_last_search = me_.StringField()  # Last search term used
+    state_last_searches = me_.StringField()  # Last 10 search terms used
     state_last_sort = me_.DictField(default={"by": "title", "order": "desc"}) # Last sort selected
     state_last_count = me_.IntField()
     # fmt: on
@@ -75,6 +76,33 @@ class User(me_.Document):
         self.updated = datetime.utcnow()
         return super().save(*args, **kwargs)
 
+    def update_search(self, search_term: str) -> bool:
+        """Update the user's search state."""
+        if not search_term:
+            return False
+
+        update_user(self, "state_last_search", search_term)
+
+        # Do the last searches
+        if not self.state_last_searches:
+            update_user(self, "state_last_searches", search_term.casefold())
+            return True
+
+        # Convert from string to list...
+        searches = self.state_last_searches.split("|")
+
+        # If it's already there, delete it first, then push to the top.
+        if search_term in searches:
+            searches.remove(search_term)
+
+        # Push the most recent search to the front of the list.
+        searches.insert(0, search_term)
+
+        # Save list by converting back to string..
+        update_user(self, "state_last_searches", "|".join(searches[0:10]))
+
+        return True
+
     @classmethod
     def factory(cls, **kwargs) -> User:
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
@@ -95,6 +123,7 @@ class User(me_.Document):
 
         kwargs["state_last_count"] = -1
         kwargs["state_last_search"] = None
+        kwargs["state_last_searches"] = []
         kwargs["state_last_sort"] = {}
 
         return cls(**kwargs)

@@ -7,52 +7,62 @@
      border: none !important;
      box-shadow: none !important;
    }
+   /* .search {
+      font-size: 0.8rem;
+      } */
+   .control-link {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     height: 2.25em;  /* Match Bulma's default button height */
+     width: 2.25em;   /* Make it square, adjust as needed */
+     padding: 0.375em 0.75em;  /* Matches Bulma's default button padding */
+     background-color: transparent;
+     border: none;
+     cursor: pointer;
+     text-decoration: none;
+   }
+   .control-link:hover {
+     background-color: rgba(0, 0, 0, 0.05);  /* Light gray background on hover */
+   }
   </style>
-
-  {# Search field #}
-  <div class="control">
-    <p class="control has-icons-left">
-      <style>
-       .search {
-	 font-size: 0.8rem;
-       }
-       .control-link {
-	 display: inline-flex;
-	 align-items: center;
-	 justify-content: center;
-	 height: 2.25em;  /* Match Bulma's default button height */
-	 width: 2.25em;   /* Make it square, adjust as needed */
-	 padding: 0.375em 0.75em;  /* Matches Bulma's default button padding */
-	 background-color: transparent;
-	 border: none;
-	 cursor: pointer;
-	 text-decoration: none;
-       }
-       .control-link:hover {
-	 background-color: rgba(0, 0, 0, 0.05);  /* Light gray background on hover */
-       }
-      </style>
-      <input
-	autofocus
-	class="input search-font responsive-font"
-	id="search"
-	name="search"
-	hx-post="/search"
-	hx-target="#id_documents_div"
-	placeholder="Search..."
-	type="search"
-	{% if search %}value="{{ search }}"{% endif %}
-      >
-      <span class="icon is-left responsive-font search-font">
-	<i class="fas fa-search"></i>
-      </span>
-    </p>
-  </div>
 
   {# Reset, ie. redisplay with search field *cleared* #}
   <div class="control">
     <a href="/reset" class="control-link" title="Reset" type="button">
-      <span class="icon"><i class="fas fa-house responsive-font"></i></span>
+      <span class="icon"><i class="fas fa-filter-circle-xmark responsive-font"></i></span>
+    </a>
+  </div>
+
+  <div class="control has-icons-left">
+    {# Search field #}
+    <input
+      autofocus
+      id="search-input"
+      name="search"
+      type="text"
+      list="id-search-history"
+      placeholder="Search..."
+      class="search responsive-font"
+      hx-get="/update-search-history"
+      hx-trigger="input changed delay:500ms"
+      hx-target="#id-search-history"
+      {% if search %}value="{{ search }}"{% endif %}
+    >
+
+    <datalist id="id-search-history">
+      {# Initial list, will be dynamically updated from partial searches #}
+      {% for search in search_history %}
+      <option value="{{ search }}">
+      {% endfor %}
+    </datalist>
+  </div>
+
+  <div class="control">
+    <a href="#" class="control-link responsive-font" hx-post="/search" hx-trigger="click" hx-target="#id_documents_div" hx-include="#search-input">
+      <span class="icon responsive-font">
+	<i class="fas fa-search"></i>
+      </span>
     </a>
   </div>
 
@@ -60,12 +70,7 @@
   <div class="control ml-2">
     <a href="/" method="post" hx-post="/" hx-target="#id_documents_div" class="control-link" title="Requery">
       <span class="icon"><i class="fas fa-arrows-rotate responsive-font"></i></span>
-      <span id="htmx-row-count"
-	    class="responsive-font-small ml-1"
-	    hx-get="/document/count"
-	    hx-trigger="refresh-document-count from:body"
-	    hx-target="#htmx-row-count"
-      >
+      <span id="htmx-row-count" class="responsive-font-small ml-1" hx-get="/document/count" hx-trigger="refresh-document-count from:body" hx-target="#htmx-row-count">
 	{% if documents %}{{ documents|length }}{% endif %}
       </span>
     </a>
