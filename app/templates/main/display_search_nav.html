@@ -14,11 +14,7 @@
     <p class="control has-icons-left">
       <style>
        .search {
-	 border-radius: 6px;
-	 border: 1px solid #eee;
-	 outline: 0;
-	 transition: all .1s ease-in-out;
-	 width: 10.0rem;
+	 font-size: 0.8rem;
        }
        .control-link {
 	 display: inline-flex;
@@ -38,7 +34,7 @@
       </style>
       <input
 	autofocus
-	class="input search responsive-font"
+	class="input search-font responsive-font"
 	id="search"
 	name="search"
 	hx-post="/search"
@@ -47,7 +43,7 @@
 	type="search"
 	{% if search %}value="{{ search }}"{% endif %}
       >
-      <span class="icon is-small is-left responsive-font">
+      <span class="icon is-left responsive-font search-font">
 	<i class="fas fa-search"></i>
       </span>
     </p>
@@ -55,7 +51,7 @@
 
   {# Reset, ie. redisplay with search field *cleared* #}
   <div class="control">
-    <a href="/reset" class="control-link" title="Reset">
+    <a href="/reset" class="control-link" title="Reset" type="button">
       <span class="icon"><i class="fas fa-house responsive-font"></i></span>
     </a>
   </div>
