@@ -1,13 +1,14 @@
 {% macro render_sort_icon(field) %}
-# if sort.by == field:
+{% if sort.by == field %}
 <span class="icon is-size-6">
   <i class="fas {{ 'fa-arrow-down-a-z' if sort.is_ascending() else 'fa-arrow-up-a-z' }}"></i>
 </span>
-# endif
+{% endif %}
 {% endmacro %}
 
 <div id="id_documents_div" class="table-container">
 
+{% if documents %}
   <table class="table
 		is-bordered
 		is-fullwidth
@@ -19,36 +20,36 @@
 		table-arrows
 		table-sort">
 
-    # if documents:
     {% include "main/hx/display_table_thead.html" %}
-    # endif
-
     <tbody>
       # for document in documents:
-      {% include "main/hx/display_table_tr.html" %}
+	{% include "main/hx/display_table_tr.html" %}
       # endfor
     </tbody>
   </table>
 
-  # if search and doc_ids:
-  <form action="/documents/delete" method="post" id="form_delete">
-    {{ form.hidden_tag() }}
-    <div class="field is-horizontal" id="div_delete">
-      <div class="field-body">
-	<div class="control is-primary" style="overflow:hidden;">
-	  <input class="button is-danger is-light"
-		 type="submit"
-		 id="doc_id"
-		 name="doc_id"
-		 value="Delete {{ num_docs }} Documents?"
-		 onclick="confirm_form_delete('Are you sure you want to delete these entries?', event, 'form_delete', 'doc_ids', '{{ doc_ids }}')">
+  {% if search and doc_ids %}
+    <form action="/documents/delete" method="post" id="form_delete">
+      {{ form.hidden_tag() }}
+      <div class="field is-horizontal" id="div_delete">
+	<div class="field-body">
+	  <div class="control is-primary" style="overflow:hidden;">
+	    <input class="button is-danger is-light"
+		   type="submit"
+		   id="doc_id"
+		   name="doc_id"
+		   value="Delete {{ num_docs }} Documents?"
+		   onclick="confirm_form_delete('Are you sure you want to delete these entries?', event, 'form_delete', 'doc_ids', '{{ doc_ids }}')">
+	  </div>
 	</div>
       </div>
-    </div>
-  </form>
+    </form>
+  {% endif %}
 
-  # endif
+{% else %}
+  <div class="content">
+    Sorry, no {{ category }} match '{{ search }}'.
+  </div>
+{% endif %}
 
 </div>
-
-<span id="htmx-row-count" hx-swap-oob="true" class="responsive-font-small ml-1" hx-swap="innerHTML">{{ documents|length }}</span>

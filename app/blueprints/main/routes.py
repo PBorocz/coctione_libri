@@ -5,8 +5,9 @@ from functools import wraps
 from io import BytesIO
 
 import flask_login as fl
-from flask import make_response, redirect, render_template, request, send_file, url_for
+from flask import redirect, render_template, request, send_file, url_for
 from flask.wrappers import Response
+from flask_htmx import make_response
 from flask_login import login_required
 from flask_wtf import FlaskForm
 from mongoengine.context_managers import switch_collection
@@ -42,12 +43,14 @@ def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    update_user(fl.current_user, "state_last_count", len(documents))
 
     return render_template(
         "main/display.html",
         documents=documents,
         search=fl.current_user.state_last_search,
         sort=sort,
+        category=fl.current_user.category,
         categories=categories_available(),
     )
 
@@ -62,14 +65,17 @@ def hx_query() -> Response:
     """Render *just* our display table on an htmx-post call."""
     # Query & sort the documents..
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    update_user(fl.current_user, "state_last_count", len(documents))
 
-    return render_template(
+    rendered_template: str = render_template(
         "main/hx/display_table.html",
         documents=documents,
         search=fl.current_user.state_last_search,
         sort=sort,
+        category=fl.current_user.category,
         categories=categories_available(),
     )
+    return make_response(rendered_template, trigger="refresh-document-count")
 
 
 ################################################################################
@@ -95,6 +101,7 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 
     # Query respective documents for the respective category and sort based on our state requested.
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    update_user(fl.current_user, "state_last_count", len(documents))
 
     # Render our partial template of the main display table:
     return render_template(template, documents=documents, sort=sort, search=fl.current_user.state_last_search)
@@ -133,19 +140,22 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 
     # Query for all matching documents!
     sort, documents = get_documents(fl.current_user, search_term_s)
+    update_user(fl.current_user, "state_last_count", len(documents))
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
 
     render_args = {
         "documents": documents,
+        "category": fl.current_user.category,
         "sort": sort,
         "search": search_term_s,
         "form": FlaskForm(),
         "doc_ids": "|".join(doc_ids),
         "num_docs": len(documents),
     }
-    return render_template(template, **render_args)
+    rendered_template = render_template(template, **render_args)
+    return make_response(rendered_template, trigger="refresh-document-count")
 
 
 ################################################################################
@@ -271,14 +281,11 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
         return_args["status"] = {"icon": {"color": "has-text-success", "icon": "fa-solid fa-circle-check"}}
 
     # (naming the templates after the respective field makes this easy!)
-    template = render_template(f"main/hx/edit_field_{field}.html", **return_args)
-    response: Response = make_response(template)
+    rendered_template: str = render_template(f"main/hx/edit_field_{field}.html", **return_args)
 
-    # Trigger any other events based on an newly updated document...
+    # Also trigger any other events based on an newly updated document...
     # (for example, redisplay the last_updated datetime stamp at the top of the page)
-    response.headers["HX-Trigger"] = "updatedDocument"
-
-    return response
+    return make_response(rendered_template, trigger="updatedDocument")
 
 
 ################################################################################
@@ -288,5 +295,13 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
 def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents.objects(id=doc_id)[0]
+        document: Documents = user_documents.objects(id=doc_id)[0]
     return render_template(template, document=document)
+
+
+################################################################################
+@bp.get("/document/count")
+@login_required
+@log_route(path="/document/count")
+def hx_document_count() -> Response:
+    return make_response(str(fl.current_user.state_last_count))

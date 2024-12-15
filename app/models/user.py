@@ -36,6 +36,7 @@ class User(me_.Document):
 
     state_last_search = me_.StringField()  # Last search term used
     state_last_sort = me_.DictField(default={"by": "title", "order": "desc"}) # Last sort selected
+    state_last_count = me_.IntField()
     # fmt: on
 
     @classmethod
@@ -92,6 +93,7 @@ class User(me_.Document):
         kwargs["updated"] = None
         kwargs["last_login"] = None
 
+        kwargs["state_last_count"] = -1
         kwargs["state_last_search"] = None
         kwargs["state_last_sort"] = {}
 
