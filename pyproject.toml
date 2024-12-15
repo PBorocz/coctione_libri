@@ -141,14 +141,14 @@ interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
   sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
-  flask run --debug --host localhost --port 5001
+  flask run --debug --host localhost --port 5001 --cert=cert.pem --key=key.pem
   """
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "production"
-  flask run --debug --host localhost --port 5001
+  flask run --debug --host localhost --port 5001 --cert=cert.pem --key=key.pem
 """
 
 ################################################################################
