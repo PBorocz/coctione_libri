@@ -24,19 +24,23 @@ class User(Document):
     user_id       = StringField(required=True)             # Email hash (used as a "private" user_id on UI)
     password_hash = StringField(required=True)             # Password *HASH*
     created       = DateTimeField(required=True, default=datetime.utcnow)  # When user was first saved to database.
-    category      = StringField(
-        required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
-    )  # Current category user is working on.
 
     # ---------------------
-    # Optional attributes:
+    # State attributes:
     # ---------------------
-    updated             = DateTimeField() # When user was last updated (None if just created)
-    last_login          = DateTimeField() # Last login time, eg. # 2022-02-02T03:00:00+00:00
     state_last_search   = StringField()   # Last search term used
     state_last_searches = ListField(StringField())                             # Last 10 search terms used
     state_last_sort     = DictField(default={"by": "title", "order": "desc"})  # Last sort selected
     state_last_count    = IntField()
+    state_last_category = StringField(
+        required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
+    )  # Current category user is working on.
+
+    # ---------------------
+    # Other attributes:
+    # ---------------------
+    updated    = DateTimeField() # When user was last updated (None if just created)
+    last_login = DateTimeField() # Last login time, eg. # 2022-02-02T03:00:00+00:00
     # fmt: on
 
     @classmethod

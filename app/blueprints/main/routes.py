@@ -51,7 +51,7 @@ def render_display() -> Response:
         search=fl.current_user.state_last_search,
         search_history=fl.current_user.state_last_searches,
         sort=sort,
-        category=fl.current_user.category,
+        category=fl.current_user.state_last_category,
         categories=categories_available(),
     )
 
@@ -73,7 +73,7 @@ def hx_query() -> Response:
         documents=documents,
         search=fl.current_user.state_last_search,
         sort=sort,
-        category=fl.current_user.category,
+        category=fl.current_user.state_last_category,
         categories=categories_available(),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
@@ -114,9 +114,9 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 @log_route(path="/user/category")
 def hx_user_category_change() -> Response:
     """Change the display to the document category specified."""
-    fl.current_user.category = request.values.get("category")
+    fl.current_user.state_last_category = request.values.get("category")
     fl.current_user.save()
-    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.category}")
+    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.state_last_category}")
     return redirect(url_for("main.hx_display"))
 
 
@@ -157,7 +157,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 
     render_args = {
         "documents": documents,
-        "category": fl.current_user.category,
+        "category": fl.current_user.state_last_category,
         "sort": sort,
         "search": search_term_s,
         "form": FlaskForm(),
@@ -239,7 +239,7 @@ def render_new_document() -> Response:
     # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents(
-            user=fl.current_user, title=request.form.get("title"), category=fl.current_user.category
+            user=fl.current_user, title=request.form.get("title"), category=fl.current_user.state_last_category
         )
         document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))

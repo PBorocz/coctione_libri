@@ -183,7 +183,7 @@ class Documents(MongoEngine_Document):
         Our convention is "documents-<userId>-<documentCategory" (obo of a hierarchical namespace).
 
         """
-        o_category = category if category else Category(user.category)
+        o_category = category if category else Category(user.state_last_category)
         return f"documents-{user.id}-{o_category.collection_root}"
 
 

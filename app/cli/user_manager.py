@@ -57,7 +57,7 @@ def reset_category():
 
     category = get_category()
     if category:
-        update_user(user, "category", category)
+        update_user(user, "state_last_category", category)
         print("Category reset.")
     else:
         print("Nothing done.")
@@ -76,7 +76,7 @@ def add():
 
     category = get_category()
 
-    user = User.factory(email=email, password=password, category=category)
+    user = User.factory(email=email, password=password, state_last_category=category)
     try:
         user.save()
         print(f"New user successfully created [{user.id}]")
