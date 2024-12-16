@@ -81,6 +81,8 @@ def __import_pdf(user, o_category: Category, pdf: dict) -> str:
             doc.source = pdf["source"]
         if "tags" in pdf:
             doc.tags = [tag for tag in pdf["tags"] if "*" not in tag]
+        if "url" in pdf:
+            doc.url_ = pdf["url"]
 
         path_pdf = Path(pdf.get("path"))
         with open(Path(path_pdf), "rb") as fd:
