@@ -49,7 +49,7 @@ def render_display() -> Response:
         "main/display.html",
         documents=documents,
         search=fl.current_user.state_last_search,
-        search_history=fl.current_user.state_last_searches.split("|"),
+        search_history=fl.current_user.state_last_searches,
         sort=sort,
         category=fl.current_user.category,
         categories=categories_available(),
@@ -125,8 +125,7 @@ def hx_user_category_change() -> Response:
 @login_required
 @log_route(path="/update-search-history")
 def hx_update_search(template="main/hx/display_search_history.html") -> Response:
-    l_search_history = fl.current_user.state_last_searches.split("|")
-    return render_template(template, search_history=l_search_history)
+    return render_template(template, search_history=fl.current_user.state_last_searches)
 
 
 ################################################################################
@@ -150,7 +149,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     update_user(fl.current_user, "state_last_count", len(documents))
 
     # Only update the user obo their last search performed if successful.
-    if documents:
+    if documents and search_term_s:
         fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!

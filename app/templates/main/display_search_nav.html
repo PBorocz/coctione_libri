@@ -3,13 +3,6 @@
 {# --------------------------------------------------------------------------- #}
 <div id="controls" class="field is-grouped is-grouped-multiline">
   <style>
-   .no-border {
-     border: none !important;
-     box-shadow: none !important;
-   }
-   /* .search {
-      font-size: 0.8rem;
-      } */
    .control-link {
      display: inline-flex;
      align-items: center;
@@ -25,51 +18,65 @@
    .control-link:hover {
      background-color: rgba(0, 0, 0, 0.05);  /* Light gray background on hover */
    }
+
+   /* Turn off the default datalist pull-down (we'll use Bulma's) */
+   input::-webkit-calendar-picker-indicator {
+     opacity: 0;
+   }
+   input[list]::-webkit-calendar-picker-indicator {
+     display: none;
+   }
   </style>
 
-  {# Reset, ie. redisplay with search field *cleared* #}
+  {# ######################################################################### #}
+  {# Search field #}
+  {# ######################################################################### #}
+  <div class="control has-icons-left has-icons-right">
+    <div hx-trigger="change" hx-post="/search" hx-target="#id_documents_div" hx-include="#search">
+      <div hx-trigger="keyup from:#search delay:500ms" hx-get="/update-search-history" hx-target="#id-search-history">
+	<input
+	  autofocus
+	  id="search"
+	  name="search"
+	  class="input"
+	  type="text"
+	  list="id-search-history"
+	  placeholder="Search..."
+	  class="search responsive-font"
+	  {% if search %}value="{{ search }}"{% endif %}
+	>
+      </div>
+    </div>
+    <span class="icon is-small is-left">
+      <i class="fas fa-search"></i>
+    </span>
+    <span class="icon is-small is-right">
+      <i class="fas fa-chevron-down"></i>
+    </span>
+
+    <datalist id="id-search-history">
+      {# Initial list, will be dynamically updated from partial searches #}
+      {% for search in search_history %}
+      <option value="{{ search }}">
+	{% endfor %}
+    </datalist>
+  </div>
+
+  {# ######################################################################### #}
+  {# Reset search, ie. redisplay with search field *cleared* #}
+  {# ######################################################################### #}
   <div class="control">
     <a href="/reset" class="control-link" title="Reset" type="button">
       <span class="icon"><i class="fas fa-filter-circle-xmark responsive-font"></i></span>
     </a>
   </div>
 
-  <div class="control has-icons-left">
-    {# Search field #}
-    <input
-      autofocus
-      id="search-input"
-      name="search"
-      type="text"
-      list="id-search-history"
-      placeholder="Search..."
-      class="search responsive-font"
-      hx-get="/update-search-history"
-      hx-trigger="input changed delay:500ms"
-      hx-target="#id-search-history"
-      {% if search %}value="{{ search }}"{% endif %}
-    >
-
-    <datalist id="id-search-history">
-      {# Initial list, will be dynamically updated from partial searches #}
-      {% for search in search_history %}
-      <option value="{{ search }}">
-      {% endfor %}
-    </datalist>
-  </div>
-
-  <div class="control">
-    <a href="#" class="control-link responsive-font" hx-post="/search" hx-trigger="click" hx-target="#id_documents_div" hx-include="#search-input">
-      <span class="icon responsive-font">
-	<i class="fas fa-search"></i>
-      </span>
-    </a>
-  </div>
-
+  {# ######################################################################### #}
   {# Requery, ie. simply requery the display table by itself using current search criteria #}
+  {# ######################################################################### #}
   <div class="control ml-2">
     <a href="/" method="post" hx-post="/" hx-target="#id_documents_div" class="control-link" title="Requery">
-      <span class="icon"><i class="fas fa-arrows-rotate responsive-font"></i></span>
+      <span class="icon"><i class="fas fa-repeat responsive-font"></i></span>
       <span id="htmx-row-count" class="responsive-font-small ml-1" hx-get="/document/count" hx-trigger="refresh-document-count from:body" hx-target="#htmx-row-count">
 	{% if documents %}{{ documents|length }}{% endif %}
       </span>

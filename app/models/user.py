@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 
-import mongoengine as me_
+from mongoengine import DateTimeField, DictField, Document, EmailField, IntField, ListField, StringField
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.models import Category
@@ -13,31 +13,30 @@ from app.models import Category
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
-class User(me_.Document):
+class User(Document):
     """User model."""
 
     # ---------------------
     # Required attributes:
     # ---------------------
     # fmt: off
-    email = me_.EmailField(required=True, unique=True)                  # Model primary/unique key, eg. foo@bar.com
-    user_id = me_.StringField(required=True)                            # Email hash (used as a "private" user_id on UI)
-    password_hash = me_.StringField(required=True)                      # Password *HASH*
-    created = me_.DateTimeField(required=True, default=datetime.utcnow) # When user was first saved to database.
-    category = me_.StringField(
+    email         = EmailField(required=True, unique=True) # Model primary/unique key, eg. foo@bar.com
+    user_id       = StringField(required=True)             # Email hash (used as a "private" user_id on UI)
+    password_hash = StringField(required=True)             # Password *HASH*
+    created       = DateTimeField(required=True, default=datetime.utcnow)  # When user was first saved to database.
+    category      = StringField(
         required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
     )  # Current category user is working on.
 
     # ---------------------
     # Optional attributes:
     # ---------------------
-    updated = me_.DateTimeField()          # When user was last updated (None if just created)
-    last_login = me_.DateTimeField()       # Last login time, eg. # 2022-02-02T03:00:00+00:00
-
-    state_last_search = me_.StringField()  # Last search term used
-    state_last_searches = me_.StringField()  # Last 10 search terms used
-    state_last_sort = me_.DictField(default={"by": "title", "order": "desc"}) # Last sort selected
-    state_last_count = me_.IntField()
+    updated             = DateTimeField() # When user was last updated (None if just created)
+    last_login          = DateTimeField() # Last login time, eg. # 2022-02-02T03:00:00+00:00
+    state_last_search   = StringField()   # Last search term used
+    state_last_searches = ListField(StringField())                             # Last 10 search terms used
+    state_last_sort     = DictField(default={"by": "title", "order": "desc"})  # Last sort selected
+    state_last_count    = IntField()
     # fmt: on
 
     @classmethod
@@ -78,28 +77,27 @@ class User(me_.Document):
 
     def update_search(self, search_term: str) -> bool:
         """Update the user's search state."""
-        if not search_term:
-            return False
-
+        # Minimally, update the last search the user performed.
         update_user(self, "state_last_search", search_term)
 
-        # Do the last searches
+        # If this is the first search performed, easy!
         if not self.state_last_searches:
-            update_user(self, "state_last_searches", search_term.casefold())
+            update_user(self, "state_last_searches", [search_term])
             return True
 
         # Convert from string to list...
-        searches = self.state_last_searches.split("|")
+        print(f"{self.state_last_searches=}")
+        print(f"{type(self.state_last_searches)=}")
 
         # If it's already there, delete it first, then push to the top.
-        if search_term in searches:
-            searches.remove(search_term)
+        if search_term in self.state_last_searches:
+            self.state_last_searches.remove(search_term)
 
         # Push the most recent search to the front of the list.
-        searches.insert(0, search_term)
+        self.state_last_searches.insert(0, search_term)
 
-        # Save list by converting back to string..
-        update_user(self, "state_last_searches", "|".join(searches[0:10]))
+        # Save the most recent 10 searches performed.
+        update_user(self, "state_last_searches", self.state_last_searches[0:10])
 
         return True
 
