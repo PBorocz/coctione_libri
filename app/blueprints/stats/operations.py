@@ -53,14 +53,14 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
     # Setup data
     column_1 = config.get("data_name")
     datum = pd.DataFrame(datum, columns=[column_1, "count"])
-    datum_bar = datum.sort_values(by="count")[-render_top_n:]
+    datum_bar = datum.sort_values(by="count")[-render_top_n:]  # Limit to the "top-N"!
 
     # Plot data
     ax.barh(datum_bar[column_1], datum_bar["count"], color="#006BA2", zorder=2)
 
     # Set custom labels for x-axis
-    ax.set_xticks([0, 10, 20, 30, 40, 50, 60])
-    ax.set_xticklabels(["0", "10", " 20", "30", "40", "50", "60"])
+    ax.set_xticks([0, 10, 20, 30, 40, 50, 60, 70, 80])
+    ax.set_xticklabels(["0", "10", " 20", "30", "40", "50", "60", "70", "80"])
     ax.xaxis.set_tick_params(
         labeltop=True,  # Put x-axis labels on top
         labelbottom=False,  # Set no x-axis labels on bottom
@@ -73,7 +73,7 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
     ax.set_yticks(datum_bar[column_1])
     ax.set_yticklabels(datum_bar[column_1], ha="left")  # Set labels (again) but now set horizontal alignment to left.
     ax.yaxis.set_tick_params(
-        pad=120,  # Pad tick labels so they don"t go over y-axis
+        pad=140,  # Pad tick labels so they don"t go over y-axis
         labelsize=11,  # Set label size
         bottom=False,  # Set no ticks on bottom/left
     )
