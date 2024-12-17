@@ -20,11 +20,34 @@
    }
 
    /* Turn off the default datalist pull-down (we'll use Bulma's) */
+   /* input::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      }
+      input[list]::-webkit-calendar-picker-indicator {
+      display: none;
+      } */
+
    input::-webkit-calendar-picker-indicator {
-     opacity: 0;
+     display: none !important;
+     -webkit-appearance: none;
    }
+
    input[list]::-webkit-calendar-picker-indicator {
-     display: none;
+     display: none !important;
+     -webkit-appearance: none;
+   }
+
+   /* For iOS Safari */
+   input[list] {
+     -webkit-appearance: none;
+     -moz-appearance: none;
+     appearance: none;
+   }
+
+   /* Ensure the custom icon is visible */
+   .icon.is-right {
+     pointer-events: none;
+     z-index: 4;
    }
   </style>
 
