@@ -3,7 +3,7 @@
   <tr class="has-background-grey-dark">
 
     {# Quality #}
-    # if render_display_column(current_user.category, "quality"):
+    # if render_display_column(current_user.state_last_category, "quality"):
     <th id="th_quality"
 	    scope="col"
 	    class="has-text-white has-text-centered"
@@ -14,7 +14,7 @@
     # endif
 
     {# Complexity #}
-    # if render_display_column(current_user.category, "complexity"):
+    # if render_display_column(current_user.state_last_category, "complexity"):
     <th id="th_complexity"
 	    scope="col"
 	    class="has-text-white has-text-centered is-hidden-lt-tablet"
@@ -25,7 +25,7 @@
     # endif
 
     {# BangForBuck #}
-    # if render_display_column(current_user.category, "quality_by_complexity"):
+    # if render_display_column(current_user.state_last_category, "quality_by_complexity"):
     <th id="th_quality_by_complexity"
 	    scope="col"
 	    class="has-text-white has-text-centered"
@@ -36,7 +36,7 @@
     # endif
 
     {# Title #}
-    # if render_display_column(current_user.category, "title"):
+    # if render_display_column(current_user.state_last_category, "title"):
     <th id="th_title"
 	    scope="col"
 	    class="has-text-white"
@@ -47,7 +47,7 @@
     # endif
 
     {# Tags #}
-    # if render_display_column(current_user.category, "tags"):
+    # if render_display_column(current_user.state_last_category, "tags"):
     <th id="th_tags"
 	    scope="col"
 	    class="has-text-white"
@@ -58,7 +58,7 @@
     # endif
 
     {# Source #}
-    # if render_display_column(current_user.category, "source"):
+    # if render_display_column(current_user.state_last_category, "source"):
     <th id="th_source"
 	    scope="col"
 	    class="has-text-white is-hidden-lt-desktop"
@@ -70,7 +70,7 @@
     # endif
 
     {# Last Cooked #}
-    # if render_display_column(current_user.category, "times_cooked"):
+    # if render_display_column(current_user.state_last_category, "times_cooked"):
     <th id="th_times_cooked"
 	    scope="col"
 	    class="has-text-white has-text-centered is-hidden-lt-desktop"
@@ -83,7 +83,7 @@
     # endif
 
     {# Edit? #}
-    # if render_display_column(current_user.category, "edit"):
+    # if render_display_column(current_user.state_last_category, "edit"):
     <th scope="col"
 	class="disable-sort">
     </th>

@@ -1,28 +1,28 @@
 <tr>
 
   {# Quality #}
-  # if render_display_column(current_user.category, "quality"):
+  # if render_display_column(current_user.state_last_category, "quality"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.quality_enum | default("", true) }}
   </td>
   # endif
 
   {# Complexity #}
-  # if render_display_column(current_user.category, "complexity"):
+  # if render_display_column(current_user.state_last_category, "complexity"):
   <td class="has-text-centered is-size-5 is-hidden-lt-tablet" style="vertical-align: middle;">
     {{ document.complexity_enum | default("", true) }}
   </td>
   # endif
 
   {# Quality_By_Complexity #}
-  # if render_display_column(current_user.category, "quality_by_complexity"):
+  # if render_display_column(current_user.state_last_category, "quality_by_complexity"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.quality_by_complexity | default("", true) }}
   </td>
   # endif
 
   {# Title #}
-  # if render_display_column(current_user.category, "title"):
+  # if render_display_column(current_user.state_last_category, "title"):
   <td style="vertical-align: middle;">
     <a href="/view/{{ document.id }}" target="_new">
       {{ document.title }}
@@ -31,7 +31,7 @@
   # endif
 
   {# Tag(s) #}
-  # if render_display_column(current_user.category, "tags"):
+  # if render_display_column(current_user.state_last_category, "tags"):
   <td style="vertical-align: middle;">
     <style>
      .tag-style {
@@ -57,7 +57,7 @@
   # endif
 
   {# Source #}
-  # if render_display_column(current_user.category, "source"):
+  # if render_display_column(current_user.state_last_category, "source"):
   <td class="is-hidden-lt-desktop" style="vertical-align: middle;">
     <style>
      .source-style {
@@ -77,14 +77,14 @@
   # endif
 
   {# Times Cooked #}
-  # if render_display_column(current_user.category, "times_cooked"):
+  # if render_display_column(current_user.state_last_category, "times_cooked"):
   <td class="has-text-centered is-hidden-lt-desktop" style="vertical-align: middle;">
     {{ document.times_cooked | default("", true) }}
   </td>
   # endif
 
   {# Edit Icon #}
-  # if render_display_column(current_user.category, "edit"):
+  # if render_display_column(current_user.state_last_category, "edit"):
   <td class="has-text-centered" style="vertical-align: middle;">
     <a href="/edit/{{ document.id }}">
       <span class="icon is-small is-right responsive-font">
