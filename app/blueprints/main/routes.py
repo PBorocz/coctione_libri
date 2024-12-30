@@ -43,7 +43,6 @@ def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
-    update_user(fl.current_user, "state_last_count", len(documents))
 
     return render_template(
         "main/display.html",
@@ -66,13 +65,18 @@ def hx_query() -> Response:
     """Render *just* our display table on an htmx-post call."""
     # Query & sort the documents..
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
-    update_user(fl.current_user, "state_last_count", len(documents))
+
+    # Send back the id's of the docs in case user want's to delete 'em!
+    doc_ids = [str(doc.id) for doc in documents]
 
     rendered_template: str = render_template(
         "main/hx/display_table.html",
         documents=documents,
         search=fl.current_user.state_last_search,
         sort=sort,
+        form=FlaskForm(),
+        num_docs=len(documents),
+        doc_ids=doc_ids,
         category=fl.current_user.state_last_category,
         categories=categories_available(),
     )
@@ -82,13 +86,13 @@ def hx_query() -> Response:
 ################################################################################
 # Reset page by clearing search and going directly back to the "main" route.
 ################################################################################
-@bp.get("/reset")
+@bp.post("/reset")
 @login_required
 @log_route(path="/reset")
 def reset() -> Response:
-    """Render our entire main page *AFTER* resetting user's search criteria."""
+    """Render our display table (and controls) *AFTER* resetting user's search criteria."""
     update_user(fl.current_user, "state_last_search", None)
-    return redirect(url_for("main.render_display"))
+    return hx_query()
 
 
 ################################################################################
@@ -102,7 +106,6 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 
     # Query respective documents for the respective category and sort based on our state requested.
     sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
-    update_user(fl.current_user, "state_last_count", len(documents))
 
     # Render our partial template of the main display table:
     return render_template(template, documents=documents, sort=sort, search=fl.current_user.state_last_search)
@@ -146,11 +149,9 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 
     # Query for all matching documents!
     sort, documents = get_documents(fl.current_user, search_term_s)
-    update_user(fl.current_user, "state_last_count", len(documents))
 
-    # Only update the user obo their last search performed if successful.
-    if documents and search_term_s:
-        fl.current_user.update_search(search_term_s.casefold())
+    # Update the user state re. their last search performed.
+    fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
@@ -307,11 +308,3 @@ def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document: Documents = user_documents.objects(id=doc_id)[0]
     return render_template(template, document=document)
-
-
-################################################################################
-@bp.get("/document/count")
-@login_required
-@log_route(path="/document/count")
-def hx_document_count() -> Response:
-    return make_response(str(fl.current_user.state_last_count))

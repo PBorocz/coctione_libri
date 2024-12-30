@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 
-from mongoengine import DateTimeField, DictField, Document, EmailField, IntField, ListField, StringField
+from mongoengine import DateTimeField, DictField, Document, EmailField, ListField, StringField
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.models import Category
@@ -31,7 +31,6 @@ class User(Document):
     state_last_search   = StringField()   # Last search term used
     state_last_searches = ListField(StringField())                             # Last 10 search terms used
     state_last_sort     = DictField(default={"by": "title", "order": "desc"})  # Last sort selected
-    state_last_count    = IntField()
     state_last_category = StringField(
         required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
     )  # Current category user is working on.
@@ -123,7 +122,6 @@ class User(Document):
         kwargs["updated"] = None
         kwargs["last_login"] = None
 
-        kwargs["state_last_count"] = -1
         kwargs["state_last_search"] = None
         kwargs["state_last_searches"] = []
         kwargs["state_last_sort"] = {}
