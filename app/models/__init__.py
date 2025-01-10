@@ -36,8 +36,9 @@ class RatingQuality(IntEnum):
     FOR = 4
     FIV = 5
 
-    def __str__(self):
-        return "★" * self.value
+    # If we want to have a repeating character instead of the number itself:
+    # def __str__(self):
+    #     return "★" * self.value
 
 
 class RatingComplexity(IntEnum):
@@ -48,8 +49,8 @@ class RatingComplexity(IntEnum):
     FOR = 4
     FIV = 5
 
-    def __str__(self):
-        return "⚙" * self.value
+    # def __str__(self):
+    #     return "⚙" * self.value
 
 
 ################################################################################

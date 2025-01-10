@@ -4,34 +4,37 @@
 
     {# Quality #}
     # if render_display_column(current_user.state_last_category, "quality"):
-    <th id="th_quality"
-	    scope="col"
-	    class="has-text-white has-text-centered"
-	    hx-target="closest div"
-	    hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
-      Q{{ render_sort_icon("quality") }}
+      <th id="th_quality"
+	  scope="col"
+	  class="has-text-white has-text-centered"
+	  hx-target="closest div"
+	  hx-get="/sort?sort_by=quality&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+      ★{{ render_sort_icon("quality") }}
     </th>
     # endif
 
     {# Complexity #}
     # if render_display_column(current_user.state_last_category, "complexity"):
     <th id="th_complexity"
-	    scope="col"
-	    class="has-text-white has-text-centered is-hidden-lt-tablet"
-	    hx-target="closest div"
-	    hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
-      C{{ render_sort_icon("complexity") }}
+	scope="col"
+	class="has-text-white has-text-centered is-hidden-lt-tablet"
+	hx-target="closest div"
+	hx-get="/sort?sort_by=complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+      ⚙{{ render_sort_icon("complexity") }}
     </th>
     # endif
 
     {# BangForBuck #}
     # if render_display_column(current_user.state_last_category, "quality_by_complexity"):
     <th id="th_quality_by_complexity"
-	    scope="col"
-	    class="has-text-white has-text-centered"
-	    hx-target="closest div"
-	    hx-get="/sort?sort_by=quality_by_complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
-      B{{ render_sort_icon("quality_by_complexity") }}
+	scope="col"
+	class="has-text-white has-text-centered"
+	hx-target="closest div"
+	hx-get="/sort?sort_by=quality_by_complexity&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
+	<span class="icon is-small is-right responsive-font">
+	    <i class="fa-sharp fa-light fa-scale-balanced"></i>
+	</span>
+	{{ render_sort_icon("quality_by_complexity") }}
     </th>
     # endif
 
@@ -63,22 +66,21 @@
 	    scope="col"
 	    class="has-text-white is-hidden-lt-desktop"
 	    hx-target="closest div"
-	    hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}"
-    >
+	    hx-get="/sort?sort_by=source&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
       Source{{ render_sort_icon("source") }}
     </th>
     # endif
 
-    {# Last Cooked #}
+    {# Times Cooked #}
     # if render_display_column(current_user.state_last_category, "times_cooked"):
     <th id="th_times_cooked"
 	    scope="col"
 	    class="has-text-white has-text-centered is-hidden-lt-desktop"
 	    hx-target="closest div"
 	    hx-get="/sort?sort_by=times_cooked&sort_order={{ 'asc' if sort.order=='desc' else 'desc' }}">
-      <span class="icon is-small is-right responsive-font">
-	<i class="fas fa-check-double"></i>
-      </span>{{ render_sort_icon("times_cooked") }}
+	<span class="icon is-small is-right responsive-font">
+	    <i class="fas fa-check-double"></i>
+	</span>{{ render_sort_icon("times_cooked") }}
     </th>
     # endif
 

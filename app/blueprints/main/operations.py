@@ -302,21 +302,23 @@ def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict
         # respective `sort.by` field are always at the bottom, irrespective of `sort.order`.
         sort_lambdas = {
             "complexity"            : lambda doc: (doc.complexity            is None, doc.complexity            ),
-            "times_cooked"          : lambda doc: (doc.times_cooked          is None, doc.times_cooked           ),
+            "times_cooked"          : lambda doc: (doc.times_cooked          is None, doc.times_cooked          ),
             "quality"               : lambda doc: (doc.quality               is None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is None, doc.source                ),
             "tags"                  : lambda doc: (doc.tags_for_sort         is None, doc.tags_for_sort         ),
+            "url_"                  : lambda doc: (doc.url_                  is None, doc.url_                  ),
             "title"                 : lambda doc:  doc.title,
         }
     else:
         sort_lambdas = {
             "complexity"            : lambda doc: (doc.complexity            is not None, doc.complexity            ),
-            "times_cooked"          : lambda doc: (doc.times_cooked          is not None, doc.times_cooked           ),
+            "times_cooked"          : lambda doc: (doc.times_cooked          is not None, doc.times_cooked          ),
             "quality"               : lambda doc: (doc.quality               is not None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is not None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is not None, doc.source                ),
             "tags"                  : lambda doc: (doc.tags_for_sort         is not None, doc.tags_for_sort         ),
+            "url_"                  : lambda doc: (doc.url_                  is not None, doc.url_                  ),
             "title"                 : lambda doc:  doc.title,
         }
     # fmt: on
