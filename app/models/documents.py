@@ -83,7 +83,7 @@ class Documents(MongoEngine_Document):
     ################################################################################
     # Required Fields
     ################################################################################
-    user         = ReferenceField(User, required=True)                     # FK to user
+    user         = ReferenceField(User, required=True)                      # FK to user
     title        = StringField(max_length=120, required=True)               # Display title, eg. 'Cook Me!'
     category     = CategoryField(required=True)                             # Document's category
     created      = DateTimeField(required=True, default=dt.datetime.utcnow) # Date stamp when created

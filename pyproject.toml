@@ -21,7 +21,6 @@ rich = "^13.7.0"
 wtforms = "^3.1.2"
 flask-wtf = "^1.2.1"
 email-validator = "^2.1.0.post1"
-gunicorn = "^22.0.0"
 dynaconf = "^3.2.4"
 flask-debugtoolbar = "^0.14.1"
 tomli-w = "^1.0.0"
@@ -30,6 +29,7 @@ matplotlib = "^3.9.0"
 humanize = "^4.11.0"
 pymongo = "^4.10.1"
 mongoengine = "^0.29.1"
+gunicorn = "^23.0.0"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"
@@ -168,6 +168,10 @@ shell = """
   """
 
 [tool.poe.tasks.backup_production]
+#
+# Alternatively: const command = `mongodump --uri "${process.env.BACKUP_MONGO_URI}" --gzip --archive=${path}`;
+# as taken from: https://github.com/andresfiloso/mongo-s3-backup/blob/main/src/backup.ts
+#
 interpreter = "fish"
 shell = """
   mkdir -p ./__backups__/working
