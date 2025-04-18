@@ -113,7 +113,7 @@ def create_app(logging=True, log_level: str | None = None):
         ]
         connect(host=app_db_settings)
 
-        terminal_update(f"...connected to MongoDB: {app_db_settings[0:40]}")
+        terminal_update(f'...connected to MongoDB: {app_db_settings.split("?")[0].split("/")[-1]}')
 
         ################################################################################
         # Setup static resources..

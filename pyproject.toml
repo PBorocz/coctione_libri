@@ -30,6 +30,7 @@ humanize = "^4.11.0"
 pymongo = "^4.10.1"
 mongoengine = "^0.29.1"
 gunicorn = "^23.0.0"
+boto3 = "^1.37.35"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"
@@ -199,6 +200,13 @@ shell = """
   # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__backups__/working
   # mkdir -p ./__backups__/working
   # tar -xzf {$backup_directory_path} -C ./__backups__/working
-  echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
-  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* ./__backups__/working
+  # mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* {$backup_directory_path}
+  # echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
+  # mongorestore --gzip --archive="./backup_production_20250330T1654.tar.gz" --nsFrom="coctione_libri.*" --nsTo="coctione_libri_wasabi.*"
+  # mongorestore --verbose --dir="./working"
+  #
+  # 2025-04-16: Finally got this work AFTER:
+  # $ tar -xzf {$backup_directory_path} -C ./__backups__/working
+  # and running from the shell instead from here in Poe.
+  # $ mongorestore --verbose --dir=./working --nsFrom=coctione_libri.\\* --nsTo=coctione_libri_wasabi.\\*"
   """
