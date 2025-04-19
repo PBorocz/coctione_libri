@@ -57,7 +57,16 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
         log.getLogger("werkzeug").disabled = True if application.config["production"] else False
 
         # Some of our underlying modules are quite "chatty"...shut 'em up ;-)
-        for module in ("pymongo", "pymongo.command", "pymongo.serverSelection", "matplotlib", "botocore"):
+        for module in (
+            "pymongo",
+            "pymongo.command",
+            "pymongo.serverSelection",
+            "matplotlib",
+            "botocore",
+            "boto3",
+            "s3transfer",
+            "urllib3",
+        ):
             log.getLogger(module).setLevel(log.WARNING)
 
         # (FYI FWIW: use the following to see all mongodb command traffic)

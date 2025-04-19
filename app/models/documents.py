@@ -92,7 +92,8 @@ class Documents(MongoEngine_Document):
     # Optional Fields
     ################################################################################
     # Generic (but optional) "document" fields, ie. common across all document categories:
-    file_        = FileField()                                 # GridFS link to actual pdf/file content
+    file_        = FileField()                                 # MongoDB GridFS link to actual pdf/file content
+    mimetype     = StringField(default="application/pdf")      # e.g. application/pdf etc.
     notes        = StringField()                               # "Notes" in MD format
     source       = StringField()                               # Logical source of doc, e.g. NY, FN, etc.
     tags         = SortedListField(StringField(max_length=50)) # List of tags in "Titled" display format

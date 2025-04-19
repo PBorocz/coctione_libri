@@ -5,7 +5,8 @@ from functools import wraps
 from io import BytesIO
 
 import flask_login as fl
-from flask import redirect, render_template, request, send_file, url_for
+from botocore.exceptions import ClientError
+from flask import current_app, redirect, render_template, request, send_file, url_for
 from flask.wrappers import Response
 from flask_htmx import make_response
 from flask_login import login_required
@@ -180,18 +181,25 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 
     if document.file_:
         file_contents = document.file_.read()
-        log.debug(f"{len(file_contents)=}")
         contents: BytesIO = BytesIO(file_contents)
         name: str = f"{doc_id}.pdf"
         mimetype: str = document.file_.contentType
         return send_file(contents, download_name=name, mimetype=mimetype)
 
-    elif document.url_:
-        return redirect(document.url_)
-
     else:
-        # FIXME: Would be nice to flash a message here..
-        log.error("Sorry, document without either PDF file OR a link?")
+        wasabi = current_app.config["WASABI"]
+        bucket_name: str = current_app.config["wasabi_bucket"]
+        contents: BytesIO = BytesIO()
+        download_name: str = f"{doc_id}.pdf"
+        try:
+            wasabi.download_fileobj(bucket_name, doc_id, contents)
+            contents.seek(0)
+            return send_file(contents, download_name=download_name, mimetype=document.mimetype)
+        except ClientError:
+            if document.url_:
+                return redirect(document.url_)
+            # Really give up!
+            log.error("Sorry, document without either PDF file OR a link?")
 
     return redirect(url_for(url))
 
