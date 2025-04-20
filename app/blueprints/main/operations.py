@@ -8,7 +8,9 @@ from collections.abc import Callable
 from datetime import datetime
 from functools import reduce
 
+from botocore.exceptions import ClientError
 from bson.objectid import ObjectId
+from flask import current_app
 from mongoengine.context_managers import switch_collection
 from mongoengine.queryset.queryset import QuerySet
 from mongoengine.queryset.visitor import QCombination
@@ -104,102 +106,24 @@ def _search_by_tag(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def update_doc_from_form(request, document: Documents) -> tuple[Documents, bool]:
-    """Update the document attributes from the flask form in the request, returning the doc and changed flag."""
-    form_document_attrs = (
-        (None, "title"),
-        (None, "notes"),
-        (None, "source"),
-        (None, "url_"),
-        ("to_list", "tags"),
-        ("to_int", "quality"),
-        ("to_int", "complexity"),
-    )
-
-    # Get Flask's packaging of the inbound form
-    form = request.form
-
-    # Start on the assumption that NO attribute have actually changed...
-    changed = False
-
-    # Handle all the "simple" attributes on a generic basis..
-    for conversion, attr in form_document_attrs:
-        curr_value = getattr(document, attr)  # Value in the current document, ie. in db.
-        form_value = form.get(attr)  # Value coming back from the form.
-        if conversion == "to_int":
-            form_value = int(form_value)
-        elif conversion == "to_list":
-            form_value = [x.strip().title() for x in form_value.split(",")]
-
-        ################################################################################
-        # Case 1: Have both a form_value and current document value
-        #         -> Check for match and update if necessary
-        ################################################################################
-        if form_value and curr_value:
-            if form_value != curr_value:
-                changed = True
-                setattr(document, attr, form_value)
-                log.debug(f"{attr=} was updated to {form_value} (from {curr_value})")
-
-        ################################################################################
-        # Case 2: Have a new form_value but not current document value
-        #         -> Update document with new value.
-        ################################################################################
-        elif form_value and not curr_value:
-            changed = True
-            setattr(document, attr, form_value)
-            log.debug(f"{attr=} was newly set to {form_value}")
-
-        ################################################################################
-        # Case 3: Don't have a new form_value but do have a current document value
-        #         -> Update document value to None.
-        ################################################################################
-        elif not form_value and curr_value:
-            changed = True
-            setattr(document, attr, None)
-            log.debug(f"{attr=} was cleared")
-
-        # Case 4: Don't have a new form_value and don't have a current document value
-        #         -> Do Nothing!
-        else:
-            assert not form_value and not curr_value, f"Sorry, unhandled case: {form_value=} {curr_value=}"
-
-    #################
-    # Special cases #
-    #################
-    # Last cooked date onto list.."
-    if form.get("last_cooked"):
-        dt_last_cooked = datetime.strptime(form.get("last_cooked"), "%Y-%m-%d")
-        if dt_last_cooked not in document.dates_cooked:
-            log.debug(f"attr=last_cooked was appended to with {dt_last_cooked}")
-            document.dates_cooked.append(dt_last_cooked)
-            changed = True
-
-    # Did we get a new file to upload?
-    if file := request.files["file_"]:
-        filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-        mime_type, _ = mimetypes.guess_type(filename)
-        log.debug(
-            f"Saving a new file: {filename=} with {mime_type=}!"
-            if document.file_
-            else f"Replacing existing file {document.file_.filename=} with: {filename=}!"
-        )
-        document.file_.replace(file, fileName=filename, contentType=mime_type)
-        changed = True
-
-    return document, changed
-
-
-def delete_document(user: User, id_: str) -> None:
+def delete_document(app, user: User, id_: str) -> None:
     """Delete the document with specified id for the specified user."""
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         document = user_documents.objects(id=id_)[0]
-        if document.file_:
-            document.file_.delete()
+        s_doc_id = str(document.id)
+        try:
+            storage_handle = app.config["STORAGE_FILE"]
+            storage_bucket = app.config["storage_file_bucket"]
+            args = {"Bucket": storage_bucket, "Key": s_doc_id}
+            storage_handle.head_object(**args)
+            storage_handle.delete_object(**args)
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "404":
+                log.error(f"Error deleting object {s_doc_id} from bucket {storage_bucket}: {e}!")
         document.delete()
 
 
-def update_document_attribute(document: Documents, field: str, request) -> [Documents, str | None]:
+def update_document_attribute(app, document: Documents, field: str, request) -> [Documents, str | None]:
     """Update the specified field attribute of the document request.form the specified request.form."""
     error_msg = None
     match field:
@@ -223,10 +147,14 @@ def update_document_attribute(document: Documents, field: str, request) -> [Docu
         # Special Handling: File upload
         ##############################
         case "file_":
+            # Yes, there's no error handling here....sue me
             file = request.files["file_"]
-            filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
-            mime_type, _ = mimetypes.guess_type(filename)
-            document.file_.replace(file, fileName=filename, contentType=mime_type)
+            document.filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
+            document.filesize = get_file_size(file)
+            document.mimetype = mimetypes.guess_type(document.filename)[0]
+            app.config["STORAGE_FILE"].upload_fileobj(
+                file.stream, current_app.config["storage_file_bucket"], str(document.id)
+            )
 
         ##############################
         # Special Attribute: List of string obo Tag
@@ -292,6 +220,22 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
 ################################################################################
 # Utility methods
 ################################################################################
+def get_file_size(file_handle) -> int:
+    # Remember the current position
+    current_position = file_handle.tell()
+
+    # Seek to the end of the file
+    file_handle.seek(0, 2)  # 2 means "from the end"
+
+    # Get the position of the end of the file (which is the size)
+    size = file_handle.tell()
+
+    # Return to the original position
+    file_handle.seek(current_position)
+
+    return size
+
+
 def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict]:
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
     sort: Sort = Sort.factory_from_user(user)  # Unpack the sort info from user state.

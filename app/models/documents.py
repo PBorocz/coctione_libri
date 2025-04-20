@@ -7,6 +7,7 @@ import humanize
 from mongoengine import (
     DateTimeField,
     FileField,
+    IntField,
     ListField,
     ReferenceField,
     SortedListField,
@@ -93,7 +94,9 @@ class Documents(MongoEngine_Document):
     ################################################################################
     # Generic (but optional) "document" fields, ie. common across all document categories:
     file_        = FileField()                                 # MongoDB GridFS link to actual pdf/file content
-    mimetype     = StringField(default="application/pdf")      # e.g. application/pdf etc.
+    filename     = StringField()                               # (stem) Name of the file provided/stored (if any)
+    filesize     = IntField(default=0)                         # Size of the file provided/stored (if any) in bytes
+    mimetype     = StringField(default="application/pdf")      # Mimetype of the file provided/stored (if any)
     notes        = StringField()                               # "Notes" in MD format
     source       = StringField()                               # Logical source of doc, e.g. NY, FN, etc.
     tags         = SortedListField(StringField(max_length=50)) # List of tags in "Titled" display format
@@ -157,7 +160,7 @@ class Documents(MongoEngine_Document):
     def filesize_display(self) -> str | None:
         """Return the filesize of the current document in human-readable format (if file_ defined)."""
         if self.file_:
-            return humanize.naturalsize(self.file_.length)
+            return humanize.naturalsize(self.filesize)
         return ""
 
     @property

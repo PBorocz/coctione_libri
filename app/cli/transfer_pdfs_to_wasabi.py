@@ -2,12 +2,15 @@
 """Import a set of pdf's, in 2 passes."""
 
 import argparse
+import mimetypes
 import os
 import time
 from pathlib import Path
 
 import boto3
+from botocore.exceptions import ClientError
 from mongoengine.context_managers import switch_collection
+from werkzeug.utils import secure_filename
 
 import app.constants as c
 from app import create_app
@@ -21,8 +24,8 @@ def get_wasabi_connection(app):
         "s3",
         endpoint_url="https://s3.us-west-1.wasabisys.com",
         region_name="us-east-1",
-        aws_access_key_id=app.config["wasabi_access_key_id"],
-        aws_secret_access_key=app.config["wasabi_secret_access_key"],
+        aws_access_key_id=app.config["storage_file_access_key_id"],
+        aws_secret_access_key=app.config["storage_file_secret_access_key"],
     )
     print("Connected to wasabi...")
     return wasabi
@@ -49,22 +52,40 @@ def get_pdf_from_mongo(document: Documents) -> Path:
 
 def push_file_to_wasabi(wasabi, document: Documents, file_path: Path) -> bool:
     # Open file in binary mode and read all content
-    bucket_name = "coctione-libri-development"
-    object_key = file_path.stem
-    print(f"Pushing {file_path} to wasabi...")
+    storage_bucket = "coctione-libri-development"
+    print(f"Pushing  {file_path} to wasabi.")
     try:
-        wasabi.upload_file(file_path, bucket_name, object_key)
+        wasabi.upload_file(file_path, storage_bucket, str(document.id))
+
+        document.filename = file_path.stem
+        document.filesize = os.path.getsize(file_path)
+        document.mimetype = mimetypes.guess_type(secure_filename(file_path.stem))[0]
+        document.save()
         return True
     except Exception as exc:
         print(f"Upload failed: {exc=}")
         return False
 
 
+def file_in_wasabi(wasabi, document: Documents) -> bool:
+    storage_bucket = "coctione-libri-development"
+    args = {"Bucket": storage_bucket, "Key": str(document.id)}
+    try:
+        wasabi.head_object(**args)
+        return True
+    except ClientError:
+        return False
+
+
 def transfer_document(wasabi, document: Documents) -> bool:
     """..."""
     if file_path := get_pdf_from_mongo(document):
-        if push_file_to_wasabi(wasabi, document, file_path):
-            clear_pdf_from_mongo(document)
+        if not file_in_wasabi(wasabi, document):
+            if push_file_to_wasabi(wasabi, document, file_path):
+                ...
+                # clear_pdf_from_mongo(document)
+        else:
+            print(f"SKIPPING {file_path}.")
 
     return True
 
@@ -88,7 +109,6 @@ def main(args: argparse.Namespace):
             for document in documents:
                 if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
                     transfer_document(wasabi, document)
-                break
                 time.sleep(0.5)
 
 

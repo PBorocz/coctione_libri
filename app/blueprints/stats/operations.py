@@ -151,4 +151,4 @@ def top_files(user: User) -> list[Documents]:
             .only("id", "title", "file_")
             .limit(10)
         )
-    return sorted(docs, key=lambda doc: doc.file_.length, reverse=True)
+    return sorted(docs, key=lambda doc: doc.filesize, reverse=True)

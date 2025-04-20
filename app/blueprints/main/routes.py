@@ -179,27 +179,26 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
     with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
         document = user_documents.objects(id=doc_id)[0]
 
-    if document.file_:
-        file_contents = document.file_.read()
-        contents: BytesIO = BytesIO(file_contents)
-        name: str = f"{doc_id}.pdf"
-        mimetype: str = document.file_.contentType
-        return send_file(contents, download_name=name, mimetype=mimetype)
+    # Do we think we have a document to display?
+    if not document.filename:
+        # No, do we have a url instead?
+        if document.url_:
+            # Yes, go there..
+            return redirect(document.url_)
+        # Otherwise, stay here..
+        return redirect(url_for(url))
 
-    else:
-        storage = current_app.config["STORAGE_FILE"]
-        bucket_name: str = current_app.config["storage_file_bucket"]
-        contents: BytesIO = BytesIO()
-        download_name: str = f"{doc_id}.pdf"
-        try:
-            storage.download_fileobj(bucket_name, doc_id, contents)
-            contents.seek(0)
-            return send_file(contents, download_name=download_name, mimetype=document.mimetype)
-        except ClientError:
-            if document.url_:
-                return redirect(document.url_)
-            # Really give up!
-            log.error("Sorry, document without either PDF file OR a link?")
+    # Ok, we *SHOULD* have a file, pull it and see..
+    storage = current_app.config["STORAGE_FILE"]
+    bucket_name: str = current_app.config["storage_file_bucket"]
+    contents: BytesIO = BytesIO()
+    download_name: str = f"{doc_id}.pdf"
+    try:
+        storage.download_fileobj(bucket_name, doc_id, contents)
+        contents.seek(0)
+        return send_file(contents, download_name=download_name, mimetype=document.mimetype)
+    except ClientError:
+        log.error(f"Sorry, unable to pull document {document.filename}[{document.id!s}] from storage.")
 
     return redirect(url_for(url))
 
@@ -210,7 +209,7 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 @log_route(path="/document/delete")
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
-    delete_document(fl.current_user, request.values["doc_id"])
+    delete_document(current_app, fl.current_user, request.values["doc_id"])
     return redirect(url_for(url))
 
 
@@ -222,7 +221,7 @@ def render_delete_documents(url: str = "main.render_display") -> Response:
     """Delete the specified Documents."""
     doc_ids = request.values["doc_ids"]
     for doc_id in doc_ids.split("|"):
-        delete_document(fl.current_user, doc_id)
+        delete_document(current_app, fl.current_user, doc_id)
     return redirect(url_for(url))
 
 
@@ -282,7 +281,7 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
         document = user_documents.objects(id=doc_id)[0]
 
         # Update the specified field in the document based on the inbound request, get doc and optional error msg
-        document, error_msg = update_document_attribute(document, field, request)
+        document, error_msg = update_document_attribute(current_app, document, field, request)
 
     return_args = {
         "document": document,

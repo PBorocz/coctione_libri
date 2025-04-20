@@ -116,9 +116,6 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     vendor = application.config["storage_meta_vendor"]
     app_db_settings = application.config["storage_meta_url"]
-    # application.config["MONGODB_SETTINGS"] = [
-    #     {"host": app_db_settings, "alias": "default"},
-    # ]
     connect(host=app_db_settings)
     db_name = app_db_settings.split("?")[0].split("/")[-1]
     terminal_update(f"...connected to {vendor}: {db_name}")
