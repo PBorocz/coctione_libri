@@ -187,12 +187,12 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
         return send_file(contents, download_name=name, mimetype=mimetype)
 
     else:
-        wasabi = current_app.config["WASABI"]
-        bucket_name: str = current_app.config["wasabi_bucket"]
+        storage = current_app.config["STORAGE_FILE"]
+        bucket_name: str = current_app.config["storage_file_bucket"]
         contents: BytesIO = BytesIO()
         download_name: str = f"{doc_id}.pdf"
         try:
-            wasabi.download_fileobj(bucket_name, doc_id, contents)
+            storage.download_fileobj(bucket_name, doc_id, contents)
             contents.seek(0)
             return send_file(contents, download_name=download_name, mimetype=document.mimetype)
         except ClientError:

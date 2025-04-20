@@ -28,7 +28,7 @@ htmx = HTMX()
 def terminal_update(msg: str, done: bool = False) -> None:
     """Update to our terminal but with line "over-writing" unless we're 'done'."""
     padding = f"{' '*(TERM_SIZE.columns - len(msg))}"
-    print(f"\r{msg}{padding}", end="")
+    print(f"\r{msg}{padding}")  # , end="")
     if done:
         print()
 
@@ -112,32 +112,33 @@ def _create_app_extensions(application: Flask) -> Flask:
 def _create_app_connections(application: Flask) -> Flask:
     """Connect to our external service connections."""
     ################################################################################
-    # Mongodb first...
+    # "Document" metadata first...
     ################################################################################
-    app_db_settings = application.config["mongo_db"]
-    application.config["MONGODB_SETTINGS"] = [
-        {"host": app_db_settings, "alias": "default"},
-    ]
+    vendor = application.config["storage_meta_vendor"]
+    app_db_settings = application.config["storage_meta_url"]
+    # application.config["MONGODB_SETTINGS"] = [
+    #     {"host": app_db_settings, "alias": "default"},
+    # ]
     connect(host=app_db_settings)
-
     db_name = app_db_settings.split("?")[0].split("/")[-1]
-    terminal_update(f"...connected to MongoDB: {db_name}")
+    terminal_update(f"...connected to {vendor}: {db_name}")
 
     ################################################################################
-    # Wasabi file/object store next...
+    # "Document" file/object store next...
     ################################################################################
-    endpoint_url = application.config["wasabi_endpoint_url"]
-    region_name = application.config["wasabi_region_name"]
-    access_key_id = application.config["wasabi_access_key_id"]
-    secret_access_key = application.config["wasabi_secret_access_key"]
-    application.config["WASABI"] = boto3.client(
+    vendor = application.config["storage_file_vendor"]
+    endpoint_url = application.config["storage_file_endpoint_url"]
+    region_name = application.config["storage_file_region_name"]
+    access_key_id = application.config["storage_file_access_key_id"]
+    secret_access_key = application.config["storage_file_secret_access_key"]
+    application.config["STORAGE_FILE"] = boto3.client(
         "s3",
         endpoint_url=endpoint_url,
         region_name=region_name,
         aws_access_key_id=access_key_id,
         aws_secret_access_key=secret_access_key,
     )
-    terminal_update(f"...connected to Wasabi: {endpoint_url}:{region_name}")
+    terminal_update(f"...connected to {vendor}: {endpoint_url}:{region_name}")
 
     return application
 
