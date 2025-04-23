@@ -27,7 +27,8 @@ def get_wasabi_connection(app):
         aws_access_key_id=app.config["storage_file_access_key_id"],
         aws_secret_access_key=app.config["storage_file_secret_access_key"],
     )
-    print("Connected to wasabi...")
+    wasabi.storage_file_bucket = app.config["storage_file_bucket"]
+    print(f"Connected to wasabi, bucket: {wasabi.storage_file_bucket}")
     return wasabi
 
 
@@ -52,10 +53,9 @@ def get_pdf_from_mongo(document: Documents) -> Path:
 
 def push_file_to_wasabi(wasabi, document: Documents, file_path: Path) -> bool:
     # Open file in binary mode and read all content
-    storage_bucket = "coctione-libri-development"
-    print(f"Pushing  {file_path} to wasabi.")
+    print(".", flush=True, end="")  # f"Pushing  {file_path} to wasabi.")
     try:
-        wasabi.upload_file(file_path, storage_bucket, str(document.id))
+        wasabi.upload_file(file_path, wasabi.storage_file_bucket, str(document.id))
 
         document.filename = file_path.stem
         document.filesize = os.path.getsize(file_path)
@@ -63,13 +63,12 @@ def push_file_to_wasabi(wasabi, document: Documents, file_path: Path) -> bool:
         document.save()
         return True
     except Exception as exc:
-        print(f"Upload failed: {exc=}")
+        print(f"\nUpload failed: {exc=}")
         return False
 
 
 def file_in_wasabi(wasabi, document: Documents) -> bool:
-    storage_bucket = "coctione-libri-development"
-    args = {"Bucket": storage_bucket, "Key": str(document.id)}
+    args = {"Bucket": wasabi.storage_file_bucket, "Key": str(document.id)}
     try:
         wasabi.head_object(**args)
         return True
@@ -81,12 +80,9 @@ def transfer_document(wasabi, document: Documents) -> bool:
     """..."""
     if file_path := get_pdf_from_mongo(document):
         if not file_in_wasabi(wasabi, document):
-            if push_file_to_wasabi(wasabi, document, file_path):
-                ...
-                # clear_pdf_from_mongo(document)
+            push_file_to_wasabi(wasabi, document, file_path)
         else:
-            print(f"SKIPPING {file_path}.")
-
+            print("e", flush=True, end="")
     return True
 
 
@@ -110,6 +106,7 @@ def main(args: argparse.Namespace):
                 if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
                     transfer_document(wasabi, document)
                 time.sleep(0.5)
+    print()
 
 
 if __name__ == "__main__":
