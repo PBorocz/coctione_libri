@@ -10,7 +10,7 @@ from mongoengine.context_managers import switch_collection
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models.documents import Documents
+from app.models.documents import Category, Documents
 from app.models.user import query_user
 
 
@@ -19,6 +19,7 @@ def clear_pdf_from_mongo(document: Documents) -> bool:
         document.file_.delete()
         document.file_ = None
         document.save()
+        print(".", flush=True, end="")
         return True
     except Exception as exc:
         print(f"Unable to delete mongodb file? {exc}")
@@ -36,19 +37,20 @@ def main(args: argparse.Namespace):
     with app.app_context():
         user = query_user(email="peter.borocz@gmail.com")
 
-        # Get each document in our repository..
-        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-            documents = user_documents.objects()
-            print(f"{len(documents):4d} documents found.")
-            for document in documents:
-                if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
-                    clear_pdf_from_mongo(document)
-                time.sleep(0.2)
-    print()
+        for collection in (Category.COOKING_SKILLS, Category.COOKING_PRODUCTS):
+            # Get each document in our repository..
+            with switch_collection(Documents, Documents.as_user(user, collection)) as user_documents:
+                documents = user_documents.objects()
+                print(f"{len(documents):4d} documents found.")
+                for document in documents:
+                    if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
+                        clear_pdf_from_mongo(document)
+                    time.sleep(0.1)
+            print()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CoctioneLibri - Transfer PDF's to Wasabi")
+    parser = argparse.ArgumentParser(description="CoctioneLibri - Clear PDF's from MongoDB")
 
     parser.add_argument(
         "-d",

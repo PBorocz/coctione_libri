@@ -112,14 +112,13 @@ def delete_document(app, user: User, id_: str) -> None:
         document = user_documents.objects(id=id_)[0]
         s_doc_id = str(document.id)
         try:
-            storage_handle = app.config["STORAGE_FILE"]
-            storage_bucket = app.config["storage_file_bucket"]
-            args = {"Bucket": storage_bucket, "Key": s_doc_id}
-            storage_handle.head_object(**args)
-            storage_handle.delete_object(**args)
+            client_storage = app.config["STORAGE_FILE"]
+            args = {"Bucket": client_storage.bucket, "Key": s_doc_id}
+            client_storage.head_object(**args)
+            client_storage.delete_object(**args)
         except ClientError as e:
             if e.response["Error"]["Code"] != "404":
-                log.error(f"Error deleting object {s_doc_id} from bucket {storage_bucket}: {e}!")
+                log.error(f"Error deleting object {s_doc_id} from bucket {client_storage.bucket}: {e}!")
         document.delete()
 
 

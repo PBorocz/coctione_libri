@@ -128,14 +128,18 @@ def _create_app_connections(application: Flask) -> Flask:
     region_name = application.config["storage_file_region_name"]
     access_key_id = application.config["storage_file_access_key_id"]
     secret_access_key = application.config["storage_file_secret_access_key"]
-    application.config["STORAGE_FILE"] = boto3.client(
+    boto_client = boto3.client(
         "s3",
         endpoint_url=endpoint_url,
         region_name=region_name,
         aws_access_key_id=access_key_id,
         aws_secret_access_key=secret_access_key,
     )
-    terminal_update(f"...connected to {vendor}: {endpoint_url}:{region_name}")
+    # Workaround, stuff the name of the bucket onto the boto client so we don't have
+    # to look it up everwhere else..
+    boto_client.bucket = application.config["storage_file_bucket"]
+    application.config["STORAGE_FILE"] = boto_client
+    terminal_update(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
 
     return application
 

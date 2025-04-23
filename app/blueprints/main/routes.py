@@ -189,12 +189,11 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
         return redirect(url_for(url))
 
     # Ok, we *SHOULD* have a file, pull it and see..
-    storage = current_app.config["STORAGE_FILE"]
-    bucket_name: str = current_app.config["storage_file_bucket"]
+    client_storage = current_app.config["STORAGE_FILE"]
     contents: BytesIO = BytesIO()
     download_name: str = f"{doc_id}.pdf"
     try:
-        storage.download_fileobj(bucket_name, doc_id, contents)
+        client_storage.download_fileobj(client_storage.bucket, doc_id, contents)
         contents.seek(0)
         return send_file(contents, download_name=download_name, mimetype=document.mimetype)
     except ClientError:

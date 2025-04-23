@@ -15,7 +15,7 @@ from werkzeug.utils import secure_filename
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
-from app.models.documents import Documents
+from app.models.documents import Category, Documents
 from app.models.user import query_user
 
 
@@ -27,20 +27,9 @@ def get_wasabi_connection(app):
         aws_access_key_id=app.config["storage_file_access_key_id"],
         aws_secret_access_key=app.config["storage_file_secret_access_key"],
     )
-    wasabi.storage_file_bucket = app.config["storage_file_bucket"]
-    print(f"Connected to wasabi, bucket: {wasabi.storage_file_bucket}")
+    wasabi.bucket = app.config["storage_file_bucket"]
+    print(f"Connected to wasabi, bucket: {wasabi.bucket}")
     return wasabi
-
-
-def clear_pdf_from_mongo(document: Documents) -> bool:
-    try:
-        document.file_.delete()
-        document.file_ = None
-        document.save()
-        return True
-    except Exception as exc:
-        print(f"Unable to delete mongodb file? {exc}")
-        return False
 
 
 def get_pdf_from_mongo(document: Documents) -> Path:
@@ -53,9 +42,8 @@ def get_pdf_from_mongo(document: Documents) -> Path:
 
 def push_file_to_wasabi(wasabi, document: Documents, file_path: Path) -> bool:
     # Open file in binary mode and read all content
-    print(".", flush=True, end="")  # f"Pushing  {file_path} to wasabi.")
     try:
-        wasabi.upload_file(file_path, wasabi.storage_file_bucket, str(document.id))
+        wasabi.upload_file(file_path, wasabi.bucket, str(document.id))
 
         document.filename = file_path.stem
         document.filesize = os.path.getsize(file_path)
@@ -68,7 +56,7 @@ def push_file_to_wasabi(wasabi, document: Documents, file_path: Path) -> bool:
 
 
 def file_in_wasabi(wasabi, document: Documents) -> bool:
-    args = {"Bucket": wasabi.storage_file_bucket, "Key": str(document.id)}
+    args = {"Bucket": wasabi.bucket, "Key": str(document.id)}
     try:
         wasabi.head_object(**args)
         return True
@@ -76,10 +64,11 @@ def file_in_wasabi(wasabi, document: Documents) -> bool:
         return False
 
 
-def transfer_document(wasabi, document: Documents) -> bool:
+def push_to_wasabi(wasabi, document: Documents) -> bool:
     """..."""
     if file_path := get_pdf_from_mongo(document):
         if not file_in_wasabi(wasabi, document):
+            print(".", flush=True, end="")
             push_file_to_wasabi(wasabi, document, file_path)
         else:
             print("e", flush=True, end="")
@@ -95,18 +84,18 @@ def main(args: argparse.Namespace):
     os.environ["FLASK_ENV"] = args.database
     app = create_app(logging=None)
     with app.app_context():
-        wasabi = get_wasabi_connection(app)
         user = query_user(email="peter.borocz@gmail.com")
 
-        # Get each document in our repository..
-        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-            documents = user_documents.objects()
-            print(f"{len(documents):4d} documents found.")
-            for document in documents:
-                if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
-                    transfer_document(wasabi, document)
-                time.sleep(0.5)
-    print()
+        for collection in (Category.COOKING_SKILLS, Category.COOKING_PRODUCTS):
+            # Get each document in our repository..
+            with switch_collection(Documents, Documents.as_user(user, collection)) as user_documents:
+                documents = user_documents.objects()
+                print(f"{len(documents):4d} documents found in {collection}:")
+                for document in documents:
+                    if document.file_:  # Just to make sure, there ARE some empties or those we've already done. :-)
+                        push_to_wasabi(app.config["STORAGE_FILE"], document)
+                    time.sleep(0.2)
+            print()
 
 
 if __name__ == "__main__":
