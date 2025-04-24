@@ -159,7 +159,7 @@ class Documents(MongoEngine_Document):
     @property
     def filesize_display(self) -> str | None:
         """Return the filesize of the current document in human-readable format (if file_ defined)."""
-        if self.file_:
+        if self.filesize:
             return humanize.naturalsize(self.filesize)
         return ""
 

@@ -28,7 +28,7 @@ htmx = HTMX()
 def terminal_update(msg: str, done: bool = False) -> None:
     """Update to our terminal but with line "over-writing" unless we're 'done'."""
     padding = f"{' '*(TERM_SIZE.columns - len(msg))}"
-    print(f"\r{msg}{padding}")  # , end="")
+    print(f"\r{msg}{padding}", end="")
     if done:
         print()
 

@@ -147,8 +147,8 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
 def top_files(user: User) -> list[Documents]:
     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
         docs = (
-            user_documents.objects(Q(__raw__={"file_": {"$exists": True, "$ne": None}}))
-            .only("id", "title", "file_")
+            user_documents.objects(Q(__raw__={"filesize": {"$exists": True, "$ne": None}}))
+            .only("id", "title", "filesize")
             .limit(10)
         )
     return sorted(docs, key=lambda doc: doc.filesize, reverse=True)

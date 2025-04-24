@@ -120,6 +120,7 @@ import = "python ./app/cli/import_pdf.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+db_quality = "python ./app/cli/db_quality.py"
 
 ################################################################################
 # Import
