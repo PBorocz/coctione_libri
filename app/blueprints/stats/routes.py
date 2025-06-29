@@ -7,7 +7,7 @@ from flask_login import login_required
 
 from app.blueprints.admin.operations import get_all_tags
 from app.blueprints.stats import bp
-from app.blueprints.stats.operations import create_bar_chart, get_all_sources, top_files
+from app.blueprints.stats.operations import create_bar_chart, get_all_reviews, get_all_sources, top_files
 from app.models import categories_available
 
 
@@ -31,10 +31,20 @@ def statistics(template: str = "stats/stats.html") -> Response:
     }
     fn_source_chart = create_bar_chart(get_all_sources(fl.current_user), config)
 
+    # Get the figure associated with the distribution/count of REVIEWS:
+    d_reviews = get_all_reviews(fl.current_user)
+    config = {
+        "data_name": "review",
+        "title": "Quality Reviews",
+        "render_top_n": len(d_reviews),
+    }
+    fn_review_chart = create_bar_chart(d_reviews, config)
+
     return f.render_template(
         template,
         fn_tag_chart=fn_tag_chart,
         fn_source_chart=fn_source_chart,
+        fn_review_chart=fn_review_chart,
         top_files=top_files(fl.current_user),
         categories=categories_available(),
     )

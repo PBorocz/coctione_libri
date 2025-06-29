@@ -28,6 +28,20 @@ def get_all_sources(user: User) -> list[str, int]:
     return list(sources.items())
 
 
+def get_all_reviews(user: User) -> list[str, int]:
+    """Return a sorted list of all the number of reviews & respective counts (for those docs WITH reviews!)."""
+    reviews = defaultdict(int)
+    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+        for document in user_documents.objects().only("quality"):
+            if document.quality:
+                reviews[str(document.quality)] += 1
+    log.info(f"{len(reviews):,d} reviews found.")
+    from pprint import pprint
+
+    pprint(reviews)
+    return list(reviews.items())
+
+
 def create_bar_chart(datum: list[str, int], config: dict) -> str:
     """Generate an "economist" style bar plot for the datum & counts provided.
 
@@ -36,7 +50,7 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
     # from pprint import pprint
 
     # pprint(datum)
-    render_top_n = 30
+    render_top_n = config.get("render_top_n", 30)
 
     # Setup plot size.
     fig, ax = plt.subplots(figsize=(3, 10))
