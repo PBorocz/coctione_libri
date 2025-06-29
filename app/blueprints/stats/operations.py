@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from mongoengine import Q
 from mongoengine.context_managers import switch_collection
@@ -58,9 +59,23 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
     # Plot data
     ax.barh(datum_bar[column_1], datum_bar["count"], color="#006BA2", zorder=2)
 
-    # Set custom labels for x-axis
-    ax.set_xticks([0, 10, 20, 30, 40, 50, 60, 70, 80])
-    ax.set_xticklabels(["0", "10", " 20", "30", "40", "50", "60", "70", "80"])
+    # Set custom labels for x-axis (dynamically based on data range)
+    # Choose appropriate interval based on data range
+    max_val = datum_bar["count"].max()
+    if max_val <= 100:  # noqa
+        interval = 10
+    elif max_val <= 250:  # noqa
+        interval = 25
+    elif max_val <= 500:  # noqa
+        interval = 50
+    else:
+        interval = 100
+
+    max_tick = ((max_val // interval) + 1) * interval
+    ticks = np.arange(0, max_tick + 1, interval)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([str(int(x)) for x in ticks])
+
     ax.xaxis.set_tick_params(
         labeltop=True,  # Put x-axis labels on top
         labelbottom=False,  # Set no x-axis labels on bottom
