@@ -31,6 +31,8 @@ pymongo = "^4.10.1"
 mongoengine = "^0.29.1"
 gunicorn = "^23.0.0"
 boto3 = "^1.37.35"
+urllib3 = "^2.5.0"
+jinja2 = "^3.1.6"
 
 [tool.poetry.group.dev.dependencies]
 flask-debugtoolbar-mongo = "^0.1"
