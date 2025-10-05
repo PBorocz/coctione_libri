@@ -47,7 +47,7 @@ shell = """
   jj git push     --revisions @-
   """
 
-[tool.pborocz.deploy.production]
+[tool.pborocz.deploy]
 environment_files = [
   ["coctione_libri.secrets.toml", ".secrets.toml"],
 ]
