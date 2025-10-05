@@ -40,6 +40,15 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+[tool.pborocz.deploy.production]
+   environment_files = [
+     ["coctione_libri.secrets.toml", ".secrets.toml"]
+   ]
+   setup_commands = [
+   ]
+   server = "gunicorn"
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
