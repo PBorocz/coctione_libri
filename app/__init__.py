@@ -149,6 +149,8 @@ def _create_app_ctx_processors(application: Flask) -> Flask:
             return {"watermark": "Development"}
         elif application.config["ENV"] == "testing":
             return {"watermark": "Deployment Testing"}
+        elif application.config["ENV"] == "production":
+            return {"watermark": ""}
         return {}
 
     log.info("...defined context processors")
