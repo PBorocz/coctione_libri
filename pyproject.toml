@@ -47,10 +47,17 @@ shell = """
   jj git push     --revisions @-
   """
 
-[tool.pborocz.deploy]
+[tool.pborocz.deploy.production]
 environment_files = [
   ["coctione_libri.common.env", ".env"],
   ["coctione_libri.production.env", ".env.local"],
+]
+server = "gunicorn"
+
+[tool.pborocz.deploy.testing]
+environment_files = [
+  ["coctione_libri.common.env", ".env"],
+  ["coctione_libri.testing.env", ".env.local"],
 ]
 server = "gunicorn"
 
