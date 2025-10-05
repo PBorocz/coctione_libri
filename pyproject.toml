@@ -43,7 +43,7 @@ packages = ["app"]
 [tool.poe.tasks.deploy]
 help = "Deploy to github on behalf of a production release."
 shell = """
-  jj bookmark set --revision  @- main
+  jj bookmark set --revision  @- trunk
   jj git push     --revisions @-
   """
 
