@@ -40,14 +40,19 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+[tool.poe.tasks.deploy]
+help = "Deploy to github on behalf of a production release."
+shell = """
+  jj bookmark set --revision  @- main
+  jj git push     --revisions @-
+  """
+
 [tool.pborocz.deploy.production]
-   environment_files = [
-     ["coctione_libri.secrets.toml", ".secrets.toml"]
-   ]
-   setup_commands = [
-   ]
-   server = "gunicorn"
+environment_files = [
+  ["coctione_libri.secrets.toml", ".secrets.toml"],
 ]
+server = "gunicorn"
+
 
 [tool.ruff]
 target-version = "py311"
