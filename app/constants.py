@@ -3,7 +3,7 @@
 ###############################################################################
 # Logging infrastructure
 ###############################################################################
-LOGGING_FORMAT_FLASK = "{asctime}s; {levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
+LOGGING_FORMAT_FLASK = "{asctime} {levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
 LOGGING_FORMAT_GUNICORN = "{levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
 LOGGING_FORMAT_DATETIME = "%Y-%m-%d %H:%M:%S"
 

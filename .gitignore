@@ -1,7 +1,6 @@
 # PERSONAL/LOCAL FILES:
 .DS_Store
-.env
-.envrc*
+.env*
 .secrets*
 __*/
 *.pem

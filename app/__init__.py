@@ -9,9 +9,8 @@ with warnings.catch_warnings():
     import flask as f
 
 import boto3
-from dynaconf import FlaskDynaconf
+from dotenv import dotenv_values
 from flask.app import Flask  # Typing
-
 from flask_htmx import HTMX
 from flask_login import LoginManager
 from mongoengine import connect
@@ -25,13 +24,16 @@ htmx = HTMX()
 
 
 def _create_app_configuration(application: Flask) -> Flask:
-    dynaconf = FlaskDynaconf()
-    dynaconf.init_app(application, load_dotenv=True)
+    application.config.update(**dotenv_values(".env", verbose=True))
+    application.config.update(**dotenv_values(".env.local", verbose=True))
+
+    # dynaconf = FlaskDynaconf()
+    # dynaconf.init_app(application, load_dotenv=True)
 
     # Set booleans for ease in checking our environment.
-    application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
-    application.config["development"] = True if application.config.get("ENV").casefold() == "development" else False
-    application.config["testing"] = True if application.config.get("ENV").casefold() == "testing" else False
+    application.config["production"] = True if application.config.get("env").casefold() == "production" else False
+    application.config["development"] = True if application.config.get("env").casefold() == "development" else False
+    application.config["testing"] = True if application.config.get("env").casefold() == "testing" else False
     log.info(f"...configured configuration environment: {application.config.get('ENV')}")
     return application
 
@@ -41,7 +43,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
         log.getLogger().setLevel(log.CRITICAL)  # Effectively turn logging OFF!
 
     elif logging:
-        level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
+        level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("log_level").lower())
 
         if application.config.get("development"):
             format = c.LOGGING_FORMAT_FLASK
@@ -164,9 +166,13 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     with application.app_context():
-        # Setup initial logging...
+        # Setup initial logging configuration to get us going
         log.basicConfig(
-            level=log.INFO, format=c.LOGGING_FORMAT_FLASK, force=True, style="{", datefmt=c.LOGGING_FORMAT_DATETIME
+            level=log.INFO,
+            format=c.LOGGING_FORMAT_FLASK,
+            force=True,
+            style="{",
+            datefmt=c.LOGGING_FORMAT_DATETIME,
         )
 
         # Get configuration
@@ -183,9 +189,6 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
 
         # Connect and setup our database environments
         application = _create_app_connections(application)
-
-        # Setup static resources..
-        # application.config["SOURCES"] = Sources.factory()
 
         # Finally, setup and register all our application blueprints
         application = _create_app_blueprints(application)

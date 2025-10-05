@@ -17,7 +17,7 @@ FILE_STORAGE_ENTRIES = {}
 
 
 def get_file_storage(app) -> int:
-    storage_client = app.config["STORAGE_FILE"]
+    storage_client = app.config["storage_file"]
     response = storage_client.list_objects_v2(Bucket=storage_client.bucket)
     for entry in response["Contents"]:
         FILE_STORAGE_ENTRIES[entry["Key"]] = entry
