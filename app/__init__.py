@@ -26,15 +26,7 @@ htmx = HTMX()
 def _create_app_configuration(application: Flask) -> Flask:
     application.config.update(**dotenv_values(".env", verbose=True))
     application.config.update(**dotenv_values(".env.local", verbose=True))
-
-    # dynaconf = FlaskDynaconf()
-    # dynaconf.init_app(application, load_dotenv=True)
-
-    # Set booleans for ease in checking our environment.
-    application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
-    application.config["development"] = True if application.config.get("ENV").casefold() == "development" else False
-    application.config["testing"] = True if application.config.get("ENV").casefold() == "testing" else False
-    log.info(f"...configuration environment: {application.config.get('env')}")
+    log.info(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
 
@@ -45,7 +37,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
     elif logging:
         level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
 
-        if application.config.get("development"):
+        if application.config.get("ENV") == "development":
             format = c.LOGGING_FORMAT_FLASK
         else:
             format = c.LOGGING_FORMAT_GUNICORN
@@ -53,7 +45,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
         log.basicConfig(level=level, format=format, force=True, style="{", datefmt=c.LOGGING_FORMAT_DATETIME)
 
         # See *all* inbound requests for local/development environment (but not in production)
-        log.getLogger("werkzeug").disabled = True if application.config["production"] else False
+        log.getLogger("werkzeug").disabled = True if application.config["ENV"] == "production" else False
 
         # Some of our underlying modules are quite "chatty"...shut 'em up ;-)
         for module in (
@@ -153,8 +145,10 @@ def _create_app_blueprints(application: Flask) -> Flask:
 def _create_app_ctx_processors(application: Flask) -> Flask:
     @application.context_processor
     def inject_watermark():
-        if application.config["development"]:
+        if application.config["ENV"] == "development":
             return {"watermark": "Development"}
+        elif application.config["ENV"] == "testing":
+            return {"watermark": "Deployment Testing"}
         return {}
 
     log.info("...defined context processors")
