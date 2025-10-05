@@ -152,7 +152,7 @@ def update_document_attribute(app, document: Documents, field: str, request) -> 
             document.filesize = get_file_size(file)
             document.mimetype = mimetypes.guess_type(document.filename)[0]
             app.config["STORAGE_FILE"].upload_fileobj(
-                file.stream, current_app.config["storage_file_bucket"], str(document.id)
+                file.stream, current_app.config["STORAGE_FILE_BUCKET"], str(document.id)
             )
 
         ##############################

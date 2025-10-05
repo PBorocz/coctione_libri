@@ -24,10 +24,10 @@ def get_wasabi_connection(app):
         "s3",
         endpoint_url="https://s3.us-west-1.wasabisys.com",
         region_name="us-east-1",
-        aws_access_key_id=app.config["storage_file_access_key_id"],
-        aws_secret_access_key=app.config["storage_file_secret_access_key"],
+        aws_access_key_id=app.config["STORAGE_FILE_ACCESS_KEY_ID"],
+        aws_secret_access_key=app.config["STORAGE_FILE_SECRET_ACCESS_KEY"],
     )
-    wasabi.bucket = app.config["storage_file_bucket"]
+    wasabi.bucket = app.config["STORAGE_FILE_BUCKET"]
     print(f"Connected to wasabi, bucket: {wasabi.bucket}")
     return wasabi
 

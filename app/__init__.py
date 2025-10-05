@@ -31,9 +31,9 @@ def _create_app_configuration(application: Flask) -> Flask:
     # dynaconf.init_app(application, load_dotenv=True)
 
     # Set booleans for ease in checking our environment.
-    application.config["production"] = True if application.config.get("env").casefold() == "production" else False
-    application.config["development"] = True if application.config.get("env").casefold() == "development" else False
-    application.config["testing"] = True if application.config.get("env").casefold() == "testing" else False
+    application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
+    application.config["development"] = True if application.config.get("ENV").casefold() == "development" else False
+    application.config["testing"] = True if application.config.get("ENV").casefold() == "testing" else False
     log.info(f"...configuration environment: {application.config.get('env')}")
     return application
 
@@ -43,7 +43,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
         log.getLogger().setLevel(log.CRITICAL)  # Effectively turn logging OFF!
 
     elif logging:
-        level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("log_level").lower())
+        level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
 
         if application.config.get("development"):
             format = c.LOGGING_FORMAT_FLASK
@@ -101,8 +101,8 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # "Document" metadata first...
     ################################################################################
-    vendor = application.config["storage_meta_vendor"]
-    app_db_settings = application.config["storage_meta_url"]
+    vendor = application.config["STORAGE_META_VENDOR"]
+    app_db_settings = application.config["STORAGE_META_URL"]
     connect(host=app_db_settings)
     db_name = app_db_settings.split("?")[0].split("/")[-1]
     log.info(f"...connected to {vendor}: {db_name}")
@@ -110,11 +110,11 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # "Document" file/object store next...
     ################################################################################
-    vendor = application.config["storage_file_vendor"]
-    endpoint_url = application.config["storage_file_endpoint_url"]
-    region_name = application.config["storage_file_region_name"]
-    access_key_id = application.config["storage_file_access_key_id"]
-    secret_access_key = application.config["storage_file_secret_access_key"]
+    vendor = application.config["STORAGE_FILE_VENDOR"]
+    endpoint_url = application.config["STORAGE_FILE_ENDPOINT_URL"]
+    region_name = application.config["STORAGE_FILE_REGION_NAME"]
+    access_key_id = application.config["STORAGE_FILE_ACCESS_KEY_ID"]
+    secret_access_key = application.config["STORAGE_FILE_SECRET_ACCESS_KEY"]
     boto_client = boto3.client(
         "s3",
         endpoint_url=endpoint_url,
@@ -124,7 +124,7 @@ def _create_app_connections(application: Flask) -> Flask:
     )
     # Workaround, stuff the name of the bucket onto the boto client so we don't have
     # to look it up everwhere else..
-    boto_client.bucket = application.config["storage_file_bucket"]
+    boto_client.bucket = application.config["STORAGE_FILE_BUCKET"]
     application.config["STORAGE_FILE"] = boto_client
     log.info(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
 
@@ -132,17 +132,17 @@ def _create_app_connections(application: Flask) -> Flask:
 
 
 def _create_app_blueprints(application: Flask) -> Flask:
-    from app.blueprints.admin import bp as blueprint_admin
-    from app.blueprints.auth import bp as blueprint_auth
-    from app.blueprints.main import bp as blueprint_main
-    from app.blueprints.stats import bp as blueprint_stats
+    from app.blueprints.admin import bp as blueprint_admin  # noqa: PLC0415
+    from app.blueprints.auth import bp as blueprint_auth  # noqa: PLC0415
+    from app.blueprints.main import bp as blueprint_main  # noqa: PLC0415
+    from app.blueprints.stats import bp as blueprint_stats  # noqa: PLC0415
 
     application.register_blueprint(blueprint_auth)
     application.register_blueprint(blueprint_main)
     application.register_blueprint(blueprint_stats)
     application.register_blueprint(blueprint_admin)
 
-    from app.blueprints.main import render_display_column
+    from app.blueprints.main import render_display_column  # noqa: PLC0415
 
     application.jinja_env.globals.update(render_display_column=render_display_column)
 
@@ -150,7 +150,7 @@ def _create_app_blueprints(application: Flask) -> Flask:
     return application
 
 
-def _create_app_context_processors(application: Flask) -> Flask:
+def _create_app_ctx_processors(application: Flask) -> Flask:
     @application.context_processor
     def inject_watermark():
         if application.config["development"]:
@@ -194,7 +194,7 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
         application = _create_app_blueprints(application)
 
         # Add our "context processers"
-        application = _create_app_context_processors(application)
+        application = _create_app_ctx_processors(application)
 
         log.info("Ready...")  # , done=True)
 

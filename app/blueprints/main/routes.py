@@ -189,7 +189,7 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
         return redirect(url_for(url))
 
     # Ok, we *SHOULD* have a file, pull it and see..
-    client_storage = current_app.config["storage_file"]
+    client_storage = current_app.config["STORAGE_FILE"]
     contents: BytesIO = BytesIO()
     download_name: str = f"{doc_id}.pdf"
     try:
