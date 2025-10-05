@@ -1,49 +1,45 @@
-[tool.poetry]
-name = "Coctione Libri"
+[project]
+name = "coctione_libri"
 version = "0.1.0"
 description = ""
-authors = ["Peter Borocz <680893+PBorocz@users.noreply.github.com>"]
+authors = [{ name = "Peter Borocz", email = "680893+PBorocz@users.noreply.github.com" }]
+requires-python = ">=3.11.0,<4.0"
 readme = "README.md"
-# packages = [{include = "10"}]
+dependencies = [
+    "flask>=3.0.0,<4",
+    "flask-htmx>=0.3.2,<0.4",
+    "flask-login>=0.6.3,<0.7",
+    "pydantic>=2.5.3,<3",
+    "python-dotenv>=1.0.0,<2",
+    "secure>=0.3.0,<0.4",
+    "rich>=13.7.0,<14",
+    "wtforms>=3.1.2,<4",
+    "flask-wtf>=1.2.1,<2",
+    "email-validator>=2.1.0.post1,<3",
+    "dynaconf>=3.2.4,<4",
+    "flask-debugtoolbar>=0.14.1,<0.15",
+    "tomli-w>=1.0.0,<2",
+    "pandas>=2.2.2,<3",
+    "matplotlib>=3.9.0,<4",
+    "humanize>=4.11.0,<5",
+    "pymongo>=4.10.1,<5",
+    "mongoengine>=0.29.1,<0.30",
+    "gunicorn>=23.0.0,<24",
+    "boto3>=1.37.35,<2",
+    "urllib3>=2.5.0,<3",
+    "jinja2>=3.1.6,<4",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-flask = "^3.0.0"
-flask-htmx = "^0.3.2"
-flask-login = "^0.6.3"
-pydantic = "^2.5.3"
-python-dotenv = "^1.0.0"
-secure = "^0.3.0"
-rich = "^13.7.0"
-
-# Using fork here https://github.com/idoshr/flask-mongoengine since regular mongoengine isn't being maintained anymore.
-# More context: https://stackoverflow.com/questions/76570896/importerror-cannot-import-name-jsonencoder-from-flask-json
-wtforms = "^3.1.2"
-flask-wtf = "^1.2.1"
-email-validator = "^2.1.0.post1"
-dynaconf = "^3.2.4"
-flask-debugtoolbar = "^0.14.1"
-tomli-w = "^1.0.0"
-pandas = "^2.2.2"
-matplotlib = "^3.9.0"
-humanize = "^4.11.0"
-pymongo = "^4.10.1"
-mongoengine = "^0.29.1"
-gunicorn = "^23.0.0"
-boto3 = "^1.37.35"
-urllib3 = "^2.5.0"
-jinja2 = "^3.1.6"
-
-[tool.poetry.group.dev.dependencies]
-flask-debugtoolbar-mongo = "^0.1"
+[dependency-groups]
+dev = ["flask-debugtoolbar-mongo>=0.1,<0.2"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-# ##############################################################################
-# Ruff world!
-# ##############################################################################
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
@@ -107,57 +103,43 @@ max-complexity = 12
 
 [tool.ruff.lint.per-file-ignores]
 "config.py" = [
-  "N802",  # We want all Config properties to be uppercase (even if from a methoc)
+  "N802",  # We want all Config properties to be uppercase (even if from a method)
   "N805",  # We have classmethods defined that use 'cls' as arg, not 'self'!
 ]
 
-# ##############################################################################
-# PoeThePoet
-# ##############################################################################
 [tool.poe]
-verbosity = 2
+verbosity = 0
 
 [tool.poe.tasks]
-import = "python ./app/cli/import_pdf.py"
+import = "uv run python ./app/cli/import_pdf.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
-db_quality = "python ./app/cli/db_quality.py"
+db_quality = "uv run python ./app/cli/db_quality.py"
 
-################################################################################
-# Import
-################################################################################
-# This doesn't work! For some reason, complains at trying to import tomli_w.
-# Even though the first command *does* work!...arghh
 [tool.poe.tasks.import_recipes_development]
 interpreter = "fish"
 shell = """
-  python -c "import tomli_w"
-  python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
-  python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
+  uv run python -c "import tomli_w"
+  uv run python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
+  uv run python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
 """
 
-################################################################################
-# Local servers..
-################################################################################
 [tool.poe.tasks.dev_run_local]
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
   sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
-  flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
+  uv run flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
   """
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "production"
-  flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
+  uv run flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
 """
 
-################################################################################
-# Backups!
-################################################################################
 [tool.poe.tasks.backup_local]
 interpreter = "fish"
 shell = """
@@ -193,9 +175,6 @@ shell = """
   rm                                      ./__backups__/working
 """
 
-################################################################################
-# Restore
-################################################################################
 [tool.poe.tasks.restore]
 interpreter = "fish"
 args = ["db_from", "db_to", "backup_directory_path"]
