@@ -34,7 +34,7 @@ def _create_app_configuration(application: Flask) -> Flask:
     application.config["production"] = True if application.config.get("env").casefold() == "production" else False
     application.config["development"] = True if application.config.get("env").casefold() == "development" else False
     application.config["testing"] = True if application.config.get("env").casefold() == "testing" else False
-    log.info(f"...configured configuration environment: {application.config.get('ENV')}")
+    log.info(f"...configuration environment: {application.config.get('env')}")
     return application
 
 
