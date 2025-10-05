@@ -11,11 +11,10 @@ with warnings.catch_warnings():
 import boto3
 from dynaconf import FlaskDynaconf
 from flask.app import Flask  # Typing
-from flask_debugtoolbar import DebugToolbarExtension
+
 from flask_htmx import HTMX
 from flask_login import LoginManager
 from mongoengine import connect
-from pymongo import MongoClient
 
 import app.constants as c
 from app.models.user import query_user
@@ -25,22 +24,15 @@ TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 htmx = HTMX()
 
 
-def terminal_update(msg: str, done: bool = False) -> None:
-    """Update to our terminal but with line "over-writing" unless we're 'done'."""
-    padding = f"{' '*(TERM_SIZE.columns - len(msg))}"
-    print(f"\r{msg}{padding}")  # , end="")
-    if done:
-        print()
-
-
 def _create_app_configuration(application: Flask) -> Flask:
     dynaconf = FlaskDynaconf()
     dynaconf.init_app(application, load_dotenv=True)
 
     # Set booleans for ease in checking our environment.
     application.config["production"] = True if application.config.get("ENV").casefold() == "production" else False
-    application.config["development"] = not application.config["production"]
-    terminal_update(f"...configured configuration environment: {application.config.get('ENV')}")
+    application.config["development"] = True if application.config.get("ENV").casefold() == "development" else False
+    application.config["testing"] = True if application.config.get("ENV").casefold() == "testing" else False
+    log.info(f"...configured configuration environment: {application.config.get('ENV')}")
     return application
 
 
@@ -50,8 +42,13 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
 
     elif logging:
         level = {"info": log.INFO, "debug": log.DEBUG}.get(application.config.get("LOG_LEVEL").lower())
-        # log.basicConfig(level=level, format=c.LOGGING_FORMAT, force=True, style="{")
-        log.basicConfig(level=level, force=True, style="{")
+
+        if application.config.get("development"):
+            format = c.LOGGING_FORMAT_FLASK
+        else:
+            format = c.LOGGING_FORMAT_GUNICORN
+
+        log.basicConfig(level=level, format=format, force=True, style="{", datefmt=c.LOGGING_FORMAT_DATETIME)
 
         # See *all* inbound requests for local/development environment (but not in production)
         log.getLogger("werkzeug").disabled = True if application.config["production"] else False
@@ -72,7 +69,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
         # (FYI FWIW: use the following to see all mongodb command traffic)
         # log.getLogger("pymongo.command").setLevel(log.DEBUG)
 
-        terminal_update(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
+        log.info(f"...setup logging environment: {log.getLevelName(log.getLogger().getEffectiveLevel())}")
     return application
 
 
@@ -87,25 +84,13 @@ def _create_app_login(application: Flask) -> Flask:
         """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
         return query_user(user_id=user_id)
 
-    terminal_update("...initialised extension: flask_login")
+    log.info("...initialised extension: flask_login")
     return application
 
 
 def _create_app_extensions(application: Flask) -> Flask:
     htmx.init_app(application)  # HTMX environment (for selected endpoints)
-
-    if application.config["development"]:
-        toolbar = DebugToolbarExtension()
-        toolbar.init_app(application)
-
-        application.config["DEBUG_TB_PANELS"] = [
-            "flask_debugtoolbar.panels.timer.TimerDebugPanel",
-            "flask_debugtoolbar.panels.headers.HeaderDebugPanel",
-            "flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel",
-            "flask_debugtoolbar.panels.template.TemplateDebugPanel",
-            "flask_debugtoolbar.panels.logger.LoggingPanel",
-        ]
-        terminal_update("...initialised extension: flask_debug_toolbar")
+    log.info("...initialised extension: htmx")
     return application
 
 
@@ -118,7 +103,7 @@ def _create_app_connections(application: Flask) -> Flask:
     app_db_settings = application.config["storage_meta_url"]
     connect(host=app_db_settings)
     db_name = app_db_settings.split("?")[0].split("/")[-1]
-    terminal_update(f"...connected to {vendor}: {db_name}")
+    log.info(f"...connected to {vendor}: {db_name}")
 
     ################################################################################
     # "Document" file/object store next...
@@ -139,7 +124,7 @@ def _create_app_connections(application: Flask) -> Flask:
     # to look it up everwhere else..
     boto_client.bucket = application.config["storage_file_bucket"]
     application.config["STORAGE_FILE"] = boto_client
-    terminal_update(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
+    log.info(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
 
     return application
 
@@ -159,7 +144,7 @@ def _create_app_blueprints(application: Flask) -> Flask:
 
     application.jinja_env.globals.update(render_display_column=render_display_column)
 
-    terminal_update("...registered blueprints")
+    log.info("...registered blueprints")
     return application
 
 
@@ -170,7 +155,7 @@ def _create_app_context_processors(application: Flask) -> Flask:
             return {"watermark": "Development"}
         return {}
 
-    terminal_update("...defined context processors")
+    log.info("...defined context processors")
     return application
 
 
@@ -179,6 +164,11 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     with application.app_context():
+        # Setup initial logging...
+        log.basicConfig(
+            level=log.INFO, format=c.LOGGING_FORMAT_FLASK, force=True, style="{", datefmt=c.LOGGING_FORMAT_DATETIME
+        )
+
         # Get configuration
         application = _create_app_configuration(application)
 
@@ -203,6 +193,6 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
         # Add our "context processers"
         application = _create_app_context_processors(application)
 
-        terminal_update("Ready...", done=True)
+        log.info("Ready...")  # , done=True)
 
     return application

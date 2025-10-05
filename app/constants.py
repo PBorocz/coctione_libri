@@ -3,9 +3,9 @@
 ###############################################################################
 # Logging infrastructure
 ###############################################################################
-# LOGGING_FORMAT = "{levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
-LOGGING_FORMAT = "{levelname:8s} {message}"
-LOGGING_DATEFMT = "%Y-%m-%d %H:%M:%S"
+LOGGING_FORMAT_FLASK = "{asctime}s; {levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
+LOGGING_FORMAT_GUNICORN = "{levelname:8s} [{funcName:24s}:{lineno:3d}] {message}"
+LOGGING_FORMAT_DATETIME = "%Y-%m-%d %H:%M:%S"
 
 ###############################################################################
 # Database Environments

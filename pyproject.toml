@@ -144,14 +144,14 @@ interpreter = "fish"
 shell = """
   set -x FLASK_ENV "development"
   sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
-  uv run flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
+  uv run flask run --debug --host localhost --port 5020 --cert=../https_local/cert.pem --key=../https_local/key.pem
   """
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"
 shell = """
   set -x FLASK_ENV "production"
-  uv run flask run --debug --host localhost --port 5001 --cert=../https_local/cert.pem --key=../https_local/key.pem
+  uv run flask run --debug --host localhost --port 5020 --cert=../https_local/cert.pem --key=../https_local/key.pem
 """
 
 [tool.poe.tasks.backup_local]
