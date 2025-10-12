@@ -55,8 +55,7 @@ server = "gunicorn"
 
 [tool.pborocz.deploy.testing]
 environment_files = [
-  ["coctione_libri.common.env", ".env"],
-  ["coctione_libri.testing.env", ".env.local"],
+  ["coctione_libri.env", ".env"],
 ]
 server = "gunicorn"
 
