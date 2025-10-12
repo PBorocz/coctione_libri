@@ -14,6 +14,7 @@ from flask.app import Flask  # Typing
 from flask_htmx import HTMX
 from flask_login import LoginManager
 from mongoengine import connect
+from secure import Secure
 
 import app.constants as c
 from app.models.user import query_user
@@ -21,11 +22,11 @@ from app.models.user import query_user
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 
 htmx = HTMX()
+secure_headers = Secure()  # Secure headers
 
 
 def _create_app_configuration(application: Flask) -> Flask:
     application.config.update(**dotenv_values(".env", verbose=True))
-    application.config.update(**dotenv_values(".env.local", verbose=True))
     log.info(f"...configuration environment: {application.config.get('ENV')}")
     return application
 

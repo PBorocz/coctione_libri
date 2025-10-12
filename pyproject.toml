@@ -191,10 +191,10 @@ shell = """
   echo "Doing dump from PRODUCTION database..."
   mongodump --db=coctione_libri --out=./__backups__/working --uri=$mongodb
 
-  echo "Compressing to single backup file..."
-  set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__backups__/$backup_filename ./__backups__/working
-  rm                                      ./__backups__/working
+  # echo "Compressing to single backup file..."
+  # set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
+  # tar -czf ./__backups__/$backup_filename ./__backups__/working
+  # rm                                      ./__backups__/working
 """
 
 [tool.poe.tasks.restore]
@@ -202,13 +202,13 @@ interpreter = "fish"
 args = ["db_from", "db_to", "backup_directory_path"]
 shell = """
   # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__backups__/working
-  # mkdir -p ./__backups__/working
-  # tar -xzf {$backup_directory_path} -C ./__backups__/working
-  # mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* {$backup_directory_path}
-  # echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
-  # mongorestore --gzip --archive="./backup_production_20250330T1654.tar.gz" --nsFrom="coctione_libri.*" --nsTo="coctione_libri_wasabi.*"
-  # mongorestore --verbose --dir="./working"
-  #
+  mkdir -p ./__backups__/working
+  tar -xzf {$backup_directory_path} -C ./__backups__/working
+  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* {$backup_directory_path}
+  echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
+  mongorestore --gzip --archive="./backup_production_20250330T1654.tar.gz" --nsFrom="coctione_libri.*" --nsTo="coctione_libri_wasabi.*"
+  mongorestore --verbose --dir="./working"
+
   # 2025-04-16: Finally got this work AFTER:
   # $ tar -xzf {$backup_directory_path} -C ./__backups__/working
   # and running from the shell instead from here in Poe.
