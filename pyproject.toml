@@ -50,7 +50,6 @@ shell = """
 [tool.pborocz.deploy.production]
 environment_files = [
   ["coctione_libri.common.env", ".env"],
-  ["coctione_libri.production.env", ".env.local"],
 ]
 server = "gunicorn"
 
