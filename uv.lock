@@ -7,12 +7,33 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "aiosql"
+version = "13.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/3a/105cdf480d444ee059f3fbea65616fba006fba29d32e382fb1a4d947f4b7/aiosql-13.4.tar.gz", hash = "sha256:da6ebb4d5e735753853007a7d574e60761338fc6ca8d95d6d95b5d85d7b1354d", size = 75730, upload-time = "2025-04-09T08:27:36.593Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/cf/219d8fdae6b6ea9192111b68b611550852f0b082ace9f23e391dde639f28/aiosql-13.4-py3-none-any.whl", hash = "sha256:f5dc4a93484a96ee9008f8488cc1be100e1ebf08cd2135ccade89975332bf49f", size = 24783, upload-time = "2025-04-09T08:27:34.753Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ee/67/531ea369ba64dcff5ec9c3402f9f51bf748cec26dde048a2f973a4eea7f5/annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89", size = 16081, upload-time = "2024-05-20T21:33:25.928Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53", size = 13643, upload-time = "2024-05-20T21:33:24.1Z" },
+]
+
+[[package]]
+name = "anodb"
+version = "13.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiosql" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e0/9e/3cf0005e4534e7020afae897daa5c83e0a28fee69d4c12669403023dde7e/anodb-13.2.tar.gz", hash = "sha256:52ba7dd6145f84c258b9dd0bcad29bd2bfa8baf342d27207b1dd19fd1309714b", size = 12824, upload-time = "2025-03-07T13:30:15.42Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/26/d7f2f6b1d9929193ab7fad834d18356b5123e5fb840a1383530a86e64d27/anodb-13.2-py3-none-any.whl", hash = "sha256:417027c95c1d9e927c47ed6a771730bf00ce20e3c6361d6eb4a115d1299936e3", size = 9204, upload-time = "2025-03-07T13:30:13.581Z" },
 ]
 
 [[package]]
@@ -69,6 +90,7 @@ name = "coctione-libri"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "anodb" },
     { name = "boto3" },
     { name = "dynaconf" },
     { name = "email-validator" },
@@ -100,6 +122,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anodb", specifier = ">=13.2" },
     { name = "boto3", specifier = ">=1.37.35,<2" },
     { name = "dynaconf", specifier = ">=3.2.4,<4" },
     { name = "email-validator", specifier = ">=2.1.0.post1,<3" },

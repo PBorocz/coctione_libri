@@ -28,6 +28,7 @@ dependencies = [
     "boto3>=1.37.35,<2",
     "urllib3>=2.5.0,<3",
     "jinja2>=3.1.6,<4",
+    "anodb>=13.2",
 ]
 
 [dependency-groups]
@@ -128,14 +129,21 @@ max-complexity = 12
 ]
 
 [tool.poe]
-verbosity = 0
+verbosity = -1
 
 [tool.poe.tasks]
+# dbm = ["dbmate", "--env", "SQLITE_DB"]
+# dbm = { shell = "dbmate --env SQLITE_DB \"$@\"" }
+
 import = "uv run python ./app/cli/import_pdf.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
 db_quality = "uv run python ./app/cli/db_quality.py"
+
+[tool.poe.tasks.dbm]
+cmd = "dbmate --env SQLITE_DB"
+help = "Run arbitrary dbmate on the local development database"
 
 [tool.poe.tasks.import_recipes_development]
 interpreter = "fish"
@@ -152,6 +160,7 @@ shell = """
   sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
   uv run flask run --debug --host localhost --port 5020 --cert=../https_local/cert.pem --key=../https_local/key.pem
   """
+
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"

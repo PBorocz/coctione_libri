@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime
+from enum import Enum
+from typing import Any, Optional
 
-from mongoengine import DateTimeField, DictField, Document, EmailField, ListField, StringField
+from pydantic import BaseModel, Field, validator
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.models import Category
@@ -13,34 +15,51 @@ from app.models import Category
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
-class User(Document):
+class User(BaseModel):
     """User model."""
 
-    # ---------------------
-    # Required attributes:
-    # ---------------------
     # fmt: off
-    email         = EmailField(required=True, unique=True) # Model primary/unique key, eg. foo@bar.com
-    user_id       = StringField(required=True)             # Email hash (used as a "private" user_id on UI and for Flask UI)
-    password_hash = StringField(required=True)             # Password *HASH*
-    created       = DateTimeField(required=True, default=datetime.utcnow)  # When user was first saved to database.
 
-    # ---------------------
-    # State attributes:
-    # ---------------------
-    state_last_search   = StringField()   # Last search term used
-    state_last_searches = ListField(StringField())                             # Last 10 search terms used
-    state_last_sort     = DictField(default={"by": "title", "order": "desc"})  # Last sort selected
-    state_last_category = StringField(
-        required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
-    )  # Current category user is working on.
+    ############################################################
+    # Primary key (for SQLite)
+    ############################################################
+    id: int | None = None
 
-    # ---------------------
-    # Other attributes:
-    # ---------------------
-    updated    = DateTimeField() # When user was last updated (None if just created)
-    last_login = DateTimeField() # Last login time, eg. # 2022-02-02T03:00:00+00:00
+    ############################################################
+    # Required attributes
+    ############################################################
+    email         : str      = Field(..., description="Model primary/unique key, eg. foo@bar.com")
+    user_id       : str      = Field(..., description="Email hash (used as a 'private' user_id on UI and for Flask UI)")
+    password_hash : str      = Field(..., description="Password *HASH*")
+    created       : datetime = Field(default_factory=datetime.utcnow, description="When user was saved to database")
+
+    ############################################################
+    # State attributes
+    ############################################################
+    state_last_search  : str | None = Field(None, description="Last search term used")
+    state_last_searches: list[str]  = Field(default_factory=list, description="Last 10 search terms used")
+    state_last_sort: dict[str, Any] = Field(
+        default={"by": "title", "order": "desc"},
+        description="Last sort selected"
+    )
+    state_last_category: Category = Field(
+        default=Category.COOKING_RECIPES,
+        description="Current category user is working on"
+    )
+
+    ############################################################
+    # Other attributes
+    ############################################################
+    updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
+    last_login: datetime | None = Field(None, description="Last login time")
     # fmt: on
+
+    class Config:
+        """..."""
+
+        use_enum_values = True
+        from_attributes = True  # For ORM compatibility
+        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     @classmethod
     def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:

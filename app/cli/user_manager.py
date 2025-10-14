@@ -4,13 +4,15 @@
 import argparse
 import getpass
 import os
+from pprint import pprint
 
 import mongoengine
 
 from app import constants as c
-from app import create_app
+from app import create_app, db
 from app.models import categories
 from app.models.user import User, delete_user, query_user, update_user
+from app.models.user_rdb import User as UserRDB
 
 
 def reset_password():
@@ -63,7 +65,7 @@ def reset_category():
         print("Nothing done.")
 
 
-def add():
+def add(app):
     """Add a new user to the database."""
     email = input("Email    : ")
 
@@ -76,12 +78,23 @@ def add():
 
     category = get_category()
 
-    user = User.factory(email=email, password=password, state_last_category=category)
-    try:
-        user.save()
-        print(f"New user successfully created [{user.id}]")
-    except mongoengine.NotUniqueError:
-        print("Sorry, unable to create new user; that email address has already been used!")
+    user = UserRDB.factory(email=email, password=password, state_last_category=category)
+
+    # try:
+    id_ = db.add_user(
+        email=user.email,
+        user_id=user.user_id,
+        password_hash=user.password_hash,
+        state_last_category=user.state_last_category,
+    )
+    print(f"New user successfully created [{id_}]")
+
+    id, email, user_id = db.get_user_by_id(id=id_)
+    assert id == id_
+    assert email == user.email
+
+    # except mongoengine.NotUniqueError:
+    #     print("Sorry, unable to create new user; that email address has already been used!")
 
 
 def delete():
@@ -93,13 +106,11 @@ def delete():
         print("User NOT deleted, could not be found?")
 
 
-def list_():
+def list_(app):
     """List db users."""
     found = False
-    for user in User.objects():
-        from pprint import pprint
-
-        pprint(user.to_mongo().to_dict())
+    for id, email, created in db.get_all_users():
+        print(f"{id=}: {email=} {created=}")
         found = True
     if not found:
         print("Sorry, no users currently defined.")
@@ -135,10 +146,10 @@ if __name__ == "__main__":
 
     # Dispatch accordingly..
     if ARGS.action.casefold() == "add":
-        add()
+        add(app)
 
     elif ARGS.action.casefold() == "list":
-        list_()
+        list_(app)
 
     elif ARGS.action.casefold() == "reset-password":
         reset_password()

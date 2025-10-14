@@ -3,11 +3,13 @@
 import logging as log
 import shutil
 import warnings
+from pathlib import Path
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import flask as f
 
+import anodb
 import boto3
 from dotenv import dotenv_values
 from flask.app import Flask  # Typing
@@ -23,6 +25,30 @@ TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 
 htmx = HTMX()
 secure_headers = Secure()  # Secure headers
+
+
+# Setup an abstraction here to allow us to have "from app import db" elsewhere.
+class Database:
+    def __init__(self):
+        self._db = None
+
+    def init_app(self, app) -> str:
+        driver, path_ = app.config["SQLITE_DB"].split(":")
+        self._db = anodb.DB(driver, path_, "app/sql/sql.sql", conn_kwargs={"autocommit": True})
+        return path_
+
+    def __getattr__(self, name):
+        """Proxy all database methods to the actual connection."""
+        if self._db is None:
+            raise RuntimeError("Database not initialized. Call init_db() first.")
+        return getattr(self._db, name)
+
+    @classmethod
+    def init_db(cls, app):
+        db.init_app(app)
+
+
+db = Database()
 
 
 def _create_app_configuration(application: Flask) -> Flask:
@@ -92,13 +118,19 @@ def _create_app_extensions(application: Flask) -> Flask:
 def _create_app_connections(application: Flask) -> Flask:
     """Connect to our external service connections."""
     ################################################################################
-    # "Document" metadata first...
+    # MongoDB "Document" metadata first...
     ################################################################################
     vendor = application.config["STORAGE_META_VENDOR"]
     app_db_settings = application.config["STORAGE_META_URL"]
     connect(host=app_db_settings)
     db_name = app_db_settings.split("?")[0].split("/")[-1]
     log.info(f"...connected to {vendor}: {db_name}")
+
+    ################################################################################
+    # Sqlite "Document" metadata...
+    ################################################################################
+    path_ = Database.init_db(application)
+    log.info(f"...connected to SQLite: {path_}")
 
     ################################################################################
     # "Document" file/object store next...
