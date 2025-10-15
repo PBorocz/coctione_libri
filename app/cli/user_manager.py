@@ -3,6 +3,7 @@
 
 import argparse
 import getpass
+import json
 import os
 from pprint import pprint
 
@@ -76,15 +77,21 @@ def add(app):
         if password != password_2:
             print("Sorry, passwords don't match..try again")
 
-    # category = get_category()
+    category = get_category()
+    user_state = {
+        "state_last_category": category,
+        "state_last_sort": {"by": "title", "order": "desc"},  # Default..
+    }
 
-    user = UserRDB.create(email=email, password=password)  #  state_last_category=category)
+    user = UserRDB.create(email=email, password=password)
 
     # try:
     id_ = db.add_user(
         email=user.email,
         user_id=user.user_id,
+        created=user.created,
         password_hash=user.password_hash,
+        user_state=json.dumps(user_state),
     )
     print(f"New user successfully created [{id_}]")
 

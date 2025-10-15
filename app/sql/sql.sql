@@ -1,5 +1,6 @@
 -- name: add_user<!
-insert into user(email, user_id, password_hash) values (:email, :user_id, :password_hash);
+insert into user(email, user_id, created, password_hash, user_state)
+values (:email, :user_id, :created, :password_hash, :user_state);
 
 -- name: get_all_users()
 -- Get all the users from the database

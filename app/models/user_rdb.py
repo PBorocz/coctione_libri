@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
@@ -35,18 +36,15 @@ class User(BaseModel):
     created       : datetime = Field(default_factory=datetime.utcnow, description="When user was saved to database")
 
     ############################################################
-    # State attributes
+    # State attributes (broken out from database storage)
     ############################################################
-    state_last_search  : str | None = Field(None, description="Last search term used")
-    state_last_searches: list[str]  = Field(default_factory=list, description="Last 10 search terms used")
-    state_last_sort: dict[str, Any] = Field(
-        default={"by": "title", "order": "desc"},
-        description="Last sort selected"
-    )
-    state_last_category: Category = Field(
-        default=Category.COOKING_RECIPES,
-        description="Current category user is working on"
-    )
+    state_last_search  : str | None     = Field(None, description="Last search term used")
+    state_last_searches: list[str]      = Field(default_factory=list, description="Last 10 search terms used")
+    state_last_sort    : dict[str, Any] = Field(None, description="Last sort selected")
+    state_last_category: Category       = Field(None, description="Current category user is working on")
+    # Defaults for the last 2 entries previously were:
+    # default={"by": "title", "order": "desc"},
+    # default=Category.COOKING_RECIPES,
 
     ############################################################
     # Other attributes
@@ -142,15 +140,18 @@ class User(BaseModel):
         kwargs["updated"] = None
         kwargs["last_login"] = None
 
-        kwargs["state_last_search"] = None
-        kwargs["state_last_searches"] = []
-        kwargs["state_last_sort"] = {}
-
         return cls(**kwargs)
 
     @classmethod
     def factory(cls, **kwargs) -> User:
         """Return a new instance (usually from the database)."""
+        # Break out user_state for ease-of-use later
+        if user_state_json := kwargs.get("user_state"):
+            user_state = json.loads(user_state_json)
+            kwargs["state_last_category"] = user_state.get("state_last_category")
+            kwargs["state_last_sort"] = user_state.get("state_last_sort")
+            del kwargs["user_state"]
+
         return cls(**kwargs)
 
 

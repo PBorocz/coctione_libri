@@ -43,7 +43,7 @@ CREATE TABLE user (
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- State attributes
-    user_state TEXT,		-- JSON dict of last_search, last_searches, sort and category.
+    user_state TEXT,	-- JSON dict of last_search, last_searches, last_sort and last_category.
     -- state_last_search TEXT,
     -- state_last_searches TEXT,                    -- JSON array of strings
     -- state_last_sort TEXT DEFAULT '{"by": "title", "order": "desc"}', -- JSON object
