@@ -1,20 +1,18 @@
 -- name: add_user<!
-insert into user(email, user_id, password_hash, state_last_category) values (:email, :user_id, :password_hash, :state_last_category);
+insert into user(email, user_id, password_hash) values (:email, :user_id, :password_hash);
 
 -- name: get_all_users()
 -- Get all the users from the database
-select id, email, created
-  from user
- order by id;
+select * from user order by id;
 
 -- name: get_user_by_email(email)^
--- Get a user from the database using a named parameter
-select id, email, user_id
-  from user
-  where email = :email;
+-- Get a user from the database by email address
+select * from user where email = :email;
 
 -- name: get_user_by_id(id)^
--- Get a user from the database using a named parameter
-select id, email, user_id
-  from user
-  where id = :id;
+-- Get the row id from the database by that id (used to confirm existence)
+select id from user where id = :id;
+
+-- name: get_user_by_user_id(user_id)^
+-- Get a user from the database by user_id
+select * from user where user_id = :user_id;

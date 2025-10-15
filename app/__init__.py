@@ -20,34 +20,12 @@ from secure import Secure
 
 import app.constants as c
 from app.models.user import query_user
+from app.types.database import Database
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 
 htmx = HTMX()
 secure_headers = Secure()  # Secure headers
-
-
-# Setup an abstraction here to allow us to have "from app import db" elsewhere.
-class Database:
-    def __init__(self):
-        self._db = None
-
-    def init_app(self, app) -> str:
-        driver, path_ = app.config["SQLITE_DB"].split(":")
-        self._db = anodb.DB(driver, path_, "app/sql/sql.sql", conn_kwargs={"autocommit": True})
-        return path_
-
-    def __getattr__(self, name):
-        """Proxy all database methods to the actual connection."""
-        if self._db is None:
-            raise RuntimeError("Database not initialized. Call init_db() first.")
-        return getattr(self._db, name)
-
-    @classmethod
-    def init_db(cls, app):
-        db.init_app(app)
-
-
 db = Database()
 
 
@@ -129,7 +107,8 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # Sqlite "Document" metadata...
     ################################################################################
-    path_ = Database.init_db(application)
+    # path_ = init_db(application)
+    path_ = db.init_app(application)
     log.info(f"...connected to SQLite: {path_}")
 
     ################################################################################

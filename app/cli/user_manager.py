@@ -76,16 +76,15 @@ def add(app):
         if password != password_2:
             print("Sorry, passwords don't match..try again")
 
-    category = get_category()
+    # category = get_category()
 
-    user = UserRDB.factory(email=email, password=password, state_last_category=category)
+    user = UserRDB.create(email=email, password=password)  #  state_last_category=category)
 
     # try:
     id_ = db.add_user(
         email=user.email,
         user_id=user.user_id,
         password_hash=user.password_hash,
-        state_last_category=user.state_last_category,
     )
     print(f"New user successfully created [{id_}]")
 
@@ -109,9 +108,14 @@ def delete():
 def list_(app):
     """List db users."""
     found = False
-    for id, email, created in db.get_all_users():
-        print(f"{id=}: {email=} {created=}")
-        found = True
+
+    with db.with_row_factory(UserRDB) as dbq:
+        for o_user in dbq.get_all_users():
+            print(f"\n{o_user=}")
+            found = True
+
+    # for id, email, created in db.get_all_users():
+    #     print(f"{id=}: {email=} {created=}")
     if not found:
         print("Sorry, no users currently defined.")
 

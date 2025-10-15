@@ -10,6 +10,7 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field, validator
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app import db
 from app.models import Category
 
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
@@ -124,7 +125,7 @@ class User(BaseModel):
         return True
 
     @classmethod
-    def factory(cls, **kwargs) -> User:
+    def create(cls, **kwargs) -> User:
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
 
         - Create a unique id from a hash of the user's email address (used for url management).
@@ -147,6 +148,11 @@ class User(BaseModel):
 
         return cls(**kwargs)
 
+    @classmethod
+    def factory(cls, **kwargs) -> User:
+        """Return a new instance (usually from the database)."""
+        return cls(**kwargs)
+
 
 ################################################################################
 # Utility Methods
@@ -161,9 +167,12 @@ def query_user(email: str | None = None, user_id: str | None = None) -> User | N
     assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
     try:
         if email:
-            return User.objects.get(email=email)
+            return db.get_user_by_email(email=email)
+            # return User.objects.get(email=email)
+
         else:
-            return User.objects.get(user_id=user_id)
+            return db.get_user_by_user_id(user_id=user_id)
+            # return User.objects.get(user_id=user_id)
     except User.DoesNotExist:
         ...
     return None
@@ -171,7 +180,8 @@ def query_user(email: str | None = None, user_id: str | None = None) -> User | N
 
 def query_users() -> list[User]:
     """Return all users."""
-    return User.objects()
+    return db.get_all_users()
+    # return User.objects()
 
 
 def update_user(user: User, attr, value) -> User:

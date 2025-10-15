@@ -10,10 +10,11 @@ CREATE TABLE user (
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- State attributes
-    state_last_search TEXT,
-    state_last_searches TEXT,                    -- JSON array of strings
-    state_last_sort TEXT DEFAULT '{"by": "title", "order": "desc"}', -- JSON object
-    state_last_category TEXT NOT NULL,          -- Category enum value
+    user_state TEXT,		-- JSON dict of last_search, last_searches, sort and category.
+    -- state_last_search TEXT,
+    -- state_last_searches TEXT,                    -- JSON array of strings
+    -- state_last_sort TEXT DEFAULT '{"by": "title", "order": "desc"}', -- JSON object
+    -- state_last_category TEXT NOT NULL,          -- Category enum value
 
     -- Other attributes
     updated DATETIME,
