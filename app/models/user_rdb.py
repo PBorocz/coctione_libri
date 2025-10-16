@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, model_validator, validator
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
@@ -24,7 +25,7 @@ class User(BaseModel):
     ############################################################
     # Primary key (for SQLite)
     ############################################################
-    id: int | None = None
+    id: int | None = None # Won't exist until we save to db.
 
     ############################################################
     # Required attributes
@@ -59,16 +60,63 @@ class User(BaseModel):
         "use_enum_values": True,
         "arbitrary_types_allowed": True,
         "from_attributes": True,
-    }  # For ORM compatibility
-    # json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+    }
 
+    @model_validator(mode="before")
     @classmethod
-    def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
-        """."""
-        try:
-            return User.objects.get(email=kwargs.get("email")), False
-        except User.DoesNotExist:
-            return User(**kwargs).save(), True
+    def explode_json_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "user_state" in data:
+            # Coming from DB - explode the JSON
+            user_state_json = data.get("user_state", "{}")
+            if isinstance(user_state_json, str):
+                user_state = json.loads(user_state_json)
+            else:
+                user_state = user_state_json
+
+            # fmt: off
+            data.update(
+                {
+                    "state_last_search"   : user_state.get("state_last_search", ""),
+                    "state_last_searches" : user_state.get("state_last_searches", []),
+                    "state_last_sort"     : user_state.get("state_last_sort", {}),
+                    "state_last_category" : user_state.get("state_last_category", ""),
+                }
+            )
+            # fmt: on
+
+            # Remove the raw JSON field
+            data.pop("user_state", None)
+        return data
+
+    def to_db_dict(self) -> dict[str, Any]:
+        """Serialize for database storage."""
+        user_state = {
+            key: value
+            for key, value in {
+                "state_last_search": self.state_last_search,
+                "state_last_searches": self.state_last_searches,
+                "state_last_sort": self.state_last_sort,
+                "state_last_category": self.state_last_category,
+            }.items()
+            if value is not None
+        }
+        return {
+            "id": self.id,
+            "email": self.email,
+            "user_id": self.user_id,
+            "password_hash": self.password_hash,
+            "user_state": json.dumps(user_state),
+            "created": self.created,
+            "updated": self.updated,
+        }
+
+    # @classmethod
+    # def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
+    #     """."""
+    #     try:
+    #         return User.objects.get(email=kwargs.get("email")), False
+    #     except User.DoesNotExist:
+    #         return User(**kwargs).save(), True
 
     ################################################################################
     # Flask Login Methods
@@ -93,10 +141,7 @@ class User(BaseModel):
         """Is the user anonymous?."""
         return False
 
-    def save(self, *args, **kwargs):
-        """Override to get updated attr set."""
-        self.updated = datetime.utcnow()
-        return super().save(*args, **kwargs)
+    ################################################################################
 
     def update_search(self, search_term: str) -> bool:
         """Update the user's search state."""
@@ -132,38 +177,51 @@ class User(BaseModel):
         - Set created timestamp accordingly.
         - Don't store the actual password but a *hash* of it (and delete the password attribute)
         """
-        # Required fields:
         kwargs["user_id"] = email_to_hash(kwargs.get("email"))
+        kwargs["created"] = datetime.now()
         kwargs["password_hash"] = generate_password_hash(kwargs.get("password"), method=PASSWORD_HASH_METHOD)
-        del kwargs["password"]
-
-        return cls(**kwargs)
-
-    @classmethod
-    def factory(cls, **kwargs) -> User:
-        """Return a new instance (usually from the database)."""
-        # Break out user_state for ease-of-use later
-        if user_state_json := kwargs.get("user_state"):
-            user_state = json.loads(user_state_json)
-            kwargs["state_last_category"] = user_state.get("state_last_category")
-            kwargs["state_last_sort"] = user_state.get("state_last_sort")
-            del kwargs["user_state"]
+        del kwargs["password"]  # Insurance...make sure this *NEVER* gets near the db
 
         return cls(**kwargs)
 
     ################################################################################
     # Database Methods
     ################################################################################
-    def insert(self) -> int | None:
-        if id_ := db.add_user(
-            email=self.email,
-            user_id=self.user_id,
-            created=self.created,
-            password_hash=self.password_hash,
-            user_state="",
-        ):
-            return id_
-        return None
+    @classmethod
+    def factory(cls, **kwargs) -> User:
+        """Return a new application instance from a database instance."""
+        return cls(**User.explode_json_fields(kwargs))
+
+    def save(self) -> User:
+        """Save instance back to DB."""
+        db_data = self.to_db_dict()
+        try:
+            if self.id is None:
+                # Insert new record
+                result = db.insert_user(
+                    email=db_data["email"],
+                    user_id=db_data["user_id"],
+                    password_hash=db_data["password_hash"],
+                    user_state=db_data["user_state"],
+                    created=datetime.now(),
+                )
+                self.id = result  # aiosql returns lastrowid for insert
+            else:
+                # Update existing record
+                db.update_user(
+                    id=self.id,
+                    email=db_data["email"],
+                    user_id=db_data["user_id"],
+                    password_hash=db_data["password_hash"],
+                    user_state=db_data["user_state"],
+                    created=db_data["created"],
+                    updated=datetime.now(),
+                )
+            return True
+
+        except Exception as e:
+            print(f"Database error: {e}")
+            return False
 
 
 ################################################################################

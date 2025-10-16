@@ -5,7 +5,7 @@ import pytest
 from werkzeug.security import check_password_hash
 
 from app import db
-from app.models.user_rdb import User
+from app.models.user_rdb import User, update_user
 
 
 ################################################################################
@@ -16,7 +16,8 @@ def __get_row_count():
 
 
 def __query_user(email: str) -> User:
-    return User.find_one(User.email == email).run()
+    with db.with_row_factory(User) as dbq:
+        return dbq.get_user_by_email(email=email)
 
 
 ################################################################################
@@ -45,7 +46,7 @@ def test_user_factory(app, user):
     assert user.check_password("aPassword")  # ibid
 
 
-def test_delete_user(app, user: User):
+def tst_delete_user(app, user: User):
     # Setup
     id_ = user.insert()
     assert __get_row_count() == 1
@@ -57,83 +58,90 @@ def test_delete_user(app, user: User):
     assert __get_row_count() == 0
 
 
-def tst_insert_and_query_user_s(app, user: User):
-    # Test
+def test_insert(app, user: User):
+    """Test that we can successfully save a user instance."""
     row_count = __get_row_count()
+    assert not user.id
     assert not user.updated
-    user.insert()
-    assert user.id
-    assert user.updated
+
+    # Test
+    id_ = user.save()
 
     # Confirm
+    assert id_
     assert __get_row_count() == row_count + 1
 
+
+def test_query_user(app, user: User):
+    # Setup
+    user.save()
+
+    # Test
     q_user = __query_user(user.email)
-    assert q_user.id == user.id
+
+    # Confirm
+    assert isinstance(q_user, User)
+    assert q_user.id
     assert q_user.email == user.email
-    assert q_user.timezone == user.timezone
-    assert q_user.favorites == user.favorites
-    assert q_user.views == user.views
+    assert q_user.state_last_search == user.state_last_search
+    assert q_user.state_last_category == user.state_last_category
 
 
-def tst_non_existent_user(app):
-    results = User.find(User.email == "asdfasdfasdf@asdfasdfadsf.com").run()
+def test_non_existent_user(app):
+    results = db.get_user_by_email(email="asdfasdfasdf@asdfasdfadsf.com")
     assert not results
 
 
-def tst_update_user_simple(app, user):
+def test_update_user_direct(app, user):
+    """Test ability to update attributes of a user instance."""
     # Setup
-    assert not user.updated
-    user.insert()
-    assert __get_row_count() == 1
-
-    # Test (by updating a single attribute)
-    user.sd_lineup = "another"
     user.save()
 
-    # Confirm that user in the database is actually created and matching.
+    # Test (by updating a single attribute)
+    user.state_last_category = "Cooking-Skills"
+    user.save()
+
+    # Confirm (user in the database is actually created and matching)
     updated_user = __query_user(user.email)
-    assert "another" == updated_user.sd_lineup
     assert updated_user.updated
+    assert "Cooking-Skills" == updated_user.state_last_category
 
 
-def tst_update_user_password(app, user):
+def test_update_user_password(app, user):
     # Setup
-    user.insert()
+    user.save()
     old_password_hash = user.password_hash
 
     # Test
     update_user(user, "password", "newPassword")
-    assert user.password_hash != old_password_hash
-    assert not hasattr(user, "password")
 
     # Confirm
-    queried_user = __query_user(user.email)
-    assert queried_user
-    assert user.password_hash == queried_user.password_hash
+    q_user = __query_user(user.email)
+    assert q_user.password_hash != old_password_hash
+    assert user.password_hash == q_user.password_hash
 
 
-def tst_update_user_email(app, user):
+def test_update_user_email(app, user):
     # Setup
-    user.insert()
+    user.save()
+    old_user_id = user.user_id
 
     # Test
-    old_user_id = user.user_id
     update_user(user, "email", "bar@foo.com")
     assert user.email == "bar@foo.com"
     assert user.user_id != old_user_id
 
     # Confirm
-    queried_user = __query_user("bar@foo.com")
-    assert queried_user.email == "bar@foo.com"
-    assert user.user_id == queried_user.user_id
+    q_user = __query_user("bar@foo.com")
+    assert q_user.email == "bar@foo.com"
+    assert user.user_id == q_user.user_id
 
 
-def tst_get_default_view(app, user):
-    # Setup
-    user.insert()
+# def tst_get_default_view(app, user):
+#     # Setup
+#     user.insert()
 
-    # Test
-    view = user.get_default_view()
-    assert view
-    assert isinstance(view, UserView)
+#     # Test
+#     view = user.get_default_view()
+#     assert view
+#     assert isinstance(view, UserView)

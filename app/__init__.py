@@ -29,8 +29,9 @@ secure_headers = Secure()  # Secure headers
 db = Database()
 
 
-def _create_app_configuration(application: Flask) -> Flask:
+def _create_app_configuration(application: Flask, config_overrides: dict | None = dict) -> Flask:
     application.config.update(**dotenv_values(".env", verbose=True))
+    application.config.update(**config_overrides)
     log.info(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
@@ -100,7 +101,7 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     vendor = application.config["STORAGE_META_VENDOR"]
     app_db_settings = application.config["STORAGE_META_URL"]
-    connect(host=app_db_settings)
+    connect(host=app_db_settings, uuidRepresentation="standard")
     db_name = app_db_settings.split("?")[0].split("/")[-1]
     log.info(f"...connected to {vendor}: {db_name}")
 
@@ -169,7 +170,7 @@ def _create_app_ctx_processors(application: Flask) -> Flask:
     return application
 
 
-def create_app(logging=True, log_level: str | None = None) -> Flask:
+def create_app(logging=True, log_level: str | None = None, config_overrides: dict | None = dict) -> Flask:
     """Create and return our core Flask application object instance."""
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
@@ -184,7 +185,7 @@ def create_app(logging=True, log_level: str | None = None) -> Flask:
         )
 
         # Get configuration
-        application = _create_app_configuration(application)
+        application = _create_app_configuration(application, config_overrides)
 
         # Setup Logging
         application = _create_app_logging(logging, log_level, application)

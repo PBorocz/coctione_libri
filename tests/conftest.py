@@ -6,15 +6,6 @@ import pytest
 from app import create_app, db
 from app.models.user_rdb import User
 
-# from app.types.sd_stations import SDStations
-# from app.types.user_favorites import UserFavorites
-
-# If we want to test against a client?
-# https://stackoverflow.com/questions/63584554/how-do-i-import-my-flask-app-into-my-pytest-tests
-# with application.app_context():
-#     with application.test_client() as client:
-#         yield client
-
 
 @pytest.fixture(scope="session")
 def app(request):
@@ -25,13 +16,12 @@ def app(request):
     # Run dbmate to create schema
     env = os.environ.copy()
     env["DATABASE_URL"] = f"sqlite://{os.path.abspath(test_db_path)}"  # Use absolute path
-    env["SQLITE_DB"] = f"sqlite://{test_db_path}"
     try:
         subprocess.run(["dbmate", "up"], env=env, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         pytest.fail(f"dbmate up failed: {e.stderr.decode()}")
 
-    application = create_app()
+    application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
     application.app_context().push()
 
     yield application
@@ -49,12 +39,16 @@ def user(app):
     test_user_parms = {
         "email": "test@foo.com",
         "password": "aPassword",
+        "state_last_search": "burmese",
+        "state_last_category": "Recipes",
     }
     # Give back an instance that's NOT SAVED!!
     yield User.create(**test_user_parms)
 
     # Clean up just in case did another insert during the respective test.
-    db.delete_all_users()
+    # (we don't use the user.delete approach so we don't rely upon code that we should be testing).
+    cursor = db._conn.cursor()
+    cursor.execute("delete from user where email='test@foo.com'")
 
 
 ################################################################################
