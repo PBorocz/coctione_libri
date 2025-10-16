@@ -1,4 +1,6 @@
+import sqlite3
 from contextlib import contextmanager
+from datetime import datetime
 from typing import TypeVar
 
 import anodb
@@ -11,9 +13,14 @@ class Database:
     def __init__(self):
         self._db = None
 
+        # Configure datetime adapters to suppress deprecation warning
+        sqlite3.register_adapter(datetime, lambda dt: dt.isoformat())
+        sqlite3.register_converter("timestamp", lambda b: datetime.fromisoformat(b.decode()))
+
     def init_app(self, app) -> str:
         driver, path_ = app.config["SQLITE_DB"].split(":")
         self._db = anodb.DB(driver, path_, "app/sql/sql.sql", conn_kwargs={"autocommit": True})
+
         return path_
 
     def __getattr__(self, name):
@@ -31,7 +38,7 @@ class Database:
         def pydantic_factory(cursor, row):
             if cursor.description:  # Check if there are columns
                 columns = [col[0] for col in cursor.description]
-                return model_class.factory(**dict(zip(columns, row)))
+                return model_class.factory(**dict(zip(columns, row, strict=True)))
             return row
 
         self._db._conn.row_factory = pydantic_factory

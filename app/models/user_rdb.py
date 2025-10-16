@@ -21,7 +21,6 @@ class User(BaseModel):
     """User model."""
 
     # fmt: off
-
     ############################################################
     # Primary key (for SQLite)
     ############################################################
@@ -33,10 +32,13 @@ class User(BaseModel):
     email         : str      = Field(..., description="Model primary/unique key, eg. foo@bar.com")
     user_id       : str      = Field(..., description="Email hash (used as a 'private' user_id on UI and for Flask UI)")
     password_hash : str      = Field(..., description="Password *HASH*")
-    created       : datetime = Field(default_factory=datetime.utcnow, description="When user was saved to database")
+    created       : datetime = Field(
+        default_factory=datetime.now,
+        description="When user instance was created & saved.",
+    )
 
     ############################################################
-    # State attributes (broken out from database storage)
+    # State attributes (broken out from HJSON-based db storage)
     ############################################################
     state_last_search  : str | None     = Field(None, description="Last search term used")
     state_last_searches: list[str]      = Field(default_factory=list, description="Last 10 search terms used")
@@ -50,15 +52,15 @@ class User(BaseModel):
     # Other attributes
     ############################################################
     updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
-    last_login: datetime | None = Field(None, description="Last login time")
+    last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
     # fmt: on
 
-    class Config:
-        """..."""
-
-        use_enum_values = True
-        from_attributes = True  # For ORM compatibility
-        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+    model_config = {
+        "use_enum_values": True,
+        "arbitrary_types_allowed": True,
+        "from_attributes": True,
+    }  # For ORM compatibility
+    # json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
     @classmethod
     def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
@@ -132,13 +134,8 @@ class User(BaseModel):
         """
         # Required fields:
         kwargs["user_id"] = email_to_hash(kwargs.get("email"))
-        kwargs["created"] = datetime.utcnow()
         kwargs["password_hash"] = generate_password_hash(kwargs.get("password"), method=PASSWORD_HASH_METHOD)
         del kwargs["password"]
-
-        # Fields that can only come from updates...
-        kwargs["updated"] = None
-        kwargs["last_login"] = None
 
         return cls(**kwargs)
 
@@ -153,6 +150,20 @@ class User(BaseModel):
             del kwargs["user_state"]
 
         return cls(**kwargs)
+
+    ################################################################################
+    # Database Methods
+    ################################################################################
+    def insert(self) -> int | None:
+        if id_ := db.add_user(
+            email=self.email,
+            user_id=self.user_id,
+            created=self.created,
+            password_hash=self.password_hash,
+            user_state="",
+        ):
+            return id_
+        return None
 
 
 ################################################################################

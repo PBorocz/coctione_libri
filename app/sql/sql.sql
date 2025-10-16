@@ -17,3 +17,11 @@ select id from user where id = :id;
 -- name: get_user_by_user_id(user_id)^
 -- Get a user from the database by user_id
 select * from user where user_id = :user_id;
+
+-- name: delete_user_by_id(id)!
+-- Delete the specified user
+delete from user where id = :id;
+
+-- name: delete_all_users()!
+-- Delete all users
+delete from user;
