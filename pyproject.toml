@@ -164,6 +164,9 @@ shell = """
   uv run flask run --debug --host localhost --port 5020 --cert=../https_local/cert.pem --key=../https_local/key.pem
   """
 
+[tool.poe.tasks.pytest]
+cmd = "uv run pytest -s -x"
+
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"

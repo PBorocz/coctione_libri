@@ -19,7 +19,7 @@ class Database:
 
     def init_app(self, app) -> str:
         driver, path_ = app.config["SQLITE_DB"].split(":")
-        self._db = anodb.DB(driver, path_, "app/sql/sql.sql", conn_kwargs={"autocommit": True})
+        self._db = anodb.DB(driver, path_, "app/sql/", conn_kwargs={"autocommit": True})
 
         return path_
 
