@@ -9,7 +9,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, model_validator, validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, validator
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
@@ -20,6 +20,8 @@ PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 class User(BaseModel):
     """User model."""
+
+    model_config = ConfigDict(use_enum_values=True, arbitrary_types_allowed=True)
 
     # fmt: off
     ############################################################
@@ -33,17 +35,14 @@ class User(BaseModel):
     email         : str      = Field(..., description="Model primary/unique key, eg. foo@bar.com")
     user_id       : str      = Field(..., description="Email hash (used as a 'private' user_id on UI and for Flask UI)")
     password_hash : str      = Field(..., description="Password *HASH*")
-    created       : datetime = Field(
-        default_factory=datetime.now,
-        description="When user instance was created & saved.",
-    )
+    created       : datetime = Field(default_factory=datetime.now, description="When user instance was created & saved")
 
     ############################################################
-    # State attributes (broken out from HJSON-based db storage)
+    # State attributes (derived from 'user_state' text db field)
     ############################################################
     state_last_search  : str | None     = Field(None, description="Last search term used")
     state_last_searches: list[str]      = Field(default_factory=list, description="Last 10 search terms used")
-    state_last_sort    : dict[str, Any] = Field(None, description="Last sort selected")
+    state_last_sort    : dict[str, str] = Field(default_factory=dict, description="Last sort selected")
     state_last_category: Category       = Field(None, description="Current category user is working on")
     # Defaults for the last 2 entries previously were:
     # default={"by": "title", "order": "desc"},
@@ -55,12 +54,6 @@ class User(BaseModel):
     updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
     last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
     # fmt: on
-
-    model_config = {
-        "use_enum_values": True,
-        "arbitrary_types_allowed": True,
-        "from_attributes": True,
-    }
 
     @model_validator(mode="before")
     @classmethod
@@ -74,21 +67,19 @@ class User(BaseModel):
                 user_state = user_state_json
 
             # fmt: off
-            data.update(
-                {
-                    "state_last_search"   : user_state.get("state_last_search", ""),
-                    "state_last_searches" : user_state.get("state_last_searches", []),
-                    "state_last_sort"     : user_state.get("state_last_sort", {}),
-                    "state_last_category" : user_state.get("state_last_category", ""),
-                }
-            )
+            data.update({
+                "state_last_search"   : user_state.get("state_last_search"   , ""),
+                "state_last_searches" : user_state.get("state_last_searches" , []),
+                "state_last_sort"     : user_state.get("state_last_sort"     , {}),
+                "state_last_category" : user_state.get("state_last_category" , ""),
+            })
             # fmt: on
 
             # Remove the raw JSON field
             data.pop("user_state", None)
         return data
 
-    def to_db_dict(self) -> dict[str, Any]:
+    def implode_json_fields(self) -> dict[str, Any]:
         """Serialize for database storage."""
         user_state = {
             key: value
@@ -174,11 +165,9 @@ class User(BaseModel):
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
 
         - Create a unique id from a hash of the user's email address (used for url management).
-        - Set created timestamp accordingly.
         - Don't store the actual password but a *hash* of it (and delete the password attribute)
         """
         kwargs["user_id"] = email_to_hash(kwargs.get("email"))
-        kwargs["created"] = datetime.now()
         kwargs["password_hash"] = generate_password_hash(kwargs.get("password"), method=PASSWORD_HASH_METHOD)
         del kwargs["password"]  # Insurance...make sure this *NEVER* gets near the db
 
@@ -192,37 +181,6 @@ class User(BaseModel):
         """Return a new application instance from a database instance."""
         return cls(**User.explode_json_fields(kwargs))
 
-    def save(self) -> User:
-        """Save instance back to DB."""
-        db_data = self.to_db_dict()
-        try:
-            if self.id is None:
-                # Insert new record
-                result = db.insert_user(
-                    email=db_data["email"],
-                    user_id=db_data["user_id"],
-                    password_hash=db_data["password_hash"],
-                    user_state=db_data["user_state"],
-                    created=datetime.now(),
-                )
-                self.id = result  # aiosql returns lastrowid for insert
-            else:
-                # Update existing record
-                db.update_user(
-                    id=self.id,
-                    email=db_data["email"],
-                    user_id=db_data["user_id"],
-                    password_hash=db_data["password_hash"],
-                    user_state=db_data["user_state"],
-                    created=db_data["created"],
-                    updated=datetime.now(),
-                )
-            return True
-
-        except Exception as e:
-            print(f"Database error: {e}")
-            return False
-
 
 ################################################################################
 # Utility Methods
@@ -235,38 +193,66 @@ def email_to_hash(email: str) -> str:
 def query_user(email: str | None = None, user_id: str | None = None) -> User | None:
     """Query for the user given either an email-address or a hashed email key."""
     assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
-    try:
-        if email:
+    if email:
+        with db.with_row_factory(User) as db_user:
             return db.get_user_by_email(email=email)
-            # return User.objects.get(email=email)
-
-        else:
+    else:
+        with db.with_row_factory(User) as db_user:
             return db.get_user_by_user_id(user_id=user_id)
-            # return User.objects.get(user_id=user_id)
-    except User.DoesNotExist:
-        ...
-    return None
+    return None  # IS THIS CORRECT HERE?
 
 
 def query_users() -> list[User]:
     """Return all users."""
-    return db.get_all_users()
-    # return User.objects()
+    with db.with_row_factory(User) as db_user:
+        return db_user.get_all_users()
 
 
-def update_user(user: User, attr, value) -> User:
+def user_save(user: User) -> User | None:
+    """Save instance back to DB."""
+    db_data = user.implode_json_fields()
+    try:
+        if user.id is None:
+            # Insert new record
+            result = db.insert_user(
+                email=db_data["email"],
+                user_id=db_data["user_id"],
+                password_hash=db_data["password_hash"],
+                user_state=db_data["user_state"],
+                created=datetime.now(),
+            )
+            user.id = result  # aiosql returns lastrowid for insert
+        else:
+            # Update existing record
+            db.update_user(
+                id=user.id,
+                email=db_data["email"],
+                user_id=db_data["user_id"],
+                password_hash=db_data["password_hash"],
+                user_state=db_data["user_state"],
+                created=db_data["created"],
+                updated=datetime.now(),
+            )
+        return user
+
+    except Exception as e:
+        print(f"Database error: {e}")
+        return None
+
+
+def user_update(user: User, attr, value) -> User:
     """Update the specified user's attribute with the specified new value."""
     if attr == "password":
         # Password update needs to calculate and store a hash, ie. *not* the password itself!
         user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
         user.updated = datetime.utcnow
-        user.save()
+        user_save(user)
 
     else:
         # All other attributes..
         setattr(user, attr, value)
         user.updated = datetime.utcnow
-        user.save()
+        user_save(user)
 
     if attr == "email":
         # Since we use email hash as our core internal ID, we *also* need
@@ -274,15 +260,11 @@ def update_user(user: User, attr, value) -> User:
         user.email = value
         user.user_id = email_to_hash(user.email)
         user.updated = datetime.utcnow
-        user.save()
+        user_save(user)
 
     return user
 
 
-def delete_user(email: str) -> int:
+def user_delete(user: User) -> int:
     """Delete the user with given email address, return 1 if successfully done."""
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return 0
-    return user.delete()  # Returns the number of rows deleted
+    return db.delete_user_by_id(id=user.id)

@@ -1,6 +1,6 @@
--- name: insert_user<!
+-- name: insert_user$
 INSERT INTO user( email,  user_id,  password_hash,  user_state,  created)
-VALUES          (:email, :user_id, :password_hash, :user_state, :created);
+VALUES          (:email, :user_id, :password_hash, :user_state, :created) RETURNING id;
 
 -- name: update_user!
 UPDATE user
@@ -12,11 +12,11 @@ SET email	  = :email,
     updated	  = :updated
 WHERE id = :id;
 
--- name: get_all_users()
+-- name: get_all_users
 -- Get all the users FROM the database
 SELECT * FROM user ORDER BY id;
 
--- name: get_user_by_email^
+-- name: get_user_by_email(email)^
 -- Get a user FROM the database by email address
 SELECT * FROM user WHERE email = :email;
 
@@ -28,10 +28,10 @@ SELECT id FROM user WHERE id = :id;
 -- Get a user FROM the database by user_id
 SELECT * FROM user WHERE user_id = :user_id;
 
--- name: DELETE_user_by_id(id)!
--- DELETE the specified user
+-- name: delete_user_by_id(id)!
+-- DELETE the specified user by id
 DELETE FROM user WHERE id = :id;
 
--- name: DELETE_all_users()!
+-- name: delete_all_users()!
 -- DELETE all users
 DELETE FROM user;
