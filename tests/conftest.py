@@ -10,18 +10,22 @@ from app.models.user_rdb import User
 @pytest.fixture(scope="session")
 def app(request):
     # Setup test database path
-    test_db_path = "db/coctione_libri_testing.sqlite3"
+    test_db_path = "/tmp/coctione_libri_testing.sqlite3"
+    test_db_url = f"sqlite://{os.path.abspath(test_db_path)}"
     os.makedirs(os.path.dirname(test_db_path), exist_ok=True)
 
     # Run dbmate to create schema
     env = os.environ.copy()
-    env["DATABASE_URL"] = f"sqlite://{os.path.abspath(test_db_path)}"  # Use absolute path
+    env["DATABASE_URL"] = test_db_url
+    env["DBMATE_MIGRATIONS_DIR"] = "./app/db/migrations"
     try:
-        subprocess.run(["dbmate", "up"], env=env, check=True, capture_output=True)
+        cmd = ["dbmate", "up"]
+        subprocess.run(cmd, env=env, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         pytest.fail(f"dbmate up failed: {e.stderr.decode()}")
 
-    application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
+    # application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
+    application = create_app(config_overrides={"SQLITE_DB": test_db_url})
     application.app_context().push()
 
     yield application
@@ -52,40 +56,40 @@ def user(app):
 
 
 ################################################################################
-@pytest.fixture
-def sd_lineup(app):
-    sd_lineup = SDLineup.factory(
-        lineup="aLineup",
-        name="aName",
-        uri="aURI",
-    )
-    yield sd_lineup
+# @pytest.fixture
+# def sd_lineup(app):
+#     sd_lineup = SDLineup.factory(
+#         lineup="aLineup",
+#         name="aName",
+#         uri="aURI",
+#     )
+#     yield sd_lineup
 
-    # Clean up just in case did another insert during the respective test.
-    SDLineup.find({}).delete().run()
+#     # Clean up just in case did another insert during the respective test.
+#     SDLineup.find({}).delete().run()
 
 
 ################################################################################
-@pytest.fixture
-def sd_stations(app):
-    """Set 2 SD TV stations to support test_listing's factory from a gem instance."""
-    for d_station in [
-        {
-            "stationID": "bs-az",
-            "sport": True,
-        },
-        {
-            "stationID": "root-nw",
-            "sport": True,
-        },
-    ]:
-        sd_station = SDStation.factory(d_station, "testLineupName")
-        sd_station.save()
+# @pytest.fixture
+# def sd_stations(app):
+#     """Set 2 SD TV stations to support test_listing's factory from a gem instance."""
+#     for d_station in [
+#         {
+#             "stationID": "bs-az",
+#             "sport": True,
+#         },
+#         {
+#             "stationID": "root-nw",
+#             "sport": True,
+#         },
+#     ]:
+#         sd_station = SDStation.factory(d_station, "testLineupName")
+#         sd_station.save()
 
-    # RE_READ the stations now that we have new ones entered:
-    app.config["SDSTATIONS"] = SDStations.query_all()
+#     # RE_READ the stations now that we have new ones entered:
+#     app.config["SDSTATIONS"] = SDStations.query_all()
 
-    yield True
+#     yield True
 
-    # Clean up just in case we did another insert during the respective test.
-    SDStation.find({}).delete().run()
+#     # Clean up just in case we did another insert during the respective test.
+#     SDStation.find({}).delete().run()

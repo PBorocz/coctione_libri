@@ -135,9 +135,8 @@ max-complexity = 12
 verbosity = -1
 
 [tool.poe.tasks]
-# dbm = ["dbmate", "--env", "SQLITE_DB"]
+# dbm = ["dbmate", "--env", "SQLITE_DB", "--migrations-dir", "./app/db/migrations"]
 # dbm = { shell = "dbmate --env SQLITE_DB \"$@\"" }
-
 import = "uv run python ./app/cli/import_pdf.py"
 dynaconf_list = "dynaconf -i config.settings list"
 build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"

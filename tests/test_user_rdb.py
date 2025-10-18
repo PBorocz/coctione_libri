@@ -149,6 +149,34 @@ def test_update_user_direct(app, user):
     assert "Cooking-Skills" == updated_user.state_last_category
 
 
+def test_update_complex_state_attributes_list(app, user):
+    """Test ability to update list state attribute of a user instance."""
+    # Setup
+    Users.save(user)
+
+    # Test (by updating a single attribute)
+    Users.update(user, "state_last_searches", ["search term 1", "search term 2"])
+
+    # Confirm (user in the database is actually created and matching)
+    updated_user = __query_user(user.email)
+    assert updated_user.updated
+    assert ["search term 1", "search term 2"] == updated_user.state_last_searches
+
+
+def test_update_complex_state_attributes_dict(app, user):
+    """Test ability to update dict state attribute of a user instance."""
+    # Setup
+    Users.save(user)
+
+    # Test (by updating a single attribute)
+    Users.update(user, "state_last_sort", {"by": "title", "order": "asc"})
+
+    # Confirm (user in the database is actually created and matching)
+    updated_user = __query_user(user.email)
+    assert updated_user.updated
+    assert {"by": "title", "order": "asc"} == updated_user.state_last_sort
+
+
 def test_user_update_password(app, user):
     # Setup
     Users.save(user)

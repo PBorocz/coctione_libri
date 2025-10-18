@@ -46,7 +46,7 @@ class User(BaseModel):
     ############################################################
     # Other attributes
     ############################################################
-    id        : int      | None = None # Won't exist until we save to db.
+    id        : int      | None = None # Won't exist until we save to disk
     updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
     last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
     # fmt: on
@@ -129,33 +129,6 @@ class User(BaseModel):
         return False
 
     ################################################################################
-
-    def update_search(self, search_term: str) -> bool:
-        """Update the user's search state."""
-        # Minimally, update the last search the user performed.
-        db.update_user(self, "state_last_search", search_term)
-
-        # If this is the first search performed, easy!
-        if not self.state_last_searches:
-            db.update_user(self, "state_last_searches", [search_term])
-            return True
-
-        # Convert from string to list...
-        print(f"{self.state_last_searches=}")
-        print(f"{type(self.state_last_searches)=}")
-
-        # If it's already there, delete it first, then push to the top.
-        if search_term in self.state_last_searches:
-            self.state_last_searches.remove(search_term)
-
-        # Push the most recent search to the front of the list.
-        self.state_last_searches.insert(0, search_term)
-
-        # Save the most recent 10 searches performed.
-        db.update_user(self, "state_last_searches", self.state_last_searches[0:10])
-
-        return True
-
     @classmethod
     def create(cls, **kwargs) -> User:
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
@@ -187,7 +160,7 @@ def email_to_hash(email: str) -> str:
 
 
 ################################################################################
-# Database Namespace..
+# Database namespace..
 ################################################################################
 class Users:
     @classmethod
@@ -263,6 +236,33 @@ class Users:
             user.user_id = email_to_hash(user.email)
             user.updated = datetime.utcnow
             cls.save(user)
+
+        return user
+
+    @classmethod
+    def update_search(cls: Users, user: User, search_term: str) -> User:
+        """Update the user's search state."""
+        # Minimally, update the last search the user performed.
+        db.update_user(user, "state_last_search", search_term)
+
+        # If this is the first search performed, easy!
+        if not user.state_last_searches:
+            db.update_user(user, "state_last_searches", [search_term])
+            return True
+
+        # Convert from string to list...
+        print(f"{user.state_last_searches=}")
+        print(f"{type(user.state_last_searches)=}")
+
+        # If it's already there, delete it first, then push to the top.
+        if search_term in user.state_last_searches:
+            user.state_last_searches.remove(search_term)
+
+        # Push the most recent search to the front of the list.
+        user.state_last_searches.insert(0, search_term)
+
+        # Save the most recent 10 searches performed.
+        db.update_user(user, "state_last_searches", user.state_last_searches[0:10])
 
         return user
 
