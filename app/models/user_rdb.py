@@ -25,11 +25,6 @@ class User(BaseModel):
 
     # fmt: off
     ############################################################
-    # Primary key (for SQLite)
-    ############################################################
-    id: int | None = None # Won't exist until we save to db.
-
-    ############################################################
     # Required attributes
     ############################################################
     email         : str      = Field(..., description="Model primary/unique key, eg. foo@bar.com")
@@ -51,6 +46,7 @@ class User(BaseModel):
     ############################################################
     # Other attributes
     ############################################################
+    id        : int      | None = None # Won't exist until we save to db.
     updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
     last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
     # fmt: on
@@ -137,11 +133,11 @@ class User(BaseModel):
     def update_search(self, search_term: str) -> bool:
         """Update the user's search state."""
         # Minimally, update the last search the user performed.
-        update_user(self, "state_last_search", search_term)
+        db.update_user(self, "state_last_search", search_term)
 
         # If this is the first search performed, easy!
         if not self.state_last_searches:
-            update_user(self, "state_last_searches", [search_term])
+            db.update_user(self, "state_last_searches", [search_term])
             return True
 
         # Convert from string to list...
@@ -156,7 +152,7 @@ class User(BaseModel):
         self.state_last_searches.insert(0, search_term)
 
         # Save the most recent 10 searches performed.
-        update_user(self, "state_last_searches", self.state_last_searches[0:10])
+        db.update_user(self, "state_last_searches", self.state_last_searches[0:10])
 
         return True
 
@@ -183,88 +179,94 @@ class User(BaseModel):
 
 
 ################################################################################
-# Utility Methods
+# Utility methods
 ################################################################################
 def email_to_hash(email: str) -> str:
     """Return the hash of the specified email address."""
     return hashlib.blake2s(email.encode("utf-8")).hexdigest()
 
 
-def query_user(email: str | None = None, user_id: str | None = None) -> User | None:
-    """Query for the user given either an email-address or a hashed email key."""
-    assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
-    if email:
-        with db.with_row_factory(User) as db_user:
-            return db.get_user_by_email(email=email)
-    else:
-        with db.with_row_factory(User) as db_user:
-            return db.get_user_by_user_id(user_id=user_id)
-    return None  # IS THIS CORRECT HERE?
-
-
-def query_users() -> list[User]:
-    """Return all users."""
-    with db.with_row_factory(User) as db_user:
-        return db_user.get_all_users()
-
-
-def user_save(user: User) -> User | None:
-    """Save instance back to DB."""
-    db_data = user.implode_json_fields()
-    try:
-        if user.id is None:
-            # Insert new record
-            result = db.insert_user(
-                email=db_data["email"],
-                user_id=db_data["user_id"],
-                password_hash=db_data["password_hash"],
-                user_state=db_data["user_state"],
-                created=datetime.now(),
-            )
-            user.id = result  # aiosql returns lastrowid for insert
+################################################################################
+# Database Namespace..
+################################################################################
+class Users:
+    @classmethod
+    def query(cls: Users, email: str | None = None, user_id: str | None = None) -> User | None:
+        """Query for the user given either an email-address or a hashed email key."""
+        # FIXME: Make this take kwargs and support email, user_id or id directly (use cursor instead of template)
+        assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
+        if email:
+            with db.with_row_factory(User) as db_user:
+                return db_user.get_user_by_email(email=email)
         else:
-            # Update existing record
-            db.update_user(
-                id=user.id,
-                email=db_data["email"],
-                user_id=db_data["user_id"],
-                password_hash=db_data["password_hash"],
-                user_state=db_data["user_state"],
-                created=db_data["created"],
-                updated=datetime.now(),
-            )
+            with db.with_row_factory(User) as db_user:
+                return db_user.get_user_by_user_id(user_id=user_id)
+        return None  # IS THIS CORRECT HERE?
+
+    @classmethod
+    def users(cls: Users) -> list[User]:
+        """Return all users."""
+        with db.with_row_factory(User) as db_user:
+            return db_user.get_all_users()
+
+    @classmethod
+    def save(cls: Users, user: User) -> User | None:
+        """Save instance back to DB."""
+        db_data = user.implode_json_fields()
+        try:
+            if user.id is None:
+                # Insert new record
+                result = db.insert_user(
+                    email=db_data["email"],
+                    user_id=db_data["user_id"],
+                    password_hash=db_data["password_hash"],
+                    user_state=db_data["user_state"],
+                    created=datetime.now(),
+                )
+                user.id = result  # aiosql returns lastrowid for insert
+            else:
+                # Update existing record
+                db.update_user(
+                    id=user.id,
+                    email=db_data["email"],
+                    user_id=db_data["user_id"],
+                    password_hash=db_data["password_hash"],
+                    user_state=db_data["user_state"],
+                    created=db_data["created"],
+                    updated=datetime.now(),
+                )
+            return user
+
+        except Exception as e:
+            print(f"Database error: {e}")
+            return None
+
+    @classmethod
+    def update(cls: Users, user: User, attr, value) -> User:
+        """Update the specified user's attribute with the specified new value."""
+        if attr == "password":
+            # Password update needs to calculate and store a hash, ie. *not* the password itself!
+            user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
+            user.updated = datetime.utcnow
+            cls.save(user)
+
+        else:
+            # All other attributes..
+            setattr(user, attr, value)
+            user.updated = datetime.utcnow
+            cls.save(user)
+
+        if attr == "email":
+            # Since we use email hash as our core internal ID, we *also* need
+            # to calculate a new user id and save it away as well.
+            user.email = value
+            user.user_id = email_to_hash(user.email)
+            user.updated = datetime.utcnow
+            cls.save(user)
+
         return user
 
-    except Exception as e:
-        print(f"Database error: {e}")
-        return None
-
-
-def user_update(user: User, attr, value) -> User:
-    """Update the specified user's attribute with the specified new value."""
-    if attr == "password":
-        # Password update needs to calculate and store a hash, ie. *not* the password itself!
-        user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
-        user.updated = datetime.utcnow
-        user_save(user)
-
-    else:
-        # All other attributes..
-        setattr(user, attr, value)
-        user.updated = datetime.utcnow
-        user_save(user)
-
-    if attr == "email":
-        # Since we use email hash as our core internal ID, we *also* need
-        # to calculate a new user id and save it away as well.
-        user.email = value
-        user.user_id = email_to_hash(user.email)
-        user.updated = datetime.utcnow
-        user_save(user)
-
-    return user
-
-
-def user_delete(user: User) -> int:
-    """Delete the user with given email address, return 1 if successfully done."""
-    return db.delete_user_by_id(id=user.id)
+    @classmethod
+    def delete(cls: Users, user: User) -> int:
+        """Delete the user with given email address, return 1 if successfully done."""
+        return db.delete_user_by_id(id=user.id)

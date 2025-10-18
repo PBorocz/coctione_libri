@@ -5,7 +5,7 @@ import pytest
 from werkzeug.security import check_password_hash
 
 from app import db
-from app.models.user_rdb import User, query_user, user_delete, user_save, user_update
+from app.models.user_rdb import User, Users  # query_user, user_delete, user_save, user_update
 
 
 ################################################################################
@@ -48,11 +48,11 @@ def test_user_factory(app, user):
 
 def test_user_delete(app, user: User):
     # Setup
-    user = user_save(user)
+    user = Users.save(user)
     assert __get_row_count() == 1
 
     # Test
-    count = user_delete(user)
+    count = Users.delete(user)
 
     # Confirm
     assert count == 1
@@ -61,17 +61,17 @@ def test_user_delete(app, user: User):
 
 def test_user_delete_non_existing(app):
     # Setup
-    test_user_parms = {
+    tst_user_parms = {
         "id": 99,
         "email": "test@foo.com",
         "password": "aPassword",
         "state_last_search": "burmese",
         "state_last_category": "Recipes",
     }
-    user = User.create(**test_user_parms)
+    user = User.create(**tst_user_parms)
 
     # Test
-    count = user_delete(user)
+    count = Users.delete(user)
 
     # Confirm
     assert 0 == count
@@ -84,7 +84,7 @@ def test_user_save(app, user: User):
     assert not user.updated
 
     # Test
-    user = user_save(user)
+    user = Users.save(user)
 
     # Confirm
     assert isinstance(user, User)
@@ -94,10 +94,10 @@ def test_user_save(app, user: User):
 
 def test_query_user_email(app, user: User):
     # Setup
-    user_save(user)
+    Users.save(user)
 
     # Test
-    q_user = query_user(email=user.email)
+    q_user = Users.query(email=user.email)
 
     # Confirm
     assert isinstance(q_user, User)
@@ -109,10 +109,10 @@ def test_query_user_email(app, user: User):
 
 def test_query_user_user_id(app, user: User):
     # Setup
-    user_save(user)
+    Users.save(user)
 
     # Test
-    q_user = query_user(user_id=user.user_id)
+    q_user = Users.query(user_id=user.user_id)
 
     # Confirm
     assert isinstance(q_user, User)
@@ -124,7 +124,7 @@ def test_query_user_user_id(app, user: User):
 
 def test_query_user_nonexistent(app):
     # Test
-    q_user = query_user(email="foo.bar@gmail.com")
+    q_user = Users.query(email="foo.bar@gmail.com")
 
     # Confirm
     assert q_user is None
@@ -138,10 +138,10 @@ def test_non_existent_user(app):
 def test_update_user_direct(app, user):
     """Test ability to update attributes of a user instance."""
     # Setup
-    user_save(user)
+    Users.save(user)
 
     # Test (by updating a single attribute)
-    user_update(user, "state_last_category", "Cooking-Skills")
+    Users.update(user, "state_last_category", "Cooking-Skills")
 
     # Confirm (user in the database is actually created and matching)
     updated_user = __query_user(user.email)
@@ -151,11 +151,11 @@ def test_update_user_direct(app, user):
 
 def test_user_update_password(app, user):
     # Setup
-    user_save(user)
+    Users.save(user)
     old_password_hash = user.password_hash
 
     # Test
-    user_update(user, "password", "newPassword")
+    Users.update(user, "password", "newPassword")
 
     # Confirm
     q_user = __query_user(user.email)
@@ -165,11 +165,11 @@ def test_user_update_password(app, user):
 
 def test_user_update_email(app, user):
     # Setup
-    user_save(user)
+    Users.save(user)
     old_user_id = user.user_id
 
     # Test
-    user_update(user, "email", "bar@foo.com")
+    Users.update(user, "email", "bar@foo.com")
     assert user.email == "bar@foo.com"
     assert user.user_id != old_user_id
 
@@ -181,11 +181,11 @@ def test_user_update_email(app, user):
 
 def test_user_update_other_attribute(app, user):
     # Setup
-    user_save(user)
+    Users.save(user)
     old_category = user.state_last_category
 
     # Test
-    user_update(user, "state_last_category", "Cooking-Skills")
+    Users.update(user, "state_last_category", "Cooking-Skills")
 
     # Confirm
     assert user.state_last_category != old_category
