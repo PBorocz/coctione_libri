@@ -46,56 +46,10 @@ class User(BaseModel):
     ############################################################
     # Other attributes
     ############################################################
-    id        : int      | None = None # Won't exist until we save to disk
     updated   : datetime | None = Field(None, description="When user was last updated (None if just created)")
     last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
+    id        : int      | None = None # Won't exist until we save to disk
     # fmt: on
-
-    @model_validator(mode="before")
-    @classmethod
-    def explode_json_fields(cls, data: Any) -> Any:
-        if isinstance(data, dict) and "user_state" in data:
-            # Coming from DB - explode the JSON
-            user_state_json = data.get("user_state", "{}")
-            if isinstance(user_state_json, str):
-                user_state = json.loads(user_state_json)
-            else:
-                user_state = user_state_json
-
-            # fmt: off
-            data.update({
-                "state_last_search"   : user_state.get("state_last_search"   , ""),
-                "state_last_searches" : user_state.get("state_last_searches" , []),
-                "state_last_sort"     : user_state.get("state_last_sort"     , {}),
-                "state_last_category" : user_state.get("state_last_category" , ""),
-            })
-            # fmt: on
-
-            # Remove the raw JSON field
-            data.pop("user_state", None)
-        return data
-
-    def implode_json_fields(self) -> dict[str, Any]:
-        """Serialize for database storage."""
-        user_state = {
-            key: value
-            for key, value in {
-                "state_last_search": self.state_last_search,
-                "state_last_searches": self.state_last_searches,
-                "state_last_sort": self.state_last_sort,
-                "state_last_category": self.state_last_category,
-            }.items()
-            if value is not None
-        }
-        return {
-            "id": self.id,
-            "email": self.email,
-            "user_id": self.user_id,
-            "password_hash": self.password_hash,
-            "user_state": json.dumps(user_state),
-            "created": self.created,
-            "updated": self.updated,
-        }
 
     # @classmethod
     # def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
@@ -142,14 +96,6 @@ class User(BaseModel):
 
         return cls(**kwargs)
 
-    ################################################################################
-    # Database Methods
-    ################################################################################
-    @classmethod
-    def factory(cls, **kwargs) -> User:
-        """Return a new application instance from a database instance."""
-        return cls(**User.explode_json_fields(kwargs))
-
 
 ################################################################################
 # Utility methods
@@ -164,28 +110,78 @@ def email_to_hash(email: str) -> str:
 ################################################################################
 class Users:
     @classmethod
-    def query(cls: Users, email: str | None = None, user_id: str | None = None) -> User | None:
-        """Query for the user given either an email-address or a hashed email key."""
-        # FIXME: Make this take kwargs and support email, user_id or id directly (use cursor instead of template)
-        assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
-        if email:
-            with db.with_row_factory(User) as db_user:
-                return db_user.get_user_by_email(email=email)
-        else:
-            with db.with_row_factory(User) as db_user:
-                return db_user.get_user_by_user_id(user_id=user_id)
-        return None  # IS THIS CORRECT HERE?
+    def factory(cls, **kwargs) -> User:
+        """Return a new application instance from a database instance."""
+        return User(**cls.explode_json_fields(kwargs))
+
+    @classmethod
+    def implode_json_fields(cls: Users, user: User) -> dict[str, Any]:
+        """Serialize JSON fields in preparation database storage."""
+        # fmt: off
+        user_state = {
+            key: value
+            for key, value in {
+                "state_last_search"   : user.state_last_search,
+                "state_last_searches" : user.state_last_searches,
+                "state_last_sort"     : user.state_last_sort,
+                "state_last_category" : user.state_last_category,
+            }.items()
+            if value is not None
+        }
+        return {
+            "id"            : user.id,
+            "email"         : user.email,
+            "user_id"       : user.user_id,
+            "password_hash" : user.password_hash,
+            "user_state"    : json.dumps(user_state),
+            "created"       : user.created,
+            "updated"       : user.updated,
+        }
+        # fmt: off
+
+    @classmethod
+    def explode_json_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict) and "user_state" in data:
+            # Coming from DB - explode the JSON
+            user_state_json = data.get("user_state", "{}")
+            if isinstance(user_state_json, str):
+                user_state = json.loads(user_state_json)
+            else:
+                user_state = user_state_json
+
+            # fmt: off
+            data.update({
+                "state_last_search"   : user_state.get("state_last_search"   , ""),
+                "state_last_searches" : user_state.get("state_last_searches" , []),
+                "state_last_sort"     : user_state.get("state_last_sort"     , {}),
+                "state_last_category" : user_state.get("state_last_category" , ""),
+            })
+            # fmt: on
+
+            # Remove the raw JSON field
+            data.pop("user_state", None)
+        return data
 
     @classmethod
     def users(cls: Users) -> list[User]:
         """Return all users."""
-        with db.with_row_factory(User) as db_user:
+        with db.with_row_factory(cls) as db_user:
             return db_user.get_all_users()
+
+    @classmethod
+    def query(cls: Users, attr: str, value: Any) -> User | None:
+        """Query for the user given either an email-address or a hashed email key."""
+        sql_ = f"SELECT * FROM user WHERE {attr} = ?"
+        cursor = db._conn.cursor()
+        for row in cursor.execute(sql_, [value]):
+            columns = [col[0] for col in cursor.description]
+            return cls.factory(**dict(zip(columns, row, strict=True)))
+        return None
 
     @classmethod
     def save(cls: Users, user: User) -> User | None:
         """Save instance back to DB."""
-        db_data = user.implode_json_fields()
+        db_data = cls.implode_json_fields(user)
         try:
             if user.id is None:
                 # Insert new record
@@ -198,16 +194,20 @@ class Users:
                 )
                 user.id = result  # aiosql returns lastrowid for insert
             else:
-                # Update existing record
+                # Update existing record (note some fields may not be set yet)
+                now_ = datetime.now()
                 db.update_user(
-                    id=user.id,
                     email=db_data["email"],
                     user_id=db_data["user_id"],
-                    password_hash=db_data["password_hash"],
-                    user_state=db_data["user_state"],
                     created=db_data["created"],
-                    updated=datetime.now(),
+                    password_hash=db_data["password_hash"],
+                    user_state=db_data.get("user_state", None),
+                    last_login=db_data.get("last_login", None),
+                    updated=now_,
+                    id=user.id,
                 )
+                user.updated = now_
+
             return user
 
         except Exception as e:
@@ -220,22 +220,18 @@ class Users:
         if attr == "password":
             # Password update needs to calculate and store a hash, ie. *not* the password itself!
             user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
-            user.updated = datetime.utcnow
-            cls.save(user)
 
-        else:
-            # All other attributes..
-            setattr(user, attr, value)
-            user.updated = datetime.utcnow
-            cls.save(user)
-
-        if attr == "email":
+        elif attr == "email":
             # Since we use email hash as our core internal ID, we *also* need
             # to calculate a new user id and save it away as well.
             user.email = value
             user.user_id = email_to_hash(user.email)
-            user.updated = datetime.utcnow
-            cls.save(user)
+
+        else:
+            # All other attributes..
+            setattr(user, attr, value)
+
+        cls.save(user)
 
         return user
 

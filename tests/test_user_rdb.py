@@ -15,9 +15,9 @@ def __get_row_count():
     return len(list(db.get_all_users()))
 
 
-def __query_user(email: str) -> User:
-    with db.with_row_factory(User) as dbq:
-        return dbq.get_user_by_email(email=email)
+def __query_user_email(email: str) -> User:
+    with db.with_row_factory(Users) as db_users:
+        return db_users.get_user_by_email(email=email)
 
 
 ################################################################################
@@ -33,6 +33,7 @@ def test_user_factory(app, user):
     # Test
     assert user.last_login is None
     assert user.updated is None
+    assert user.id is None
     assert user.created
 
     # Confirm: Check user_id handling (must match info in conftest.py!)
@@ -44,6 +45,22 @@ def test_user_factory(app, user):
     assert user.password_hash
     assert check_password_hash(user.password_hash, "aPassword")  # Note hardcode to match conftest.py
     assert user.check_password("aPassword")  # ibid
+
+
+def test_user_save(app, user: User):
+    """Test that we can successfully save a user instance."""
+    row_count = __get_row_count()
+    assert not user.id
+    assert not user.updated
+
+    # Test
+    user = Users.save(user)
+
+    # Confirm
+    assert isinstance(user, User)
+    assert user.id
+    assert not user.updated  # We haven't done any updates yet!
+    assert __get_row_count() == row_count + 1
 
 
 def test_user_delete(app, user: User):
@@ -77,27 +94,12 @@ def test_user_delete_non_existing(app):
     assert 0 == count
 
 
-def test_user_save(app, user: User):
-    """Test that we can successfully save a user instance."""
-    row_count = __get_row_count()
-    assert not user.id
-    assert not user.updated
-
-    # Test
-    user = Users.save(user)
-
-    # Confirm
-    assert isinstance(user, User)
-    assert not user.updated  # We haven't done any updates yet!
-    assert __get_row_count() == row_count + 1
-
-
 def test_query_user_email(app, user: User):
     # Setup
     Users.save(user)
 
     # Test
-    q_user = Users.query(email=user.email)
+    q_user = Users.query("email", user.email)
 
     # Confirm
     assert isinstance(q_user, User)
@@ -112,7 +114,7 @@ def test_query_user_user_id(app, user: User):
     Users.save(user)
 
     # Test
-    q_user = Users.query(user_id=user.user_id)
+    q_user = Users.query("user_id", user.user_id)
 
     # Confirm
     assert isinstance(q_user, User)
@@ -124,7 +126,7 @@ def test_query_user_user_id(app, user: User):
 
 def test_query_user_nonexistent(app):
     # Test
-    q_user = Users.query(email="foo.bar@gmail.com")
+    q_user = Users.query("email", "foo.bar@gmail.com")
 
     # Confirm
     assert q_user is None
@@ -143,8 +145,8 @@ def test_update_user_direct(app, user):
     # Test (by updating a single attribute)
     Users.update(user, "state_last_category", "Cooking-Skills")
 
-    # Confirm (user in the database is actually created and matching)
-    updated_user = __query_user(user.email)
+    # Confirm by requerying
+    updated_user = __query_user_email(user.email)
     assert updated_user.updated
     assert "Cooking-Skills" == updated_user.state_last_category
 
@@ -158,7 +160,7 @@ def test_update_complex_state_attributes_list(app, user):
     Users.update(user, "state_last_searches", ["search term 1", "search term 2"])
 
     # Confirm (user in the database is actually created and matching)
-    updated_user = __query_user(user.email)
+    updated_user = __query_user_email(user.email)
     assert updated_user.updated
     assert ["search term 1", "search term 2"] == updated_user.state_last_searches
 
@@ -172,7 +174,7 @@ def test_update_complex_state_attributes_dict(app, user):
     Users.update(user, "state_last_sort", {"by": "title", "order": "asc"})
 
     # Confirm (user in the database is actually created and matching)
-    updated_user = __query_user(user.email)
+    updated_user = __query_user_email(user.email)
     assert updated_user.updated
     assert {"by": "title", "order": "asc"} == updated_user.state_last_sort
 
@@ -186,7 +188,7 @@ def test_user_update_password(app, user):
     Users.update(user, "password", "newPassword")
 
     # Confirm
-    q_user = __query_user(user.email)
+    q_user = __query_user_email(user.email)
     assert q_user.password_hash != old_password_hash
     assert user.password_hash == q_user.password_hash
 
@@ -202,7 +204,7 @@ def test_user_update_email(app, user):
     assert user.user_id != old_user_id
 
     # Confirm
-    q_user = __query_user("bar@foo.com")
+    q_user = __query_user_email("bar@foo.com")
     assert q_user.email == "bar@foo.com"
     assert user.user_id == q_user.user_id
 

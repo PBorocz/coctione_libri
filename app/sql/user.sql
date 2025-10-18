@@ -2,14 +2,15 @@
 INSERT INTO user( email,  user_id,  password_hash,  user_state,  created)
 VALUES          (:email, :user_id, :password_hash, :user_state, :created) RETURNING id;
 
--- name: update_user!
+-- name: update_user(email, user_id, created, password_hash, user_state, updated, last_login, id)!
 UPDATE user
 SET email	  = :email,
     user_id	  = :user_id,
+    created	  = :created,
     password_hash = :password_hash,
     user_state	  = :user_state,
-    created	  = :created,
-    updated	  = :updated
+    updated	  = :updated,
+    last_login    = :last_login
 WHERE id = :id;
 
 -- name: get_all_users

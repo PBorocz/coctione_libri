@@ -34,13 +34,13 @@ class Database:
         original_factory = self._anodb._conn.row_factory
 
         # Set pydantic factory
-        def pydantic_factory(cursor, row):
+        def custom_factory(cursor, row):
             if cursor.description:  # Check if there are columns
                 columns = [col[0] for col in cursor.description]
                 return model_class.factory(**dict(zip(columns, row, strict=True)))
             return row
 
-        self._anodb._conn.row_factory = pydantic_factory
+        self._anodb._conn.row_factory = custom_factory
 
         try:
             yield self
