@@ -21,11 +21,7 @@ CREATE TABLE user (
     last_login DATETIME
 );
 
--- Indexes for performance
 CREATE UNIQUE INDEX idx_user_email ON user(email);
-CREATE INDEX idx_user_user_id ON user(user_id);
-CREATE INDEX idx_user_created ON user(created);
-CREATE INDEX idx_user_last_login ON user(last_login);
 
 
 -- migrate:down

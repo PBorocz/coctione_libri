@@ -38,7 +38,7 @@ class User(BaseModel):
     state_last_search  : str | None     = Field(None, description="Last search term used")
     state_last_searches: list[str]      = Field(default_factory=list, description="Last 10 search terms used")
     state_last_sort    : dict[str, str] = Field(default_factory=dict, description="Last sort selected")
-    state_last_category: Category       = Field(None, description="Current category user is working on")
+    state_last_category: Category       = Field(default=Category.COOKING_RECIPES, description="Current category user is working on")
     # Defaults for the last 2 entries previously were:
     # default={"by": "title", "order": "desc"},
     # default=Category.COOKING_RECIPES,
@@ -50,14 +50,6 @@ class User(BaseModel):
     last_login: datetime | None = Field(None, description="Last login time (None if still a new user)")
     id        : int      | None = None # Won't exist until we save to disk
     # fmt: on
-
-    # @classmethod
-    # def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
-    #     """."""
-    #     try:
-    #         return User.objects.get(email=kwargs.get("email")), False
-    #     except User.DoesNotExist:
-    #         return User(**kwargs).save(), True
 
     ################################################################################
     # Flask Login Methods
@@ -92,7 +84,7 @@ class User(BaseModel):
         """
         kwargs["user_id"] = email_to_hash(kwargs.get("email"))
         kwargs["password_hash"] = generate_password_hash(kwargs.get("password"), method=PASSWORD_HASH_METHOD)
-        del kwargs["password"]  # Insurance...make sure this *NEVER* gets near the db
+        del kwargs["password"]  # Insurance...make sure this *NEVER* gets anywhere else!
 
         return cls(**kwargs)
 
@@ -168,51 +160,65 @@ class Users:
         with db.with_row_factory(cls) as db_user:
             return db_user.get_all_users()
 
+    # @classmethod
+    # def query(cls: Users, attr: str, value: Any) -> User | None:
+    #     """Query for the user given either an email-address or a hashed email key."""
+    #     sql_ = f"SELECT * FROM user WHERE {attr} = ?"
+    #     cursor = db._conn.cursor()
+    #     for row in cursor.execute(sql_, [value]):
+    #         columns = [col[0] for col in cursor.description]
+    #         return cls.factory(**dict(zip(columns, row, strict=True)))
+    #     return None
+
     @classmethod
-    def query(cls: Users, attr: str, value: Any) -> User | None:
-        """Query for the user given either an email-address or a hashed email key."""
-        sql_ = f"SELECT * FROM user WHERE {attr} = ?"
+    def query(cls: Users, **kwargs) -> User | None:
+        """Query for a single user (or None) given any number of attribute-value pairs.
+
+        We're not using the template-based SQL as we want this to have dynamic args.
+        """
+        if not kwargs:
+            raise ValueError("At least one query parameter must be provided")
+
+        # Build sql with WHERE clause of ANDed conditions
+        where_conditions = [f"{attr} = ?" for attr in kwargs.keys()]
+        where_clause = " AND ".join(where_conditions)
+        sql_ = f"SELECT * FROM user WHERE {where_clause}"
         cursor = db._conn.cursor()
-        for row in cursor.execute(sql_, [value]):
+        for row in cursor.execute(sql_, list(kwargs.values())):
             columns = [col[0] for col in cursor.description]
             return cls.factory(**dict(zip(columns, row, strict=True)))
         return None
 
     @classmethod
     def save(cls: Users, user: User) -> User | None:
-        """Save instance back to DB."""
+        """Save instance back to DB (either new or existing)."""
         db_data = cls.implode_json_fields(user)
-        try:
-            if user.id is None:
-                # Insert new record
-                result = db.insert_user(
-                    email=db_data["email"],
-                    user_id=db_data["user_id"],
-                    password_hash=db_data["password_hash"],
-                    user_state=db_data["user_state"],
-                    created=datetime.now(),
-                )
-                user.id = result  # aiosql returns lastrowid for insert
-            else:
-                # Update existing record (note some fields may not be set yet)
-                now_ = datetime.now()
-                db.update_user(
-                    email=db_data["email"],
-                    user_id=db_data["user_id"],
-                    created=db_data["created"],
-                    password_hash=db_data["password_hash"],
-                    user_state=db_data.get("user_state", None),
-                    last_login=db_data.get("last_login", None),
-                    updated=now_,
-                    id=user.id,
-                )
-                user.updated = now_
+        if user.id is None:
+            # Insert new record
+            result = db.insert_user(
+                email=db_data["email"],
+                user_id=db_data["user_id"],
+                password_hash=db_data["password_hash"],
+                user_state=db_data["user_state"],
+                created=datetime.now(),
+            )
+            user.id = result  # aiosql returns lastrowid for insert
+        else:
+            # Update existing record (note some fields may not be set yet)
+            now_ = datetime.now()
+            db.update_user(
+                email=db_data["email"],
+                user_id=db_data["user_id"],
+                created=db_data["created"],
+                password_hash=db_data["password_hash"],
+                user_state=db_data.get("user_state", None),
+                last_login=db_data.get("last_login", None),
+                updated=now_,
+                id=user.id,
+            )
+            user.updated = now_
 
-            return user
-
-        except Exception as e:
-            print(f"Database error: {e}")
-            return None
+        return user
 
     @classmethod
     def update(cls: Users, user: User, attr, value) -> User:

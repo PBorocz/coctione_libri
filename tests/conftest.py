@@ -18,6 +18,7 @@ def app(request):
     env = os.environ.copy()
     env["DATABASE_URL"] = test_db_url
     env["DBMATE_MIGRATIONS_DIR"] = "./app/db/migrations"
+    env["DBMATE_SCHEMA_FILE"] = "/tmp/coctione_libri_testing.schema.sql"
     try:
         cmd = ["dbmate", "up"]
         subprocess.run(cmd, env=env, check=True, capture_output=True)
@@ -32,6 +33,7 @@ def app(request):
 
     # Cleanup!
     if os.path.exists(test_db_path):
+        os.unlink(env["DBMATE_SCHEMA_FILE"])
         os.unlink(test_db_path)
 
 

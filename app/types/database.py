@@ -12,6 +12,9 @@ T = TypeVar("T", bound=BaseModel)
 class Database:
     def __init__(self):
         self._anodb = None
+        self._driver = None
+        self._path = None
+        self._sql_dir = None
 
         # Configure datetime adapters to suppress deprecation warning
         sqlite3.register_adapter(datetime, lambda dt: dt.isoformat())
@@ -19,7 +22,13 @@ class Database:
 
     def init_app(self, app) -> str:
         driver, path_ = app.config["SQLITE_DB"].split("://")
-        self._anodb = anodb.DB(driver, path_, "app/sql/", conn_kwargs={"autocommit": True})
+        self._driver = driver
+        self._path = path_
+        self._sql_dir = "app/sql/"
+        # Create initial connection with check_same_thread=False for thread safety
+        self._anodb = anodb.DB(
+            driver, path_, self._sql_dir, conn_kwargs={"autocommit": True, "check_same_thread": False}
+        )
         return path_
 
     def __getattr__(self, name):

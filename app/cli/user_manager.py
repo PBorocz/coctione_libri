@@ -5,6 +5,7 @@ import argparse
 import getpass
 import json
 import os
+import sqlite3
 from pprint import pprint
 
 import mongoengine
@@ -14,6 +15,7 @@ from app import create_app, db
 from app.models import categories
 from app.models.user import User, delete_user, query_user, update_user
 from app.models.user_rdb import User as UserRDB
+from app.models.user_rdb import Users
 
 
 def reset_password():
@@ -70,6 +72,11 @@ def add(app):
     """Add a new user to the database."""
     email = input("Email    : ")
 
+    # Check if exists already..
+    if Users.query(email=email):
+        print(f"\nSorry, user with email {email} already exists!")
+        return None
+
     password, password_2 = 1, 2
     while password != password_2:
         password = getpass.getpass("Password : ")
@@ -77,30 +84,9 @@ def add(app):
         if password != password_2:
             print("Sorry, passwords don't match..try again")
 
-    category = get_category()
-    user_state = {
-        "state_last_category": category,
-        "state_last_sort": {"by": "title", "order": "desc"},  # Default..
-    }
-
     user = UserRDB.create(email=email, password=password)
-
-    # try:
-    id_ = db.add_user(
-        email=user.email,
-        user_id=user.user_id,
-        created=user.created,
-        password_hash=user.password_hash,
-        user_state=json.dumps(user_state),
-    )
-    print(f"New user successfully created [{id_}]")
-
-    id, email, user_id = db.get_user_by_id(id=id_)
-    assert id == id_
-    assert email == user.email
-
-    # except mongoengine.NotUniqueError:
-    #     print("Sorry, unable to create new user; that email address has already been used!")
+    user = Users.save(user)
+    print(f"New user successfully created [{user.id}]")
 
 
 def delete():
@@ -115,14 +101,9 @@ def delete():
 def list_(app):
     """List db users."""
     found = False
-
-    with db.with_row_factory(UserRDB) as dbq:
-        for o_user in dbq.get_all_users():
-            print(f"\n{o_user=}")
-            found = True
-
-    # for id, email, created in db.get_all_users():
-    #     print(f"{id=}: {email=} {created=}")
+    for o_user in Users.users():
+        print(f"\n{o_user=}")
+        found = True
     if not found:
         print("Sorry, no users currently defined.")
 

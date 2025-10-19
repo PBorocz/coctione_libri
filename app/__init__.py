@@ -19,19 +19,23 @@ from mongoengine import connect
 from secure import Secure
 
 import app.constants as c
-from app.models.user import query_user
+
 from app.types.database import Database
+
+db = Database()
+
+from app.models.user_rdb import Users
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 
 htmx = HTMX()
 secure_headers = Secure()  # Secure headers
-db = Database()
 
 
-def _create_app_configuration(application: Flask, config_overrides: dict | None = dict) -> Flask:
+def _create_app_configuration(application: Flask, config_overrides: dict | None = None) -> Flask:
     application.config.update(**dotenv_values(".env", verbose=True))
-    application.config.update(**config_overrides)
+    if config_overrides:
+        application.config.update(**config_overrides)
     log.info(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
@@ -82,7 +86,7 @@ def _create_app_login(application: Flask) -> Flask:
     @login.user_loader
     def load_user(user_id):
         """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
-        return query_user(user_id=user_id)
+        return Users.query(user_id=user_id)
 
     log.info("...initialised extension: flask_login")
     return application
@@ -170,7 +174,7 @@ def _create_app_ctx_processors(application: Flask) -> Flask:
     return application
 
 
-def create_app(logging=True, log_level: str | None = None, config_overrides: dict | None = dict) -> Flask:
+def create_app(logging=True, log_level: str | None = None, config_overrides: dict | None = None) -> Flask:
     """Create and return our core Flask application object instance."""
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
