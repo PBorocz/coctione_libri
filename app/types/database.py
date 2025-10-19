@@ -44,12 +44,14 @@ class Database:
 
         # Set pydantic factory
         def custom_factory(cursor, row):
+            print("in custom_factory..")
             if cursor.description:  # Check if there are columns
                 columns = [col[0] for col in cursor.description]
                 return model_class.factory(**dict(zip(columns, row, strict=True)))
             return row
 
         self._anodb._conn.row_factory = custom_factory
+        print(f"set custom_factory to {model_class}")
 
         try:
             yield self

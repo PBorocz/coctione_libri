@@ -104,6 +104,7 @@ class Users:
     @classmethod
     def factory(cls, **kwargs) -> User:
         """Return a new application instance from a database instance."""
+        print("Users.factory...")
         return User(**cls.explode_json_fields(kwargs))
 
     @classmethod
@@ -157,7 +158,10 @@ class Users:
     @classmethod
     def users(cls: Users) -> list[User]:
         """Return all users."""
-        with db.with_row_factory(cls) as db_user:
+        with db.with_row_factory(Users) as db_user:
+            print(f"{db_user._anodb._conn.row_factory=}")
+            breakpoint()
+
             return db_user.get_all_users()
 
     # @classmethod

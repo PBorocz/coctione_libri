@@ -102,7 +102,10 @@ def list_(app):
     """List db users."""
     found = False
     for o_user in Users.users():
-        print(f"\n{o_user=}")
+        breakpoint()
+
+        print(f"\n{o_user.email}")
+        pprint(o_user.__dict)
         found = True
     if not found:
         print("Sorry, no users currently defined.")
