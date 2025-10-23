@@ -79,12 +79,12 @@ def test_user_delete_existing(app, user: User):
 def test_user_delete_non_existing(app):
     """Test that delete an instance that hasn't been saved yet is OK."""
     # Setup
-    tst_user_parms = {
+    test_user_parms = {
         "id": 99,
         "email": "test@foo.com",
         "password": "aPassword",
     }
-    user = User.factory(**tst_user_parms)
+    user = User.factory(**test_user_parms)
 
     # Test
     count = user.delete_instance()
@@ -130,21 +130,6 @@ def test_non_existent_user(app):
     assert not results
 
 
-def tst_update_user_direct(app, user):
-    """Test ability to update attributes of a user instance."""
-    # Setup
-    user.save()
-
-    # Test (by updating a single attribute)
-    user.state_last_category = "Cooking-Skills"
-    user.save()
-
-    # Confirm by requerying
-    updated_user = User.select().where(User.email == user.email)[0]
-    assert updated_user.updated
-    assert "Cooking-Skills" == updated_user.state_last_category
-
-
 def test_payload_str(app, user):
     """Test ability to update payload of a string."""
     # Setup
@@ -158,7 +143,7 @@ def test_payload_str(app, user):
     user.save()
 
     # Confirm
-    user_saved = User.select().where(User.email == user.email)[0]
+    user_saved = User.get(User.email == user.email)
     assert "search term 1" == user_saved.payload.user_state.last_search
 
 
@@ -173,7 +158,7 @@ def test_payload_list_set(app, user):
     user.save()
 
     # Confirm
-    user_saved = User.select().where(User.email == user.email)[0]
+    user_saved = User.get(User.email == user.email)
     assert ["search entry 1 of 1"] == user_saved.payload.user_state.last_searches
 
 
@@ -191,8 +176,29 @@ def test_payload_list_append(app, user):
     user.save()
 
     # Confirm
-    user_saved = User.select().where(User.email == user.email)[0]
+    user_saved = User.get(User.email == user.email)
     assert ["entry 1 of 2", "entry 2 of 2"] == user_saved.payload.user_state.last_searches
+
+
+def test_payload_dict_append(app, user):
+    """Test ability to update payload of a dict."""
+    # Setup
+    d_last_sort = {"by": "title", "order": "asc"}
+    user.payload = Box({"user_state": {"last_sort": d_last_sort}})
+    user.save()
+    assert d_last_sort == user.payload.user_state.last_sort
+
+    # Test (by updating a single payload str attribute.)
+    b_payload = user.payload
+    b_payload.user_state.last_sort.by = "name"
+    b_payload.user_state.last_sort.order = "desc"
+    user.payload = b_payload
+    user.save()
+
+    # Confirm
+    user_saved = User.get(User.email == user.email)
+    assert "name" == user_saved.payload.user_state.last_sort.by
+    assert "desc" == user_saved.payload.user_state.last_sort.order
 
 
 def test_update_on_save(app, user):
@@ -208,68 +214,34 @@ def test_update_on_save(app, user):
     assert user.updated
 
 
-def tst_update_complex_state_attributes_dict(app, user):
-    """Test ability to update dict state attribute of a user instance."""
+def test_user_update_password(app, user):
     # Setup
-    Users.save(user)
-
-    # Test (by updating a single attribute)
-    Users.update(user, "last_sort", {"by": "title", "order": "asc"})
-
-    # Confirm (user in the database is actually created and matching)
-    updated_user = Users.query(email=user.email)
-    assert updated_user.updated
-    assert {"by": "title", "order": "asc"} == updated_user.last_sort
-
-
-def tst_user_update_password(app, user):
-    # Setup
-    Users.save(user)
+    user.save()
     old_password_hash = user.password_hash
 
     # Test
-    Users.update(user, "password", "newPassword")
+    user.set_password("newPassword")
+    user.save()
 
     # Confirm
-    q_user = Users.query(email=user.email)
+    q_user = User.get(User.email == user.email)
     assert q_user.password_hash != old_password_hash
     assert user.password_hash == q_user.password_hash
 
 
-def tst_user_update_email(app, user):
+def test_user_update_email(app, user):
     # Setup
-    Users.save(user)
+    user.save()
     old_user_id = user.user_id
 
     # Test
-    Users.update(user, "email", "bar@foo.com")
-    assert user.email == "bar@foo.com"
+    new_email = "bar@foo.com"
+    user.set_email(new_email)
+    assert new_email == user.email
     assert user.user_id != old_user_id
 
     # Confirm
-    q_user = Users.query(email="bar@foo.com")
-    assert q_user.email == "bar@foo.com"
+    user.save()
+    q_user = User.get(User.email == user.email)
+    assert new_email == q_user.email
     assert user.user_id == q_user.user_id
-
-
-def tst_user_update_other_attribute(app, user):
-    # Setup
-    Users.save(user)
-    old_category = user.last_category
-
-    # Test
-    Users.update(user, "last_category", "Cooking-Skills")
-
-    # Confirm
-    assert user.last_category != old_category
-    assert user.last_category == "Cooking-Skills"
-
-
-# def tst_get_default_view(app, user):
-#     # Setup
-#     user.insert()
-
-#     # Test
-#     view = user.get_default_view()
-#     assert view
-#     assert isinstance(view, UserView)

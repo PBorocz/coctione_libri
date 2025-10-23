@@ -82,9 +82,12 @@ def _create_app_login(application: Flask) -> Flask:
     login.init_app(application)
 
     @login.user_loader
-    def load_user(user_id):
+    def load_user(user_id) -> User | None:
         """Load the User for the user_id-> SPECIAL METHOD FOR FLASKLOGIN!."""
-        return Users.query(user_id=user_id)
+        try:
+            return User.get(User.user_id == user_id)
+        except User.DoesNotExist:
+            return None
 
     log.info("...initialised extension: flask_login")
     return application

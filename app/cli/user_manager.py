@@ -4,18 +4,20 @@
 import argparse
 import getpass
 import json
+import logging
 import os
 import sqlite3
 from pprint import pprint
 
 import mongoengine
+from box import Box
 
 from app import constants as c
 from app import create_app, db
 from app.models import categories
-from app.models.user import User, delete_user, query_user, update_user
-from app.models.user_rdb import User as UserRDB
-from app.models.user_rdb import Users
+from app.models.user_rdb import User
+
+logging.getLogger("peewee").setLevel(logging.INFO)  # or logging.WARNING
 
 
 def reset_password():
@@ -23,19 +25,21 @@ def reset_password():
     user = None
     while True:
         email = input("Email : ")
-        user = query_user(email=email)
-        if user:
+        try:
+            user = User.get(User.email == email)
             break
-        print(f"Sorry, no user with email: '{email}'")
+        except User.DoesNotExist:
+            print(f"Sorry, no user with {email=}")
 
     password_1, password_2 = 1, 2
     while password_1 != password_2:
-        password_1 = getpass.getpass("Password : ")
-        password_2 = getpass.getpass("Confirm  : ")
+        password_1 = getpass.getpass("New Password : ")
+        password_2 = getpass.getpass("Confirm      : ")
         if password_1 != password_2:
             print("Sorry, passwords don't match..try again")
 
-    update_user(user, "password", password_1)
+    user.set_password(password_1)
+    user.save()
     print("Password reset.")
 
 
@@ -50,19 +54,26 @@ def get_category():
     return None
 
 
-def reset_category():
+def set_category():
     """Reset the category of an existing user."""
     user = None
     while True:
         email = input("Email : ")
-        user = query_user(email=email)
-        if user:
+        try:
+            user = User.get(User.email == email)
             break
-        print(f"Sorry, no user with email: '{email}'")
+        except User.DoesNotExist:
+            print(f"Sorry, no user with {email=}")
 
-    category = get_category()
-    if category:
-        update_user(user, "state_last_category", category)
+    payload = user.payload
+    if payload.user_state.last_category:
+        print(f"Current category={payload.user_state.last_category}")
+
+    new_category = get_category()
+    if new_category:
+        payload.user_state.last_category = new_category
+        user.payload = payload
+        user.save()
         print("Category reset.")
     else:
         print("Nothing done.")
@@ -73,10 +84,14 @@ def add(app):
     email = input("Email    : ")
 
     # Check if exists already..
-    if Users.query(email=email):
+    try:
+        User.get(User.email == email)
         print(f"\nSorry, user with email {email} already exists!")
         return None
+    except User.DoesNotExist:
+        pass
 
+    # Get user password..
     password, password_2 = 1, 2
     while password != password_2:
         password = getpass.getpass("Password : ")
@@ -84,28 +99,39 @@ def add(app):
         if password != password_2:
             print("Sorry, passwords don't match..try again")
 
-    user = UserRDB.create(email=email, password=password)
-    user = Users.save(user)
-    print(f"New user successfully created [{user.id}]")
+    # Get selected category
+    category = get_category()
+
+    user = User.factory(email=email, password=password)
+    user.payload = Box(
+        {
+            "user_state": {
+                "last_category": category,
+                "last_sort": {"by": "title", "order": "asc"},
+            }
+        }
+    )
+    user.save()
+    print(f"New user successfully created, {user.id=}")
 
 
 def delete():
     """Delete a user from the database."""
     email = input("Email : ")
-    if delete_user(email=email):
-        print("User deleted.")
-    else:
+    try:
+        user = User.get(User.email == email)
+        user.delete_instance()
+        return None
+    except User.DoesNotExist:
         print("User NOT deleted, could not be found?")
 
 
 def list_(app):
     """List db users."""
     found = False
-    for o_user in Users.users():
-        breakpoint()
-
+    for o_user in User.select():
         print(f"\n{o_user.email}")
-        pprint(o_user.__dict)
+        pprint(o_user.__dict__)
         found = True
     if not found:
         print("Sorry, no users currently defined.")
@@ -118,7 +144,7 @@ if __name__ == "__main__":
         "-a",
         "--action",
         metavar="action",
-        help="Action to be perform, ie. 'add', 'list', 'delete, 'reset-password'.",
+        help="Action to be perform, ie. 'add', 'list', 'delete, 'reset-password', 'set-category'.",
         default="add",
     )
 
@@ -149,8 +175,8 @@ if __name__ == "__main__":
     elif ARGS.action.casefold() == "reset-password":
         reset_password()
 
-    elif ARGS.action.casefold() == "reset-category":
-        reset_category()
+    elif ARGS.action.casefold() == "set-category":
+        set_category()
 
     elif ARGS.action.casefold() == "delete":
         delete()
