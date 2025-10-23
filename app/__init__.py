@@ -9,22 +9,20 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import flask as f
 
-import anodb
 import boto3
 from dotenv import dotenv_values
 from flask.app import Flask  # Typing
 from flask_htmx import HTMX
 from flask_login import LoginManager
 from mongoengine import connect
+from peewee import SqliteDatabase
 from secure import Secure
 
 import app.constants as c
 
-from app.types.database import Database
+db = None
 
-db = Database()
-
-from app.models.user_rdb import Users
+from app.models.user_rdb import User
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 
@@ -113,8 +111,21 @@ def _create_app_connections(application: Flask) -> Flask:
     # Sqlite "Document" metadata...
     ################################################################################
     # path_ = init_db(application)
-    path_ = db.init_app(application)
+    # path_ = db.init_app(application)
+    global db
+    driver, path_ = application.config["SQLITE_DB"].split("://")
+    db = SqliteDatabase(path_, pragmas={"autocommit": True, "check_same_thread": False})
     log.info(f"...connected to SQLite: {path_}")
+
+    models = [User]
+    db.bind(models)
+    log.info(f"...bound SQLite to models: {models}")
+    if "memory" in path_:
+        if db.is_closed():
+            db.connect()
+        db.create_tables(models, safe=True)
+        log.info(f"...created SQLite tables from models: {db.get_tables()=}")
+        print(f"{db.get_tables()=}")
 
     ################################################################################
     # "Document" file/object store next...

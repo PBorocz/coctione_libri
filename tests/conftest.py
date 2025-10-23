@@ -1,10 +1,15 @@
+import logging
 import os
+import sqlite3
 import subprocess
 
 import pytest
+from peewee import SqliteDatabase
 
 from app import create_app, db
 from app.models.user_rdb import User
+
+logging.getLogger("peewee").setLevel(logging.INFO)  # or logging.WARNING
 
 
 @pytest.fixture(scope="session")
@@ -42,19 +47,12 @@ def app(request):
 ################################################################################
 @pytest.fixture
 def user(app):
-    test_user_parms = {
-        "email": "test@foo.com",
-        "password": "aPassword",
-        "state_last_search": "burmese",
-        "state_last_category": "Recipes",
-    }
-    # Give back an instance that's NOT SAVED!!
-    yield User.create(**test_user_parms)
-
-    # Clean up just in case did another insert during the respective test.
-    # (we don't use the user.delete approach so we don't rely upon code that we should be testing).
-    cursor = db._conn.cursor()
-    cursor.execute("delete from user where email='test@foo.com'")
+    """Yield up a NON-SAVED user instance."""
+    user = User.factory(email="test@foo.com", password="aPassword")
+    # print(f"created {user.email=}")
+    yield user
+    user.delete_instance()
+    # print(f"deleted {user.email=}")
 
 
 ################################################################################

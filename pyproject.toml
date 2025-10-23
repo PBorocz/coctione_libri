@@ -28,7 +28,8 @@ dependencies = [
     "boto3>=1.37.35,<2",
     "urllib3>=2.5.0,<3",
     "jinja2>=3.1.6,<4",
-    "anodb>=13.2",
+    "peewee>=3.18.2",
+    "python-box>=7.3.2",
 ]
 
 [dependency-groups]
@@ -131,6 +132,11 @@ max-complexity = 12
   "N805",  # We have classmethods defined that use 'cls' as arg, not 'self'!
 ]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:dateutil.tz.tz",
+]
+
 [tool.poe]
 verbosity = -1
 
@@ -162,8 +168,7 @@ shell = """
   """
 
 [tool.poe.tasks.pytest]
-cmd = "uv run pytest -s -x"
-
+cmd = "uv run pytest -s -x --pdb"
 
 [tool.poe.tasks.dev_run_production]
 interpreter = "fish"
