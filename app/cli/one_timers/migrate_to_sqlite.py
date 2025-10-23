@@ -18,6 +18,9 @@ from app.models import Category, categories_available
 from app.models.document import Document
 from app.models.documents import CategoryField, Documents
 from app.models.user import User
+from app.models.user_rdb import User as UserRDB
+
+EMAIL = "peter.borocz@gmail.com"
 
 
 def main(args: argparse.Namespace):
@@ -25,27 +28,27 @@ def main(args: argparse.Namespace):
     setup_logging(True)
 
     # Setup our application/db connection
-    os.environ["FLASK_ENV"] = args.database
-    app = create_app(logging=None)
+    app = create_app()
     with app.app_context():
         for category in categories_available():
-            transfer_documents(app, category)
+            print(f"{category=}")
+            migrate_documents(app, category)
 
 
-def transfer_documents(app, category: str):
-    user = User.objects.get(email="peter.borocz@gmail.com")
+def migrate_documents(app, category: str):
+    user_sql = UserRDB.get(UserRDB.email == EMAIL)
+    user_mongo = User.objects.get(email=EMAIL)
     o_category = CategoryField().to_python(category)
-    with switch_collection(Documents, Documents.as_user(user, o_category)) as user_documents:
+    with switch_collection(Documents, Documents.as_user(user_mongo, o_category)) as user_documents:
         for document in user_documents.objects():
-            emit_to_sql(app, user, o_category, document)
+            emit_to_sql(app, user_mongo, o_category, document)
             break
 
 
 def emit_to_sql(app, user, o_category, mongo_document):
-    for id, email, created in db.get_all_users():
-        print(f"{id=}: {email=} {created=}")
+    print(f"{user.id}: ", end="")
     print(f"{o_category.value:20s} {mongo_document.title}")
-    Document(user_id=1, category=o_category.value, title=mongo_document.title)
+    # Document(user_id=1, category=o_category.value, title=mongo_document.title)
 
 
 def import_pdfs(args):
@@ -98,7 +101,7 @@ if __name__ == "__main__":
         "-d",
         "--database",
         help=f"Database environment, eg. {', '.join(c.DB_ENVS)}. Default is 'development'.",
-        default="development",
+        default="production",
     )
 
     # parser.add_argument(

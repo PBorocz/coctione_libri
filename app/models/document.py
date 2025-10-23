@@ -6,6 +6,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, validator
 
+# START HERE and convert to peewee!
+
 
 # Assuming these are your enum definitions
 class Category(str, Enum):

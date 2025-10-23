@@ -34,7 +34,7 @@ def _create_app_configuration(application: Flask, config_overrides: dict | None 
     application.config.update(**dotenv_values(".env", verbose=True))
     if config_overrides:
         application.config.update(**config_overrides)
-    log.info(f"...configuration environment: {application.config.get('ENV')}")
+    print(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
 
@@ -123,12 +123,12 @@ def _create_app_connections(application: Flask) -> Flask:
     models = [User]
     db.bind(models)
     log.info(f"...bound SQLite to models: {models}")
-    if "memory" in path_:
-        if db.is_closed():
-            db.connect()
-        db.create_tables(models, safe=True)
-        log.info(f"...created SQLite tables from models: {db.get_tables()=}")
-        print(f"{db.get_tables()=}")
+    # if "memory" in path_:
+    #     if db.is_closed():
+    #         db.connect()
+    #     db.create_tables(models, safe=True)
+    #     log.info(f"...created SQLite tables from models: {db.get_tables()=}")
+    #     print(f"{db.get_tables()=}")
 
     ################################################################################
     # "Document" file/object store next...
