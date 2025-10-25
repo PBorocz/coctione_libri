@@ -1,70 +1,58 @@
 """Base application document model (in relational form)."""
 
+import json
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from peewee import CharField, Check, DateField, ForeignKeyField, Model, SmallIntegerField, TextField
 
-# START HERE and convert to peewee!
-
-
-# Assuming these are your enum definitions
-class Category(str, Enum):
-    # Add your category values here
-    pass
+from app.models import Category
+from app.models.user_rdb import User
 
 
-class Document(BaseModel):
+class ListField(TextField):
+    def db_value(self, value):
+        return json.dumps(value) if value else "[]"
+
+    def python_value(self, value):
+        return json.loads(value) if value else []
+
+
+class DateTimeListField(TextField):
+    def db_value(self, value):
+        if not value:
+            return "[]"
+        return json.dumps([d.isoformat() for d in value])
+
+    def python_value(self, value):
+        if not value:
+            return []
+        dates_str = json.loads(value)
+        return [datetime.fromisoformat(d) for d in dates_str]
+
+
+class Document(Model):
     # fmt: off
-    ######################################################################
-    # Primary key
-    ######################################################################
-    id: int | None = None
+    id           = SmallIntegerField(primary_key=True, help_text="DB auto increment id")
+    user         = ForeignKeyField(User, backref="documents")
+    title        = CharField(help_text="Document title")
+    category     = CharField(help_text="Document category",choices=[(c.value, c.name) for c in Category])
+    created      = DateField(default=datetime.now(), help_text="Datetime first saved.")
+    updated      = DateField(null=True, help_text="Datetime last updated.")
+    filename     = CharField(null=True)
+    filesize     = SmallIntegerField(null=True)
+    mimetype     = CharField(default="application/pdf")
+    source       = CharField(null=True)
+    url          = CharField(null=True)
+    tags         = ListField(default=list)
 
-    ######################################################################
-    # Required fields
-    ######################################################################
-    user_id  : int
-    title    : str      = Field(..., max_length=120)
-    category : str
-    created  : datetime = Field(default_factory=datetime.utcnow)
-
-    ######################################################################
-    # Optional generic document fields
-    ######################################################################
-    file_content : bytes | None    = None
-    filename     : str | None      = None
-    filesize     : int             = 0
-    mimetype     : str             = "application/pdf"
-    notes        : str | None      = None
-    source       : str | None      = None
-    tags         : list[str]       = Field(default_factory=list)
-    updated      : datetime | None = None
-    url          : str | None      = Field(None, max_length=2038)
-
-    ######################################################################
-    # Recipe category specific fields
-    ######################################################################
-    dates_cooked: list[datetime] = Field(default_factory=list)
-    quality     : int | None     = Field(None, ge=0, le=5)
-    complexity  : int | None     = Field(None, ge=0, le=5)
+    # Recipe category-specific fields
+    dates_cooked = DateTimeListField(default=list)
+    quality      = SmallIntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
+    complexity   = SmallIntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
     # fmt: on
 
-    # @validator("tags")
-    # def validate_tags(self, v):
-    #     """Ensure each tag is max 50 characters."""
-    #     for tag in v:
-    #         if len(tag) > 50:
-    #             raise ValueError(f"Tag '{tag}' exceeds 50 character limit")
-    #     return v
-
-    class Config:
-        """Set pydantic configuration values."""
-
-        # Allow enum values to be used directly
-        use_enum_values = True
-        # Enable ORM mode for SQLAlchemy/similar
-        from_attributes = True
-        # JSON encoders for special types
-        json_encoders = {datetime: lambda v: v.isoformat(), bytes: lambda v: v.decode("utf-8") if v else None}
+    def save(self, *args, **kwargs):
+        """Override save method to set updated attr on actual updates."""
+        self.updated = datetime.now() if self._pk is not None else None
+        return super().save(*args, **kwargs)

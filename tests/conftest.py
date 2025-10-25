@@ -1,4 +1,4 @@
-import logging
+import logging as log
 import os
 import sqlite3
 import subprocess
@@ -7,9 +7,11 @@ import pytest
 from peewee import SqliteDatabase
 
 from app import create_app, db
+from app.models import Category
+from app.models.document import Document
 from app.models.user_rdb import User
 
-logging.getLogger("peewee").setLevel(logging.INFO)  # or logging.WARNING
+log.getLogger("peewee").setLevel(log.INFO)  # or log.WARNING
 
 
 @pytest.fixture(scope="session")
@@ -31,7 +33,7 @@ def app(request):
         pytest.fail(f"dbmate up failed: {e.stderr.decode()}")
 
     # application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
-    application = create_app(config_overrides={"SQLITE_DB": test_db_url})
+    application = create_app(logging=False, config_overrides={"SQLITE_DB": test_db_url})
     application.app_context().push()
 
     yield application
@@ -48,11 +50,24 @@ def app(request):
 @pytest.fixture
 def user(app):
     """Yield up a NON-SAVED user instance."""
-    user = User.factory(email="test@foo.com", password="aPassword")
+    user = User.factory(email="test@foo.com", password="aPassword", user_id="aUserId")
     # print(f"created {user.email=}")
     yield user
     user.delete_instance()
     # print(f"deleted {user.email=}")
+
+
+@pytest.fixture
+def document_and_user(app, user):
+    """Yield up a NON-SAVED document instance."""
+    user.save()  # Can't use as a foreign key until id is assigned on save!
+    document = Document(user=user, title="a Document Title", category=Category.COOKING_RECIPES)
+    # print(f"created {document.title=}")
+    yield document, user
+    if document._pk is not None:
+        document.delete_instance()
+        # print(f"deleted {document.title=}")
+    user.delete_instance()
 
 
 ################################################################################

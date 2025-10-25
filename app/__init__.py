@@ -34,7 +34,7 @@ def _create_app_configuration(application: Flask, config_overrides: dict | None 
     application.config.update(**dotenv_values(".env", verbose=True))
     if config_overrides:
         application.config.update(**config_overrides)
-    print(f"...configuration environment: {application.config.get('ENV')}")
+    # print(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
 
@@ -188,19 +188,20 @@ def _create_app_ctx_processors(application: Flask) -> Flask:
     return application
 
 
-def create_app(logging=True, log_level: str | None = None, config_overrides: dict | None = None) -> Flask:
+def create_app(logging=True, log_level: str | None = log.INFO, config_overrides: dict | None = None) -> Flask:
     """Create and return our core Flask application object instance."""
     application = f.Flask(__name__, template_folder="templates")
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     with application.app_context():
         # Setup initial logging configuration to get us going
-        log.basicConfig(
-            level=log.INFO,
-            format=c.LOGGING_FORMAT_FLASK,
-            force=True,
-            style="{",
-            datefmt=c.LOGGING_FORMAT_DATETIME,
-        )
+        if logging:
+            log.basicConfig(
+                level=log_level,
+                format=c.LOGGING_FORMAT_FLASK,
+                force=True,
+                style="{",
+                datefmt=c.LOGGING_FORMAT_DATETIME,
+            )
 
         # Get configuration
         application = _create_app_configuration(application, config_overrides)

@@ -2,6 +2,7 @@
 """Migrate documents and users to a sqlite DB from MongoDB."""
 
 import argparse
+import logging as log
 import os
 import re
 import time
@@ -10,6 +11,7 @@ from pathlib import Path
 
 import tomli_w
 from mongoengine.context_managers import switch_collection
+from peewee import IntegrityError
 
 import app.constants as c
 from app import create_app, db
@@ -22,6 +24,8 @@ from app.models.user_rdb import User as UserRDB
 
 EMAIL = "peter.borocz@gmail.com"
 
+log.getLogger("peewee").setLevel(log.INFO)  # or log.WARNING
+
 
 def main(args: argparse.Namespace):
     """Do our action, ie. either delete or import."""
@@ -29,26 +33,43 @@ def main(args: argparse.Namespace):
 
     # Setup our application/db connection
     app = create_app()
+    user_sql = UserRDB.get(UserRDB.email == EMAIL)
     with app.app_context():
         for category in categories_available():
-            print(f"{category=}")
-            migrate_documents(app, category)
+            migrate_documents(app, user_sql, category)
 
 
-def migrate_documents(app, category: str):
-    user_sql = UserRDB.get(UserRDB.email == EMAIL)
+def migrate_documents(app, user_sql: User, category: str):
     user_mongo = User.objects.get(email=EMAIL)
     o_category = CategoryField().to_python(category)
     with switch_collection(Documents, Documents.as_user(user_mongo, o_category)) as user_documents:
         for document in user_documents.objects():
-            emit_to_sql(app, user_mongo, o_category, document)
-            break
+            emit_to_sql(app, user_mongo, user_sql, document)
 
 
-def emit_to_sql(app, user, o_category, mongo_document):
-    print(f"{user.id}: ", end="")
-    print(f"{o_category.value:20s} {mongo_document.title}")
-    # Document(user_id=1, category=o_category.value, title=mongo_document.title)
+def emit_to_sql(app, user_mongo, user_sql, mongo_document):
+    # fmt: off
+    doc = Document(
+        user         = user_sql,
+        category     = mongo_document.category,
+        title        = mongo_document.title,
+        filename     = mongo_document.filename,
+        filesize     = mongo_document.filesize,
+        mimetype     = mongo_document.mimetype,
+        notes        = mongo_document.notes,
+        source       = mongo_document.source,
+        url          = mongo_document.url_,
+        quality      = mongo_document.quality,
+        complexity   = mongo_document.complexity,
+        tags         = mongo_document.tags,
+        dates_cooked = mongo_document.dates_cooked,
+    )
+    # fmt: on
+    try:
+        doc.save()
+        # print(f"{mongo_document.title[:30]:<30}...✅")
+    except IntegrityError as exc:
+        print(f"{mongo_document.title[:30]:<30}...❌ {exc}")
 
 
 def import_pdfs(args):

@@ -22,7 +22,7 @@ def get_current_row_count():
 ################################################################################
 # Tests
 ################################################################################
-def test_init_missing_attrs(app):
+def test_user_init_missing_attrs(app):
     """Test that a simple class instantiation won't work as there ARE required fields."""
     User()
     # with pytest.raises(pydantic.ValidationError):
@@ -93,7 +93,7 @@ def test_user_delete_non_existing(app):
     assert 0 == count
 
 
-def test_query_user_email(app, user: User):
+def test_user_query_email(app, user: User):
     # Setup
     user.save()
     assert user.email
@@ -110,7 +110,7 @@ def test_query_user_email(app, user: User):
     assert q_user.email == user.email
 
 
-def test_query_user_user_id(app, user: User):
+def test_user_query_user_id(app, user: User):
     # Setup
     user.save()
 
@@ -125,12 +125,12 @@ def test_query_user_user_id(app, user: User):
     assert q_user.email == user.email
 
 
-def test_non_existent_user(app):
+def test_user_non_existent(app):
     results = User.select().where(User.email == "asdfasdfasdf@asdfasdfadsf.com")
     assert not results
 
 
-def test_payload_str(app, user):
+def test_user_payload_str(app, user):
     """Test ability to update payload of a string."""
     # Setup
     user.save()
@@ -147,7 +147,7 @@ def test_payload_str(app, user):
     assert "search term 1" == user_saved.payload.user_state.last_search
 
 
-def test_payload_list_set(app, user):
+def test_user_payload_list_set(app, user):
     """Test ability to update payload of a list."""
     # Setup
     user.save()
@@ -162,7 +162,7 @@ def test_payload_list_set(app, user):
     assert ["search entry 1 of 1"] == user_saved.payload.user_state.last_searches
 
 
-def test_payload_list_append(app, user):
+def test_user_payload_list_append(app, user):
     """Test ability to update payload of a list."""
     # Setup
     user.payload = Box({"user_state": {"last_searches": ["entry 1 of 2"]}})
@@ -180,7 +180,7 @@ def test_payload_list_append(app, user):
     assert ["entry 1 of 2", "entry 2 of 2"] == user_saved.payload.user_state.last_searches
 
 
-def test_payload_dict_append(app, user):
+def test_user_payload_dict_append(app, user):
     """Test ability to update payload of a dict."""
     # Setup
     d_last_sort = {"by": "title", "order": "asc"}
@@ -201,7 +201,7 @@ def test_payload_dict_append(app, user):
     assert "desc" == user_saved.payload.user_state.last_sort.order
 
 
-def test_update_on_save(app, user):
+def test_user_update_on_save(app, user):
     """Test overridden save method obo "updated" attribute."""
     # Setup
     user.save()
