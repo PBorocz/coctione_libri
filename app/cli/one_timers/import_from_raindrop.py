@@ -105,7 +105,7 @@ def import_existing_pdfs():
             continue
 
         if not path_pdf.exists():
-            print(f'\nSkipping: {raindrop.get("file").get("name")}')
+            print(f"\nSkipping: {raindrop.get('file').get('name')}")
             continue
 
         raindrop["__path_pdf"] = path_pdf
@@ -157,7 +157,7 @@ def __import_raindrop(user, raindrop: dict) -> str:
         doc = user_documents(
             user=user,
             title=raindrop["title"],
-            category=user.state_last_category,
+            category=user.payload.state_last_category,
         )
         if "source" in raindrop:
             doc.source = raindrop["source"]

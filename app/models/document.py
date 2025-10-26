@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from enum import Enum
 
-from peewee import CharField, Check, DateField, ForeignKeyField, Model, SmallIntegerField, TextField
+from peewee import CharField, Check, DateTimeField, ForeignKeyField, Model, SmallIntegerField, TextField
 
 from app.models import Category
 from app.models.user_rdb import User
@@ -37,8 +37,9 @@ class Document(Model):
     user         = ForeignKeyField(User, backref="documents")
     title        = CharField(help_text="Document title")
     category     = CharField(help_text="Document category",choices=[(c.value, c.name) for c in Category])
-    created      = DateField(default=datetime.now(), help_text="Datetime first saved.")
-    updated      = DateField(null=True, help_text="Datetime last updated.")
+    created      = DateTimeField(default=datetime.now(), help_text="Datetime first saved.")
+    updated      = DateTimeField(null=True, help_text="Datetime last updated.")
+    fileid       = CharField(null=True)
     filename     = CharField(null=True)
     filesize     = SmallIntegerField(null=True)
     mimetype     = CharField(default="application/pdf")

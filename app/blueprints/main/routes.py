@@ -16,6 +16,7 @@ from mongoengine.context_managers import switch_collection
 from app.blueprints.main import bp
 from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
 from app.models import Sort, categories_available
+from app.models.document import Document
 from app.models.documents import Documents, sources_available, tags_available
 from app.models.user import update_user
 
@@ -43,15 +44,15 @@ def log_route(path=""):
 def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
-    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
 
     return render_template(
         "main/display.html",
         documents=documents,
-        search=fl.current_user.state_last_search,
-        search_history=fl.current_user.state_last_searches,
+        search=fl.current_user.payload.state_last_search,
+        search_history=fl.current_user.payload.state_last_searches,
         sort=sort,
-        category=fl.current_user.state_last_category,
+        category=fl.current_user.payload.state_last_category,
         categories=categories_available(),
     )
 
@@ -65,7 +66,7 @@ def render_display() -> Response:
 def hx_query() -> Response:
     """Render *just* our display table on an htmx-post call."""
     # Query & sort the documents..
-    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
@@ -73,12 +74,12 @@ def hx_query() -> Response:
     rendered_template: str = render_template(
         "main/hx/display_table.html",
         documents=documents,
-        search=fl.current_user.state_last_search,
+        search=fl.current_user.payload.state_last_search,
         sort=sort,
         form=FlaskForm(),
         num_docs=len(documents),
         doc_ids=doc_ids,
-        category=fl.current_user.state_last_category,
+        category=fl.current_user.payload.state_last_category,
         categories=categories_available(),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
@@ -106,10 +107,10 @@ def hx_display(template="main/hx/display_table.html") -> Response:
     update_user(fl.current_user, "state_last_sort", sort.__dict__)
 
     # Query respective documents for the respective category and sort based on our state requested.
-    sort, documents = get_documents(fl.current_user, fl.current_user.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
 
     # Render our partial template of the main display table:
-    return render_template(template, documents=documents, sort=sort, search=fl.current_user.state_last_search)
+    return render_template(template, documents=documents, sort=sort, search=fl.current_user.payload.state_last_search)
 
 
 ################################################################################
@@ -118,9 +119,9 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 @log_route(path="/user/category")
 def hx_user_category_change() -> Response:
     """Change the display to the document category specified."""
-    fl.current_user.state_last_category = request.values.get("category")
+    fl.current_user.payload.state_last_category = request.values.get("category")
     fl.current_user.save()
-    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.state_last_category}")
+    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.payload.state_last_category}")
     return redirect(url_for("main.hx_display"))
 
 
@@ -129,7 +130,7 @@ def hx_user_category_change() -> Response:
 @login_required
 @log_route(path="/update-search-history")
 def hx_update_search(template="main/hx/display_search_history.html") -> Response:
-    return render_template(template, search_history=fl.current_user.state_last_searches)
+    return render_template(template, search_history=fl.current_user.payload.state_last_searches)
 
 
 ################################################################################
@@ -152,14 +153,15 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     sort, documents = get_documents(fl.current_user, search_term_s)
 
     # Update the user state re. their last search performed.
-    fl.current_user.update_search(search_term_s.casefold())
+    # FIXME:
+    # fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
 
     render_args = {
         "documents": documents,
-        "category": fl.current_user.state_last_category,
+        "category": fl.current_user.payload.state_last_category,
         "sort": sort,
         "search": search_term_s,
         "form": FlaskForm(),
@@ -176,11 +178,10 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 @log_route(path="/view")
 def route_view_document(doc_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents.objects(id=doc_id)[0]
+    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
 
     # Do we think we have a document to display?
-    if not document.filename:
+    if not document.fileid:
         # No, do we have a url instead?
         if document.url_:
             # Yes, go there..
@@ -191,12 +192,13 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
     # Ok, we *SHOULD* have a file, pull it and see..
     client_storage = current_app.config["STORAGE_FILE"]
     contents: BytesIO = BytesIO()
-    download_name: str = f"{doc_id}.pdf"
+    download_name: str = f"{document.fileid}.pdf"
     try:
-        client_storage.download_fileobj(client_storage.bucket, doc_id, contents)
+        client_storage.download_fileobj(client_storage.bucket, document.fileid, contents)
         contents.seek(0)
         return send_file(contents, download_name=download_name, mimetype=document.mimetype)
-    except ClientError:
+    except ClientError as exc:
+        log.error(str(exc))
         log.error(f"Sorry, unable to pull document {document.filename}[{document.id!s}] from storage.")
 
     return redirect(url_for(url))
@@ -217,7 +219,7 @@ def render_delete_document(url: str = "main.render_display") -> Response:
 @login_required
 @log_route(path="/documents/delete")
 def render_delete_documents(url: str = "main.render_display") -> Response:
-    """Delete the specified Documents."""
+    """Delete the specified documents."""
     doc_ids = request.values["doc_ids"]
     for doc_id in doc_ids.split("|"):
         delete_document(current_app, fl.current_user, doc_id)
@@ -244,11 +246,11 @@ def render_new_document() -> Response:
         )
 
     # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
-    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents(
-            user=fl.current_user, title=request.form.get("title"), category=fl.current_user.state_last_category
-        )
-        document.save()
+    # with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
+    document = Document(
+        user=fl.current_user, title=request.form.get("title"), category=fl.current_user.payload.state_last_category
+    )
+    document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))
 
 
@@ -258,16 +260,15 @@ def render_new_document() -> Response:
 @log_route(path="/edit")
 def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents.objects(id=doc_id)[0]
-        return_ = {
-            "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
-            "sources": sources_available(fl.current_user),  # Source pulldown options for user
-            "tags": tags_available(fl.current_user),  # Tag pulldown options for user
-            "no_search": True,
-            "document": document,
-        }
-        return render_template(template, **return_)
+    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
+    return_ = {
+        "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
+        "sources": sources_available(fl.current_user),  # Source pulldown options for user
+        "tags": tags_available(fl.current_user),  # Tag pulldown options for user
+        "no_search": True,
+        "document": document,
+    }
+    return render_template(template, **return_)
 
 
 ################################################################################
@@ -276,11 +277,10 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
 @log_route(path="/edit")
 def hx_edit_field(field: str, doc_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document = user_documents.objects(id=doc_id)[0]
+    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
 
-        # Update the specified field in the document based on the inbound request, get doc and optional error msg
-        document, error_msg = update_document_attribute(current_app, document, field, request)
+    # Update the specified field in the document based on the inbound request, get doc and optional error msg
+    document, error_msg = update_document_attribute(current_app, document, field, request)
 
     return_args = {
         "document": document,
@@ -311,6 +311,5 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
 @log_route(path="/document/last_updated")
 def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
-        document: Documents = user_documents.objects(id=doc_id)[0]
+    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
     return render_template(template, document=document)

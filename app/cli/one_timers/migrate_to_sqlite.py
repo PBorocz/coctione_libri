@@ -53,6 +53,7 @@ def emit_to_sql(app, user_mongo, user_sql, mongo_document):
         user         = user_sql,
         category     = mongo_document.category,
         title        = mongo_document.title,
+        fileid       = str(mongo_document.id),
         filename     = mongo_document.filename,
         filesize     = mongo_document.filesize,
         mimetype     = mongo_document.mimetype,

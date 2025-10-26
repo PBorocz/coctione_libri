@@ -1,4 +1,4 @@
-"""Sole "Application" Creator Factory Method."""
+"""Application Creator Factory Method."""
 
 import logging as log
 import shutil
@@ -22,6 +22,7 @@ import app.constants as c
 
 db = None
 
+from app.models.document import Document
 from app.models.user_rdb import User
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
@@ -120,7 +121,7 @@ def _create_app_connections(application: Flask) -> Flask:
     db = SqliteDatabase(path_, pragmas={"autocommit": True, "check_same_thread": False})
     log.info(f"...connected to SQLite: {path_}")
 
-    models = [User]
+    models = [User, Document]
     db.bind(models)
     log.info(f"...bound SQLite to models: {models}")
     # if "memory" in path_:

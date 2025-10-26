@@ -17,17 +17,19 @@ from mongoengine.queryset.visitor import QCombination
 from werkzeug.utils import secure_filename
 
 from app.models import Sort
+from app.models.document import Document
 from app.models.documents import Documents
 from app.models.user import User
 
 
-def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Documents]]:
+def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Document]]:
     """CORE query to return documents, with or without search term(s).
 
     Note: We use shlex.split to handle case of quoted strings in search input, e.g.: '"coconut milk" burmese'
     """
     # We do an implicit "AND", thus, we want to capture the set of ids for each search term
     # and then "AND" them together.
+    ids_to_query = None
     if search:
         id_sets: list[set[str]] = []
         for search_term in shlex.split(search):
@@ -38,9 +40,9 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
         ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
     # Return either *ALL* the documents or just those associated with the search matching id's:
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        kw_args = {"id__in": ids_to_query} if search else {}
-        documents = user_documents.objects(**kw_args)
+    documents = Document.select().where(Document.user == user)
+    if ids_to_query:
+        documents = documents.where(Document.id.in_(ids_to_query))
     log.debug(f"{len(documents):4d} documents found.")
 
     return _sort(user, documents)
@@ -51,8 +53,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 ################################################################################
 def _search_by_title(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        partials: QuerySet = user_documents.objects(title__icontains=search).only("id")
+    partials = Document.select().where(Document.user == user, Document.title.contains(search))
     if partials:
         log.debug(f"{len(partials):4d} documents matched against 'title'")
     return [doc.id for doc in partials]
@@ -60,14 +61,13 @@ def _search_by_title(user: User, search: str) -> list[ObjectId]:
 
 def _search_by_source(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        partials: QuerySet = user_documents.objects(source__icontains=search).only("id")
+    partials = Document.select().where(Document.user == user, Document.source.contains(search))
     if partials:
         log.debug(f"{len(partials):4d} documents matched against 'source'")
     return [doc.id for doc in partials]
 
 
-def _search_by_tag(user: User, search: str) -> list[ObjectId]:
+def _sch_by_tag(user: User, search: str) -> list[ObjectId]:
     """Search all documents by tag(s)."""
     if any(chr.isspace() for chr in search):
         # Split and "title" the search terms to match those within the database.
@@ -108,28 +108,26 @@ def _search_by_tag(user: User, search: str) -> list[ObjectId]:
 
 def delete_document(app, user: User, id_: str) -> None:
     """Delete the document with specified id for the specified user."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        document = user_documents.objects(id=id_)[0]
-        s_doc_id = str(document.id)
-        try:
-            client_storage = app.config["STORAGE_FILE"]
-            args = {"Bucket": client_storage.bucket, "Key": s_doc_id}
-            client_storage.head_object(**args)
-            client_storage.delete_object(**args)
-        except ClientError as e:
-            if e.response["Error"]["Code"] != "404":
-                log.error(f"Error deleting object {s_doc_id} from bucket {client_storage.bucket}: {e}!")
-        document.delete()
+    document = Document.get(Document.user == user, Document.id == id_)
+    try:
+        client_storage = app.config["STORAGE_FILE"]
+        args = {"Bucket": client_storage.bucket, "Key": document.fileid}
+        client_storage.head_object(**args)
+        client_storage.delete_object(**args)
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "404":
+            log.error(f"Error deleting object {document.fileid} from bucket {client_storage.bucket}: {e}!")
+    document.delete()
 
 
-def update_document_attribute(app, document: Documents, field: str, request) -> [Documents, str | None]:
+def update_document_attribute(app, document: Document, field: str, request) -> [Document, str | None]:
     """Update the specified field attribute of the document request.form the specified request.form."""
     error_msg = None
     match field:
         ##############################
         # Simple attributes: Str
         ##############################
-        case "title" | "notes" | "url_" | "source":
+        case "title" | "notes" | "url" | "source":
             setattr(document, field, request.form.get(field))
 
         ##############################
