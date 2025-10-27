@@ -12,7 +12,11 @@ from app.models.user_rdb import User
 
 class ListField(TextField):
     def db_value(self, value):
-        return json.dumps(value) if value else "[]"
+        if not value:
+            return "[]"
+        # Convert to lowercase, remove duplicates, and sort
+        unique_value = sorted(dict.fromkeys(str(item).lower() for item in value))
+        return json.dumps(unique_value)
 
     def python_value(self, value):
         return json.loads(value) if value else []
@@ -22,7 +26,9 @@ class DateTimeListField(TextField):
     def db_value(self, value):
         if not value:
             return "[]"
-        return json.dumps([d.isoformat() for d in value])
+        # Convert remove duplicates, and sort
+        sorted_values = sorted(dict.fromkeys(item for item in value))
+        return json.dumps([d.isoformat() for d in sorted_values])
 
     def python_value(self, value):
         if not value:
