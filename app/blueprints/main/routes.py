@@ -16,9 +16,7 @@ from mongoengine.context_managers import switch_collection
 from app.blueprints.main import bp
 from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
 from app.models import Sort, categories_available
-from app.models.document import Document
-from app.models.documents import Documents, sources_available, tags_available
-from app.models.user import update_user
+from app.models.document import Document, sources_available, tags_available
 
 
 def log_route(path=""):
@@ -44,15 +42,15 @@ def log_route(path=""):
 def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
-    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.user_state.last_search)
 
     return render_template(
         "main/display.html",
         documents=documents,
-        search=fl.current_user.payload.state_last_search,
-        search_history=fl.current_user.payload.state_last_searches,
+        search=fl.current_user.payload.user_state.last_search,
+        search_history=fl.current_user.payload.user_state.last_searches,
         sort=sort,
-        category=fl.current_user.payload.state_last_category,
+        category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
     )
 
@@ -66,7 +64,7 @@ def render_display() -> Response:
 def hx_query() -> Response:
     """Render *just* our display table on an htmx-post call."""
     # Query & sort the documents..
-    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.user_state.last_search)
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
@@ -74,12 +72,12 @@ def hx_query() -> Response:
     rendered_template: str = render_template(
         "main/hx/display_table.html",
         documents=documents,
-        search=fl.current_user.payload.state_last_search,
+        search=fl.current_user.payload.user_state.last_search,
         sort=sort,
         form=FlaskForm(),
         num_docs=len(documents),
         doc_ids=doc_ids,
-        category=fl.current_user.payload.state_last_category,
+        category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
@@ -93,7 +91,10 @@ def hx_query() -> Response:
 @log_route(path="/reset")
 def reset() -> Response:
     """Render our display table (and controls) *AFTER* resetting user's search criteria."""
-    update_user(fl.current_user, "state_last_search", None)
+    payload = fl.current_user.payload
+    payload.user_state.last_search = None
+    fl.current_user.payload = payload
+    fl.current_user.save()
     return hx_query()
 
 
@@ -104,13 +105,18 @@ def reset() -> Response:
 def hx_display(template="main/hx/display_table.html") -> Response:
     """Re-render just our partial/main table for new sort field or direction."""
     sort = Sort.factory_from_request(request)
-    update_user(fl.current_user, "state_last_sort", sort.__dict__)
+    payload = fl.current_user.payload
+    payload.user_state.last_sort = sort.__dict__
+    fl.current_user.payload = payload
+    fl.current_user.save()
 
     # Query respective documents for the respective category and sort based on our state requested.
-    sort, documents = get_documents(fl.current_user, fl.current_user.payload.state_last_search)
+    sort, documents = get_documents(fl.current_user, fl.current_user.payload.user_state.last_search)
 
     # Render our partial template of the main display table:
-    return render_template(template, documents=documents, sort=sort, search=fl.current_user.payload.state_last_search)
+    return render_template(
+        template, documents=documents, sort=sort, search=fl.current_user.payload.user_state.last_search
+    )
 
 
 ################################################################################
@@ -119,9 +125,13 @@ def hx_display(template="main/hx/display_table.html") -> Response:
 @log_route(path="/user/category")
 def hx_user_category_change() -> Response:
     """Change the display to the document category specified."""
-    fl.current_user.payload.state_last_category = request.values.get("category")
+    payload = fl.current_user.payload
+    payload.user_state.last_category = request.values.get("category")
+    fl.current_user.payload = payload
     fl.current_user.save()
-    log.info(f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.payload.state_last_category}")
+    log.info(
+        f"Changed user: {fl.current_user.id}'s document category to {fl.current_user.payload.user_state.last_category}"
+    )
     return redirect(url_for("main.hx_display"))
 
 
@@ -130,7 +140,7 @@ def hx_user_category_change() -> Response:
 @login_required
 @log_route(path="/update-search-history")
 def hx_update_search(template="main/hx/display_search_history.html") -> Response:
-    return render_template(template, search_history=fl.current_user.payload.state_last_searches)
+    return render_template(template, search_history=fl.current_user.payload.user_state.last_searches)
 
 
 ################################################################################
@@ -152,16 +162,15 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     # Query for all matching documents!
     sort, documents = get_documents(fl.current_user, search_term_s)
 
-    # Update the user state re. their last search performed.
-    # FIXME:
-    # fl.current_user.update_search(search_term_s.casefold())
+    # Update the user state regarding their last search performed.
+    fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!
     doc_ids = [str(doc.id) for doc in documents]
 
     render_args = {
         "documents": documents,
-        "category": fl.current_user.payload.state_last_category,
+        "category": fl.current_user.payload.user_state.last_category,
         "sort": sort,
         "search": search_term_s,
         "form": FlaskForm(),
@@ -183,9 +192,9 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
     # Do we think we have a document to display?
     if not document.fileid:
         # No, do we have a url instead?
-        if document.url_:
+        if document.url:
             # Yes, go there..
-            return redirect(document.url_)
+            return redirect(document.url)
         # Otherwise, stay here..
         return redirect(url_for(url))
 
@@ -246,9 +255,8 @@ def render_new_document() -> Response:
         )
 
     # POST, create a new document and go to the field-based/atomic edit page to get all other attributes.
-    # with switch_collection(Documents, Documents.as_user(fl.current_user)) as user_documents:
     document = Document(
-        user=fl.current_user, title=request.form.get("title"), category=fl.current_user.payload.state_last_category
+        user=fl.current_user, title=request.form.get("title"), category=fl.current_user.payload.user_state.last_category
     )
     document.save()
     return redirect(url_for("main.render_edit_document", doc_id=document.id))

@@ -1,37 +1,37 @@
 <tr>
 
   {# Quality #}
-  # if render_display_column(current_user.state_last_category, "quality"):
+  # if render_display_column(current_user.payload.user_state.last_category, "quality"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.quality | default("", true) }}
   </td>
   # endif
 
   {# Complexity #}
-  # if render_display_column(current_user.state_last_category, "complexity"):
+  # if render_display_column(current_user.payload.user_state.last_category, "complexity"):
   <td class="has-text-centered is-size-7 is-hidden-lt-tablet" style="vertical-align: middle;">
     {{ document.complexity | default("", true) }}
   </td>
   # endif
 
   {# Quality_By_Complexity #}
-  # if render_display_column(current_user.state_last_category, "quality_by_complexity"):
+  # if render_display_column(current_user.payload.user_state.last_category, "quality_by_complexity"):
   <td class="has-text-centered is-size-7" style="vertical-align: middle;">
     {{ document.quality_by_complexity | default("", true) }}
   </td>
   # endif
 
   {# Title #}
-  # if render_display_column(current_user.state_last_category, "title"):
+  # if render_display_column(current_user.payload.user_state.last_category, "title"):
   <td style="vertical-align: middle;">
 
       <a href="/view/{{ document.id }}" target="_new">
       {{ document.title }}
       </a>
 
-      # if document.url_
+      # if document.url
       &nbsp;
-      <a href="{{ document.url_ }}" target="_new">
+      <a href="{{ document.url }}" target="_new">
 	  <span class="icon is-small is-right responsive-font">
 	      <i class="fa-light fa-link"></i>
 	  </span>
@@ -42,7 +42,7 @@
   # endif
 
   {# Tag(s) #}
-  # if render_display_column(current_user.state_last_category, "tags"):
+  # if render_display_column(current_user.payload.user_state.last_category, "tags"):
   <td style="vertical-align: middle;">
     <style>
      .tag-style {
@@ -59,7 +59,7 @@
 	  name="tag"
 	  hx-post="/search"
 	  hx-target="#id_documents_div"
-	  hx-vals='{"search": "{{ tag }}"}'
+	  hx-vals='{"search": "{{ tag.title() }}"}'
     >
       {{ tag }}
     </span>
@@ -68,7 +68,7 @@
   # endif
 
   {# Source #}
-  # if render_display_column(current_user.state_last_category, "source"):
+  # if render_display_column(current_user.payload.user_state.last_category, "source"):
   <td class="is-hidden-lt-desktop" style="vertical-align: middle;">
     <style>
      .source-style {
@@ -88,14 +88,14 @@
   # endif
 
   {# Times Cooked #}
-  # if render_display_column(current_user.state_last_category, "times_cooked"):
+  # if render_display_column(current_user.payload.user_state.last_category, "times_cooked"):
   <td class="has-text-centered is-hidden-lt-desktop" style="vertical-align: middle;">
     {{ document.times_cooked | default("", true) }}
   </td>
   # endif
 
   {# Edit Icon #}
-  # if render_display_column(current_user.state_last_category, "edit"):
+  # if render_display_column(current_user.payload.user_state.last_category, "edit"):
   <td class="has-text-centered" style="vertical-align: middle;">
     <a href="/edit/{{ document.id }}">
       <span class="icon is-small is-right responsive-font">

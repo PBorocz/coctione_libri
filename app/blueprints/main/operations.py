@@ -40,7 +40,9 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
         ids_to_query = reduce(lambda a, b: a & b, id_sets)
 
     # Return either *ALL* the documents or just those associated with the search matching id's:
-    documents = Document.select().where(Document.user == user)
+    documents = Document.select().where(
+        Document.user == user, Document.category == user.payload.user_state.last_category
+    )
     if ids_to_query:
         documents = documents.where(Document.id.in_(ids_to_query))
     log.debug(f"{len(documents):4d} documents found.")
@@ -146,6 +148,7 @@ def update_document_attribute(app, document: Document, field: str, request) -> [
         case "file_":
             # Yes, there's no error handling here....sue me
             file = request.files["file_"]
+            document.fileid = str(document.id)
             document.filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             document.filesize = get_file_size(file)
             document.mimetype = mimetypes.guess_type(document.filename)[0]
@@ -178,7 +181,7 @@ def update_document_attribute(app, document: Document, field: str, request) -> [
     return document, error_msg
 
 
-def _update_document_tags(document: Documents, request) -> [Documents, str | None]:
+def _update_document_tags(document: Document, request) -> [Document, str | None]:
     """Update the "tags" attribute of the specified document for the specified request."""
     if request.method == "POST":
         # NEW tag to be added to the document
@@ -190,12 +193,13 @@ def _update_document_tags(document: Documents, request) -> [Documents, str | Non
     elif request.method == "DELETE":
         # DELETE existing tag from the document
         tag = request.values.get("tag")
-        document.update(pull__tags=tag)
-        document.reload()
+        document.tags.remove(tag.title())
+
+    document.save()
     return document, None
 
 
-def _update_document_dates_cooked(document: Documents, request) -> [Documents, str | None]:
+def _update_document_dates_cooked(document: Document, request) -> [Document, str | None]:
     """Update the "dates_cooked" attribute of the specified document for the specified request."""
     if request.method == "POST":
         # NEW date to be added to the document
@@ -209,8 +213,9 @@ def _update_document_dates_cooked(document: Documents, request) -> [Documents, s
     elif request.method == "DELETE":
         # DELETE existing date from the document
         date_cooked = request.values.get("date_cooked")
-        document.update(pull__dates_cooked=date_cooked)
-        document.reload()
+        document.dates_cooked.remove(date_cooked)
+
+    document.save()
     return document, None
 
 
@@ -233,7 +238,7 @@ def get_file_size(file_handle) -> int:
     return size
 
 
-def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict]:
+def _sort(user: User, documents: list[Document]) -> tuple[list[Document], dict]:
     """Return both a sorted list of documents by current cookies and sort-indicator status."""
     sort: Sort = Sort.factory_from_user(user)  # Unpack the sort info from user state.
 
@@ -248,7 +253,7 @@ def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is None, doc.source                ),
             "tags"                  : lambda doc: (doc.tags_for_sort         is None, doc.tags_for_sort         ),
-            "url_"                  : lambda doc: (doc.url_                  is None, doc.url_                  ),
+            "url"                   : lambda doc: (doc.url                   is None, doc.url                   ),
             "title"                 : lambda doc:  doc.title,
         }
     else:
@@ -259,7 +264,7 @@ def _sort(user: User, documents: list[Documents]) -> tuple[list[Documents], dict
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is not None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is not None, doc.source                ),
             "tags"                  : lambda doc: (doc.tags_for_sort         is not None, doc.tags_for_sort         ),
-            "url_"                  : lambda doc: (doc.url_                  is not None, doc.url_                  ),
+            "url"                   : lambda doc: (doc.url                   is not None, doc.url                   ),
             "title"                 : lambda doc:  doc.title,
         }
     # fmt: on

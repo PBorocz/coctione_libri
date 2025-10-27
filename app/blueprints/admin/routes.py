@@ -6,8 +6,7 @@ from flask import request
 from flask.wrappers import Response
 from flask_login import login_required
 
-from app.blueprints.admin import bp
-from app.blueprints.admin import operations as op
+from app.blueprints.admin import bp, operations
 from app.models import categories_available
 
 TAG = "tag"
@@ -26,7 +25,7 @@ def manage_st(entity: str, template: str = "admin/st.html") -> Response:
     order = request.args.get("order", "asc")
 
     # Query all the current values of the respective entity..
-    method_get_all = op.get_all_tags if entity == TAG else op.get_all_sources
+    method_get_all = operations.get_all_tags if entity == TAG else operations.get_all_sources
     entities = method_get_all(fl.current_user, sort, order)
 
     return f.render_template(
@@ -64,13 +63,13 @@ def render_st_update(entity: str, template: str = "admin/hx/tr.html") -> Respons
 
     if action == "save":
         entity_return = entity_new
-        method_update = op.update_tag if entity == TAG else op.update_source
+        method_update = operations.update_tag if entity == TAG else operations.update_source
         method_update(fl.current_user, entity_old, entity_new)
     elif action == "cancel":
         entity_return = entity_old
 
     # Irrespective of whether or not we did an update, we still need to redisplay the count as well:
-    method_count = op.get_tag_count if entity == TAG else op.get_source_count
+    method_count = operations.get_tag_count if entity == TAG else operations.get_source_count
     entity_count = method_count(fl.current_user, entity_return)
 
     return f.render_template(template, entity=entity, entity_value=entity_return, count=entity_count)
@@ -84,7 +83,7 @@ def delete_st(entity: str) -> Response:
     if entity not in ENTITIES:
         f.abort(404)
     entity_value = request.values.get("name")
-    method_remove = op.remove_tag if entity == TAG else op.remove_source
+    method_remove = operations.remove_tag if entity == TAG else operations.remove_source
     method_remove(fl.current_user, entity_value)
     return "", 200
 

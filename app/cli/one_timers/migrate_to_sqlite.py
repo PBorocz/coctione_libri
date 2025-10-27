@@ -62,7 +62,7 @@ def emit_to_sql(app, user_mongo, user_sql, mongo_document):
         url          = mongo_document.url_,
         quality      = mongo_document.quality,
         complexity   = mongo_document.complexity,
-        tags         = mongo_document.tags,
+        tags         = [tag.title() for tag in mongo_document.tags],
         dates_cooked = mongo_document.dates_cooked,
     )
     # fmt: on

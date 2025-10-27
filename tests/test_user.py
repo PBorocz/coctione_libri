@@ -138,13 +138,22 @@ def test_user_payload_str(app, user):
 
     # Test (by updating a single payload str attribute.)
     user.payload = Box({"user_state": {"last_search": "search term 1"}})
-
-    user.payload.user_state.last_search = "search term 1"
     user.save()
 
-    # Confirm
+    # Confirm - First save..
     user_saved = User.get(User.email == user.email)
     assert "search term 1" == user_saved.payload.user_state.last_search
+
+    # Confirm - Update
+    updated_search = "Updated Search"
+
+    payload = user_saved.payload
+    payload.user_state.last_search = updated_search
+    user_saved.payload = payload
+    assert updated_search == user_saved.payload.user_state.last_search
+
+    user_saved.save()
+    assert updated_search == user_saved.payload.user_state.last_search
 
 
 def test_user_payload_list_set(app, user):

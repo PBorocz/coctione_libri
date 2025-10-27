@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from mongoengine.context_managers import switch_collection
 
-from app.models.documents import Documents
+from app.models.document import Document
 from app.models.user import User
 
 
@@ -15,11 +15,9 @@ from app.models.user import User
 def get_all_sources(user: User, sort: str = "source", order: str = "asc") -> list[str, int]:
     """Return a sorted list of all current sources & counts (ie. those attached to documents)."""
     sources = defaultdict(int)
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        for document in user_documents.objects().only("source"):
-            if document.source:
-                sources[document.source] += 1
-
+    for document in Document.select().where(Document.user == user):
+        if document.source:
+            sources[document.source] += 1
     log.info(f"{len(sources):,d} unique sources found.")
     offset = 0 if sort == "source" else 1
     return sorted(sources.items(), key=lambda entry: entry[offset], reverse=(order == "desc"))
@@ -27,23 +25,19 @@ def get_all_sources(user: User, sort: str = "source", order: str = "asc") -> lis
 
 def get_source_count(user: User, source: str) -> int:
     """Return the count of documents that have the specified source."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        return user_documents.objects(source=source).count()
+    return Document.select().where(Document.user == user, Document.source == source).count()
 
 
 def remove_source(user: User, source: str) -> int:
     """Remove specified source from all documents."""
     log.debug(f"Removing {source=}")
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        return user_documents.objects(source=source).update(source=None)
+    return Document.update(source=None).where(Document.user == user, Document.source == source)
 
 
 def update_source(user: User, old: str, new: str) -> int:
     """Update all document with "old" source to have "new" one instead."""
     log.debug(f"Updating {old=} {new=}")
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        ids = [doc.id for doc in user_documents.objects(source=old).only("id")]
-        return user_documents.objects(id__in=ids).update(source=new)
+    return Document.update(source=new).where(Document.user == user, Document.source == old)
 
 
 ################################################################################
@@ -52,10 +46,9 @@ def update_source(user: User, old: str, new: str) -> int:
 def get_all_tags(user: User, sort: str = "tag", order: str = "asc") -> list[str, int]:
     """Return a sorted list of all current tags & counts (ie. those attached to documents)."""
     tags = defaultdict(int)
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        for document in user_documents.objects().only("tags"):
-            for tag in document.tags:
-                tags[tag] += 1
+    for document in Document.select().where(Document.user == user):
+        for tag in document.tags:
+            tags[tag] += 1
 
     log.info(f"{len(tags):,d} unique tags found.")
     offset = 0 if sort == "tag" else 1
@@ -64,26 +57,32 @@ def get_all_tags(user: User, sort: str = "tag", order: str = "asc") -> list[str,
 
 def get_tag_count(user: User, tag: str) -> int:
     """Return the count of documents that have the specified tag."""
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        return user_documents.objects(tags__in=[tag]).count()
+    docs = [
+        document
+        for document in Document.select(Document.id).where(Document.user == user)
+        if tag.title() in document.tags
+    ]
+    return len(docs)
 
 
 def remove_tag(user: User, tag: str) -> int:
     """Remove specified tag from all documents."""
-    log.debug(f"Removing {tag=}")
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        return user_documents.objects(tags__in=[tag]).update(pull__tags=tag)
+    log.debug(f"Removing {tag.title()=}")
+    for document in Document.select().where(Document.user == user):
+        if tag.title() in document.tags:
+            document.tags.remove(tag.title())
+            document.save()
 
 
 def update_tag(user: User, old: str, new: str) -> int:
     """Update all document with "old" tag to have "new" on instead."""
     log.debug(f"Updating {old=} {new=}")
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        ids = [doc.id for doc in user_documents.objects(tags__in=[old]).only("id")]
-        count_pulled = user_documents.objects(id__in=ids).update(pull__tags=old)
-        count_pushed = user_documents.objects(id__in=ids).update(push__tags=new)
-        if count_pulled != count_pushed:
-            msg = f"Sorry, we 'should' have pulled {count_pulled=} as many document as we pushed {count_pushed=}"
-            log.error(msg)
-
-    return count_pushed
+    count = 0
+    for document in Document.select().where(Document.user == user):
+        # Granular save logic but we don't do this very often.
+        if old.title() in document.tags:
+            document.tag.remove(old.title())
+            document.tag.append(new.title())
+            document.save()
+            count += 1
+    return count

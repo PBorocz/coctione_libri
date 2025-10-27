@@ -187,7 +187,7 @@ class Documents(MongoEngine_Document):
         Our convention is "documents-<userId>-<documentCategory" (obo of a hierarchical namespace).
 
         """
-        o_category = category if category else Category(user.payload.state_last_category)
+        o_category = category if category else Category(user.payload.user_state.last_category)
         return f"documents-{user.id}-{o_category.collection_root}"
 
 
@@ -226,21 +226,21 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
     return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
 
 
-def sources_available(user: User) -> list[str]:
-    """Return the current list of sources across all documents as a Choice list."""
-    sources_available = []
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        docs = user_documents.objects(source__ne=None).only("source")
-        sources = sorted({doc.source for doc in docs})
-        sources_available.extend(sources)
-    return sources_available
+# def sources_available(user: User) -> list[str]:
+#     """Return the current list of sources across all documents as a Choice list."""
+#     sources_available = []
+#     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+#         docs = user_documents.objects(source__ne=None).only("source")
+#         sources = sorted({doc.source for doc in docs})
+#         sources_available.extend(sources)
+#     return sources_available
 
 
-def tags_available(user: User) -> list[str]:
-    """Return a sorted list of all current tags (ie. those attached to documents)."""
-    tags = set()
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        for document in user_documents.objects(tags__ne=None).only("tags"):
-            for tag in document.tags:
-                tags.add(tag)
-    return sorted(tags)
+# def tags_available(user: User) -> list[str]:
+#     """Return a sorted list of all current tags (ie. those attached to documents)."""
+#     tags = set()
+#     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
+#         for document in user_documents.objects(tags__ne=None).only("tags"):
+#             for tag in document.tags:
+#                 tags.add(tag)
+#     return sorted(tags)

@@ -52,7 +52,7 @@
 		  <div class="select">
 			<select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
 			  # for category in categories:
-			  <option {% if current_user.state_last_category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+			  <option {% if current_user.payload.user_state.last_category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
 			  # endfor
 			</select>
 		  </div>

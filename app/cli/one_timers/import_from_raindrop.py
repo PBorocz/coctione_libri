@@ -157,7 +157,7 @@ def __import_raindrop(user, raindrop: dict) -> str:
         doc = user_documents(
             user=user,
             title=raindrop["title"],
-            category=user.payload.state_last_category,
+            category=user.payload.user_state.last_category,
         )
         if "source" in raindrop:
             doc.source = raindrop["source"]

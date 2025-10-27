@@ -11,7 +11,7 @@ import pandas as pd
 from mongoengine import Q
 from mongoengine.context_managers import switch_collection
 
-from app.models.documents import Documents
+from app.models.document import Document
 from app.models.user import User
 
 matplotlib.use("agg")
@@ -20,10 +20,9 @@ matplotlib.use("agg")
 def get_all_sources(user: User) -> list[str, int]:
     """Return a sorted list of all current sources & counts (ie. those attached to documents)."""
     sources = defaultdict(int)
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        for document in user_documents.objects().only("source"):
-            if document.source:
-                sources[document.source] += 1
+    for document in Document.select(Document.source).where(Document.user == user):
+        if document.source:
+            sources[document.source] += 1
     log.info(f"{len(sources):,d} unique sources found.")
     return list(sources.items())
 
@@ -31,14 +30,10 @@ def get_all_sources(user: User) -> list[str, int]:
 def get_all_reviews(user: User) -> list[str, int]:
     """Return a sorted list of all the number of reviews & respective counts (for those docs WITH reviews!)."""
     reviews = defaultdict(int)
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        for document in user_documents.objects().only("quality"):
-            if document.quality:
-                reviews[str(document.quality)] += 1
+    for document in Document.select(Document.quality).where(Document.user == user):
+        if document.quality:
+            reviews[str(document.quality)] += 1
     log.info(f"{len(reviews):,d} reviews found.")
-    from pprint import pprint
-
-    pprint(reviews)
     return list(reviews.items())
 
 
@@ -173,11 +168,7 @@ def create_bar_chart(datum: list[str, int], config: dict) -> str:
 
 
 ################################################################################
-def top_files(user: User) -> list[Documents]:
-    with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-        docs = (
-            user_documents.objects(Q(__raw__={"filesize": {"$exists": True, "$ne": None}}))
-            .only("id", "title", "filesize")
-            .limit(10)
-        )
+def top_files(user: User, limit: int = 10) -> list[Document]:
+    """Return the top documents by size."""
+    docs = Document.select().where(Document.user == user).limit(limit)
     return sorted(docs, key=lambda doc: doc.filesize, reverse=True)

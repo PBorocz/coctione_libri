@@ -1,19 +1,19 @@
-<div class="field is-horizontal" id="field_url_">
+<div class="field is-horizontal" id="field_url">
   <div class="field-label is-medium">
     <label class="label">Link</label>
   </div>
   <div class="field-body">
     <div class="control is-flex is-align-items-center">
       <input class="input mr-4 form-input"
-	     name="url_"
-	     value="{{ document.url_|default("", true) }}"
-	     hx-post="/edit/url_/{{ document.id }}"
+	     name="url"
+	     value="{{ document.url|default("", true) }}"
+	     hx-post="/edit/url/{{ document.id }}"
 	     hx-swap="outerHTML"
-	     hx-target="#field_url_"
+	     hx-target="#field_url"
       >
 
-      # if document.url_
-	<a href="{{ document.url_ }}" target="_new">
+      # if document.url
+	<a href="{{ document.url }}" target="_new">
 	  <span class="icon is-small is-right responsive-font">
 	    <i class="fa-regular fa-arrow-up-right-from-square"></i>
 	  </span>

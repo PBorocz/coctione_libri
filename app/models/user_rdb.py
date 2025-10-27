@@ -96,6 +96,32 @@ class User(Model):
 
         return cls(**kwargs)
 
+    ################################################################################
+    def update_search(self, search_term: str) -> bool:
+        """Update the user's search state, add if not duplicate and limit to last 10."""
+        payload = self.payload
+
+        # Minimally, update the last search the user performed.
+        payload.user_state.last_search = search_term
+
+        # If this is the first search performed, easy
+        if not payload.user_state.last_searches:
+            payload.user_state.last_searches = [search_term]
+        else:
+            # If it's already there, delete it first, then push to the top.
+            if search_term in payload.user_state.last_searches:
+                payload.user_state.last_searches.remove(search_term)
+
+            # Push the most recent search to the front of the list.
+            payload.user_state.last_searches.insert(0, search_term)
+
+            # Limit to the most recent 10 searches performed.
+            payload.user_state.last_searches = payload.user_state.last_searches[0:10]
+
+        self.payload = payload
+        self.save()
+        return True
+
 
 ################################################################################
 # Utility methods
