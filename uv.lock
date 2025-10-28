@@ -90,6 +90,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "rich" },
     { name = "secure" },
+    { name = "sqids" },
     { name = "tomli-w" },
     { name = "urllib3" },
     { name = "wtforms" },
@@ -124,6 +125,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0,<2" },
     { name = "rich", specifier = ">=13.7.0,<14" },
     { name = "secure", specifier = ">=0.3.0,<0.4" },
+    { name = "sqids", specifier = ">=0.5.2" },
     { name = "tomli-w", specifier = ">=1.0.0,<2" },
     { name = "urllib3", specifier = ">=2.5.0,<3" },
     { name = "wtforms", specifier = ">=3.1.2,<4" },
@@ -1231,6 +1233,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "sqids"
+version = "0.5.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/5b/98c1b37109210631875092d9e7cb7aef3fda2f03780dd999fe5854afa5f3/sqids-0.5.2.tar.gz", hash = "sha256:5ac08f0c5c9b6814bc2e7c79ee5931e0849d25d95c50e415771b022a44f58af9", size = 18213, upload-time = "2025-05-13T16:36:35.644Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/96/178018f3d5b871042e257e9e1db26c6aeb2a704e72cdc884cd2a8918ac2b/sqids-0.5.2-py3-none-any.whl", hash = "sha256:0089ba823e21fd44290c7225f02fb0b5140c36e41959c04d86d3f6f2513799be", size = 8870, upload-time = "2025-05-13T16:36:34.072Z" },
 ]
 
 [[package]]

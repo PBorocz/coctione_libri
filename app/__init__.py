@@ -105,16 +105,16 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # MongoDB "Document" metadata first...
     ################################################################################
-    # vendor = application.config["STORAGE_META_VENDOR"]
-    # app_db_settings = application.config["STORAGE_META_URL"]
-    # connect(host=app_db_settings, uuidRepresentation="standard")
-    # db_name = app_db_settings.split("?")[0].split("/")[-1]
-    # log.info(f"...connected to {vendor}: {db_name}")
+    vendor = application.config["STORAGE_META_VENDOR"]
+    app_db_settings = application.config["STORAGE_META_URL"]
+    connect(host=app_db_settings, uuidRepresentation="standard")
+    db_name = app_db_settings.split("?")[0].split("/")[-1]
+    log.info(f"...connected to {vendor}: {db_name}")
 
     ################################################################################
     # Sqlite "Document" metadata...
     ################################################################################
-    global db
+    global db  # noqa: PLW0603 (sue me)
     models = [User, Document]
     driver, path_ = application.config["SQLITE_DB"].split("://")
     db = SqliteDatabase(path_, pragmas={"autocommit": True, "check_same_thread": False})
@@ -164,18 +164,31 @@ def _create_app_blueprints(application: Flask) -> Flask:
     return application
 
 
-def _create_app_ctx_processors(application: Flask) -> Flask:
+def _create_app_context_processors(application: Flask) -> Flask:
     @application.context_processor
     def inject_watermark():
-        if application.config["ENV"] == "development":
-            return {"watermark": "Development"}
-        elif application.config["ENV"] == "testing":
-            return {"watermark": "Deployment Testing"}
-        elif application.config["ENV"] == "production":
-            return {"watermark": ""}
-        return {}
+        match application.config["ENV"]:
+            case "development":
+                return {"watermark": "Development"}
+            case "testing":
+                return {"watermark": "Deployment Testing"}
+            case "production":
+                return {"watermark": ""}
+            case _:
+                return {}
+
+    @application.before_request
+    def before_request():
+        if db.is_closed():
+            db.connect()
+
+    @application.teardown_request
+    def teardown_request(exception):
+        if not db.is_closed():
+            db.close()
 
     log.info("...defined context processors")
+
     return application
 
 
@@ -209,11 +222,11 @@ def create_app(logging=True, log_level: str | None = log.INFO, config_overrides:
         # Connect and setup our database environments
         application = _create_app_connections(application)
 
-        # Finally, setup and register all our application blueprints
+        # Setup and register all our application blueprints
         application = _create_app_blueprints(application)
 
         # Add our "context processers"
-        application = _create_app_ctx_processors(application)
+        application = _create_app_context_processors(application)
 
         log.info("Ready...")  # , done=True)
 

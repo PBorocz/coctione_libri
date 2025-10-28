@@ -6,6 +6,7 @@ from enum import Enum
 from zoneinfo import ZoneInfo
 
 import humanize
+import sqids
 from peewee import CharField, Check, DateTimeField, ForeignKeyField, Model, SmallIntegerField, TextField
 
 from app.models import Category, RatingComplexity, RatingQuality
@@ -42,6 +43,7 @@ class DateTimeListField(TextField):
 class Document(Model):
     # fmt: off
     id           = SmallIntegerField(primary_key=True, help_text="DB auto increment id")
+    public_id    = CharField(null=True, help_text="Public slug/sqid")
     user         = ForeignKeyField(User, backref="documents")
     title        = CharField(help_text="Document title")
     category     = CharField(help_text="Document category",choices=[(c.value, c.name) for c in Category])
@@ -61,10 +63,27 @@ class Document(Model):
     complexity   = SmallIntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
     # fmt: on
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> int:
         """Override save method to set updated attr on actual updates."""
         self.updated = dt.datetime.now() if self._pk is not None else None
-        return super().save(*args, **kwargs)
+        app = None
+        if "app" in kwargs:
+            app = kwargs["app"]
+            del kwargs["app"]  # We need to remove so peewee's save method doesn't bug out on us
+
+        count_rows_modified = super().save(*args, **kwargs)
+
+        # Do we need to generate a new public slug?
+        if not self.public_id:
+            assert self.id, "Sorry, just saved a document but don't have an ID yet?"
+            assert app, "Sorry, we need an app instance argument for configuration value: 'SQID_KEY'!"
+            encoder = sqids.Sqids(alphabet=app.config["SQID_KEY"])
+            self.public_id = encoder.encode([self.id])
+            self.save()
+        return count_rows_modified
+
+    def update_sqid(self, app) -> bool:
+        """Update the sqid using the app configuration for the current id."""
 
     @property
     def quality_enum(self) -> RatingQuality | None:
