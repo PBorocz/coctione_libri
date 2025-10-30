@@ -1,16 +1,10 @@
 """Test User data type."""
 
-import json
 import time
 from datetime import datetime
 
-import peewee
-import pydantic
 import pytest
-from box import Box
-from werkzeug.security import check_password_hash
 
-from app import db
 from app.models import Category
 from app.models.document import Document
 

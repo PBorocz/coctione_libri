@@ -16,7 +16,6 @@ from mongoengine import (
     signals,
 )
 from mongoengine import Document as MongoEngine_Document
-from mongoengine.context_managers import switch_collection
 from mongoengine.fields import BaseField
 
 from app.models import Category, RatingComplexity, RatingQuality

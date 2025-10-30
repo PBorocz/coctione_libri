@@ -82,7 +82,7 @@ lint.ignore = [
   "D211",    # Get rid of conflict with D203
   "D213",    # Get rid of conflict with D212 (leaving D212 active.)
   "E402",    # Get rid of message about imports not being at the top (need for flask blueprints)
-  "F401",    # Allows for imports without use (e.g. __init__.py)
+#  "F401",    # Allows for imports without use (e.g. __init__.py)
   "RUF012",  # Something to do with default values on bunnet class variables not being typed.
 ]
 lint.select = [

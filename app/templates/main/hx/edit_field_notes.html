@@ -8,7 +8,7 @@
 		name="notes"
 		rows="6"
 		style="min-width: auto;"
-		hx-post="/edit/notes/{{ document.id }}"
+		hx-post="/edit/notes/{{ document.public_id }}"
 		hx-target="#field_notes"
 		hx-swap="outerHTML"
 		hx-trigger="keyup changed delay:1500ms">{{ document.notes|default("", true) }}</textarea>

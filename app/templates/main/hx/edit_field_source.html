@@ -6,7 +6,7 @@
     <div class="control is-flex is-align-items-center">
       <div class="select is-rounded is-small mr-4">
 	<select name="source"
-		hx-post="/edit/source/{{ document.id }}"
+		hx-post="/edit/source/{{ document.public_id }}"
 		hx-swap="outerHTML"
 		hx-target="#field_source">
 	  <option value=""></option>
@@ -20,7 +20,7 @@
 	     style="width: 120px;vertical-align: middle;"
 	     name="source"
 	     placeholder="New source..."
-	     hx-post="/edit/source/{{ document.id }}"
+	     hx-post="/edit/source/{{ document.public_id }}"
 	     hx-swap="outerHTML"
 	     hx-target="#field_source">
 

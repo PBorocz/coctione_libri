@@ -7,8 +7,8 @@ import sys
 from collections.abc import Callable
 from datetime import datetime
 from functools import reduce
+from pathlib import Path
 
-from botocore.exceptions import ClientError
 from bson.objectid import ObjectId
 from flask import current_app
 from mongoengine.context_managers import switch_collection
@@ -19,7 +19,7 @@ from werkzeug.utils import secure_filename
 from app.models import Sort
 from app.models.document import Document
 from app.models.documents import Documents
-from app.models.user import User
+from app.models.user_rdb import User
 
 
 def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Document]]:
@@ -43,6 +43,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
     documents = Document.select().where(
         Document.user == user, Document.category == user.payload.user_state.last_category
     )
+
     if ids_to_query:
         documents = documents.where(Document.id.in_(ids_to_query))
     log.debug(f"{len(documents):4d} documents found.")
@@ -108,18 +109,21 @@ def _sch_by_tag(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def delete_document(app, user: User, id_: str) -> None:
-    """Delete the document with specified id for the specified user."""
-    document = Document.get(Document.user == user, Document.id == id_)
+def delete_document(app, user: User, public_id: str) -> None:
+    """Delete the document with specified id."""
+    document = Document.get(Document.public_id == public_id)
+    file_path = app.config["PATH_DATA"] / Path("documents") / Path(f"{document.id}.pdf")
     try:
-        client_storage = app.config["STORAGE_FILE"]
-        args = {"Bucket": client_storage.bucket, "Key": document.fileid}
-        client_storage.head_object(**args)
-        client_storage.delete_object(**args)
-    except ClientError as e:
-        if e.response["Error"]["Code"] != "404":
-            log.error(f"Error deleting object {document.fileid} from bucket {client_storage.bucket}: {e}!")
-    document.delete()
+        if file_path.exists() and file_path.is_file():
+            file_path.unlink()
+            document.delete()
+            return True
+        else:
+            log.error(f"Sorry, unable to find {file_path=}?")
+            return False
+    except (OSError, PermissionError) as exc:
+        log.error(f"Failed to delete file {file_path}: {exc}")
+        return False
 
 
 def update_document_attribute(app, document: Document, field: str, request) -> [Document, str | None]:

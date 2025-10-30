@@ -2,7 +2,8 @@
 
 import datetime as dt
 import json
-from enum import Enum
+import re
+import unicodedata
 from zoneinfo import ZoneInfo
 
 import humanize
@@ -84,6 +85,31 @@ class Document(Model):
 
     def update_sqid(self, app) -> bool:
         """Update the sqid using the app configuration for the current id."""
+
+    @property
+    def title_as_file(self) -> str:
+        """Convert title to a file-safe filename when we download/display a pdf."""
+        # Start with the title
+        if not self.title:
+            return "-document-.pdf"  # FIXME: What about other mimetypes?
+        safe_name = self.title
+
+        # Normalize unicode characters
+        safe_name = unicodedata.normalize("NFKD", safe_name)
+
+        # Remove/replace unsafe characters
+        safe_name = re.sub(r'[<>:"/\\|?*]', "", safe_name)  # Windows forbidden chars
+        safe_name = re.sub(r"[^\w\s\-_.]", "", safe_name)  # Keep only word chars, spaces, hyphens, underscores, dots
+        safe_name = re.sub(r"\s+", "_", safe_name)  # Replace spaces with underscores
+        safe_name = re.sub(r"_+", "_", safe_name)  # Collapse multiple underscores
+        safe_name = safe_name.strip("_.")  # Remove leading/trailing underscores and dots
+
+        # Limit length (leave room for .pdf extension)
+        max_length = 90
+        if len(safe_name) > max_length:
+            safe_name = safe_name[:max_length].rstrip("_.")
+
+        return f"{safe_name}.pdf"  # FIXME: What about other mimetypes?
 
     @property
     def quality_enum(self) -> RatingQuality | None:

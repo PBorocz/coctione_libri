@@ -3,10 +3,9 @@
 import logging as log
 from collections import defaultdict
 
-from mongoengine.context_managers import switch_collection
 
 from app.models.document import Document
-from app.models.user import User
+from app.models.user_rdb import User
 
 
 ################################################################################

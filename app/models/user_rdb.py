@@ -3,19 +3,12 @@
 from __future__ import annotations
 
 import hashlib
-import json
-import sqlite3
 from datetime import datetime
-from enum import Enum
-from typing import Any, Optional
 
 from box import Box
 from peewee import CharField, DateField, Model, SmallIntegerField
-from pydantic import BaseModel, ConfigDict, Field, model_validator, validator
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db
-from app.models import Category
 
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
@@ -129,3 +122,16 @@ class User(Model):
 def email_to_hash(email: str) -> str:
     """Return the hash of the specified email address."""
     return hashlib.blake2s(email.encode("utf-8")).hexdigest()
+
+
+def query_user(email: str | None = None, user_id: str | None = None) -> User | None:
+    """Query for the user given either an email-address or a hashed email key."""
+    assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
+    try:
+        if email:
+            return User.get(User.email == email)
+        else:
+            return User.get(User.user_id == user_id)
+    except User.DoesNotExist:
+        ...
+    return None

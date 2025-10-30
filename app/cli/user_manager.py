@@ -3,17 +3,14 @@
 
 import argparse
 import getpass
-import json
 import logging
 import os
-import sqlite3
 from pprint import pprint
 
-import mongoengine
 from box import Box
 
 from app import constants as c
-from app import create_app, db
+from app import create_app
 from app.models import categories
 from app.models.user_rdb import User
 

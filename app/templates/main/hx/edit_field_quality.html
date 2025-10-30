@@ -6,7 +6,7 @@
 	<div class="control is-flex is-align-items-center">
 	  <div class="select is-rounded is-small mr-4">
 		<select name="quality"
-				hx-post="/edit/quality/{{ document.id }}"
+				hx-post="/edit/quality/{{ document.public_id }}"
 				hx-swap="outerHTML"
 				hx-target="#field_quality">
 		  <option {% if not document.quality  %}selected{% endif %} value="0">Quality</option>

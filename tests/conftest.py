@@ -1,12 +1,10 @@
 import logging as log
 import os
-import sqlite3
 import subprocess
 
 import pytest
-from peewee import SqliteDatabase
 
-from app import create_app, db
+from app import create_app
 from app.models import Category
 from app.models.document import Document
 from app.models.user_rdb import User

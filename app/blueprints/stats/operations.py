@@ -8,11 +8,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from mongoengine import Q
-from mongoengine.context_managers import switch_collection
 
 from app.models.document import Document
-from app.models.user import User
+from app.models.user_rdb import User
 
 matplotlib.use("agg")
 

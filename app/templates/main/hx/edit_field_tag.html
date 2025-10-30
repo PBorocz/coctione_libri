@@ -8,7 +8,7 @@
 	<div class="select is-rounded is-small mr-4">
 	  <select autofocus
 		  name="tag"
-		  hx-post="/edit/tag/{{ document.id }}"
+		  hx-post="/edit/tag/{{ document.public_id }}"
 		  hx-swap="outerHTML"
 		  hx-target="#div_tags">
 	    <option value=""></option>
@@ -22,7 +22,7 @@
 	       style="width: 120px;vertical-align: middle;"
 	       name="tag"
 	       placeholder="New tag..."
-	       hx-post="/edit/tag/{{ document.id }}"
+	       hx-post="/edit/tag/{{ document.public_id }}"
 	       hx-swap="outerHTML"
 	       hx-target="#div_tags">
 
@@ -42,7 +42,7 @@
 	<span class="tag is-link is-light is-normal mr-2" style="vertical-align: middle;">
 	  {{ tag }}
 	  <a class="delete is-delete is-small"
-	     hx-delete="/edit/tag/{{ document.id}}"
+	     hx-delete="/edit/tag/{{ document.public_id}}"
 	     hx-swap="outerHTML"
 	     hx-target="#div_tags"
 	     hx-vals='{"tag": "{{ tag }}"}'>

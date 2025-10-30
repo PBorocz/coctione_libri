@@ -2,16 +2,14 @@
 
 import logging as log
 from functools import wraps
-from io import BytesIO
+from pathlib import Path
 
 import flask_login as fl
-from botocore.exceptions import ClientError
 from flask import current_app, redirect, render_template, request, send_file, url_for
 from flask.wrappers import Response
 from flask_htmx import make_response
 from flask_login import login_required
 from flask_wtf import FlaskForm
-from mongoengine.context_managers import switch_collection
 
 from app.blueprints.main import bp
 from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
@@ -67,7 +65,7 @@ def hx_query() -> Response:
     sort, documents = get_documents(fl.current_user, fl.current_user.payload.user_state.last_search)
 
     # Send back the id's of the docs in case user want's to delete 'em!
-    doc_ids = [str(doc.id) for doc in documents]
+    public_ids = [str(doc.public_id) for doc in documents]
 
     rendered_template: str = render_template(
         "main/hx/display_table.html",
@@ -76,7 +74,7 @@ def hx_query() -> Response:
         sort=sort,
         form=FlaskForm(),
         num_docs=len(documents),
-        doc_ids=doc_ids,
+        public_ids=public_ids,
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
     )
@@ -166,7 +164,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
     fl.current_user.update_search(search_term_s.casefold())
 
     # Send back the id's of the docs in case user want's to delete 'em!
-    doc_ids = [str(doc.id) for doc in documents]
+    public_ids = [str(doc.public_id) for doc in documents]
 
     render_args = {
         "documents": documents,
@@ -174,7 +172,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
         "sort": sort,
         "search": search_term_s,
         "form": FlaskForm(),
-        "doc_ids": "|".join(doc_ids),
+        "public_ids": "|".join(public_ids),
         "num_docs": len(documents),
     }
     rendered_template = render_template(template, **render_args)
@@ -182,35 +180,45 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 
 
 ################################################################################
-@bp.get("/view/<doc_id>")
+@bp.get("/view/<public_id>")
 @login_required
 @log_route(path="/view")
-def route_view_document(doc_id: str, url: str = "main.render_display") -> Response:
+def route_view_document(public_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
+    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
 
     # Do we think we have a document to display?
-    if not document.fileid:
-        # No, do we have a url instead?
-        if document.url:
-            # Yes, go there..
-            return redirect(document.url)
-        # Otherwise, stay here..
-        return redirect(url_for(url))
+    # if not document.fileid:
+    #     # No, do we have a url instead?
+    #     if document.url:
+    #         # Yes, go there..
+    #         return redirect(document.url)
+    #     # Otherwise, stay here..
+    #     return redirect(url_for(url))
 
-    # Ok, we *SHOULD* have a file, pull it and see..
-    client_storage = current_app.config["STORAGE_FILE"]
-    contents: BytesIO = BytesIO()
-    download_name: str = f"{document.fileid}.pdf"
+    # Return from our "local" file directory...
+    file_path = current_app.config["PATH_DATA"] / Path("documents") / Path(f"{document.id}.pdf")
     try:
-        client_storage.download_fileobj(client_storage.bucket, document.fileid, contents)
-        contents.seek(0)
-        return send_file(contents, download_name=download_name, mimetype=document.mimetype)
-    except ClientError as exc:
+        return send_file(file_path, download_name=document.title_as_file, mimetype=document.mimetype)
+    except FileNotFoundError:
+        log.error(f"Sorry, unable to find document file {file_path}")
+    except Exception as exc:
         log.error(str(exc))
-        log.error(f"Sorry, unable to pull document {document.filename}[{document.id!s}] from storage.")
+        log.error(f"Sorry, unable to serve document for {document.id=}")
 
     return redirect(url_for(url))
+
+    # Ok, we *SHOULD* have a file, pull it and see..
+    # client_storage = current_app.config["STORAGE_FILE"]
+    # contents: BytesIO = BytesIO()
+    # download_name: str = f"{document.fileid}.pdf"
+    # try:
+    #     client_storage.download_fileobj(client_storage.bucket, document.fileid, contents)
+    #     contents.seek(0)
+    #     return send_file(contents, download_name=download_name, mimetype=document.mimetype)
+    # except ClientError as exc:
+    #     log.error(str(exc))
+    #     log.error(f"Sorry, unable to pull document {document.filename}[{document.id!s}] from storage.")
 
 
 ################################################################################
@@ -219,7 +227,7 @@ def route_view_document(doc_id: str, url: str = "main.render_display") -> Respon
 @log_route(path="/document/delete")
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
-    delete_document(current_app, fl.current_user, request.values["doc_id"])
+    delete_document(current_app, fl.current_user, request.values["public_id"])
     return redirect(url_for(url))
 
 
@@ -229,9 +237,9 @@ def render_delete_document(url: str = "main.render_display") -> Response:
 @log_route(path="/documents/delete")
 def render_delete_documents(url: str = "main.render_display") -> Response:
     """Delete the specified documents."""
-    doc_ids = request.values["doc_ids"]
-    for doc_id in doc_ids.split("|"):
-        delete_document(current_app, fl.current_user, doc_id)
+    public_ids = request.values["public_ids"]
+    for public_id in public_ids.split("|"):
+        delete_document(current_app, fl.current_user, public_id)
     return redirect(url_for(url))
 
 
@@ -258,17 +266,17 @@ def render_new_document() -> Response:
     document = Document(
         user=fl.current_user, title=request.form.get("title"), category=fl.current_user.payload.user_state.last_category
     )
-    document.save()
-    return redirect(url_for("main.render_edit_document", doc_id=document.id))
+    document.save(app=current_app)
+    return redirect(url_for("main.render_edit_document", public_id=document.public_id))
 
 
 ################################################################################
-@bp.get("/edit/<doc_id>")
+@bp.get("/edit/<public_id>")
 @login_required
 @log_route(path="/edit")
-def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -> Response:
+def render_edit_document(public_id: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
+    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
         "sources": sources_available(fl.current_user),  # Source pulldown options for user
@@ -280,12 +288,12 @@ def render_edit_document(doc_id: str | None, template: str = "main/edit.html") -
 
 
 ################################################################################
-@bp.route("/edit/<field>/<doc_id>", methods=["POST", "DELETE"])
+@bp.route("/edit/<field>/<public_id>", methods=["POST", "DELETE"])
 @login_required
 @log_route(path="/edit")
-def hx_edit_field(field: str, doc_id: str) -> Response:
+def hx_edit_field(field: str, public_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
+    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
 
     # Update the specified field in the document based on the inbound request, get doc and optional error msg
     document, error_msg = update_document_attribute(current_app, document, field, request)
@@ -314,10 +322,10 @@ def hx_edit_field(field: str, doc_id: str) -> Response:
 
 
 ################################################################################
-@bp.get("/document/last_updated/<doc_id>")
+@bp.get("/document/last_updated/<public_id>")
 @login_required
 @log_route(path="/document/last_updated")
-def hx_last_updated(doc_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
+def hx_last_updated(public_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    document = Document.get(Document.user == fl.current_user, Document.id == doc_id)
+    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
     return render_template(template, document=document)

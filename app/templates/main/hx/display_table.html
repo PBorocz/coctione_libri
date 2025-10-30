@@ -30,7 +30,7 @@
     </tbody>
   </table>
 
-  {% if search and doc_ids %}
+  {% if search and public_ids %}
     <form action="/documents/delete" method="post" id="form_delete">
       {{ form.hidden_tag() }}
       <div class="field is-horizontal" id="div_delete">
@@ -38,10 +38,10 @@
 	  <div class="control is-primary" style="overflow:hidden;">
 	    <input class="button is-danger is-light"
 		   type="submit"
-		   id="doc_id"
-		   name="doc_id"
+		   id="public_id"
+		   name="public_id"
 		   value="Delete {{ num_docs }} Documents?"
-		   onclick="confirm_form_delete('Are you sure you want to delete these entries?', event, 'form_delete', 'doc_ids', '{{ doc_ids }}')">
+		   onclick="confirm_form_delete('Are you sure you want to delete these entries?', event, 'form_delete', 'public_ids', '{{ public_ids }}')">
 	  </div>
 	</div>
       </div>
@@ -49,9 +49,16 @@
   {% endif %}
 
 {% else %}
-  <div class="content">
-    Sorry, no {{ category }} match '{{ search }}'.
-  </div>
+    <div class="content">
+	<br>
+	{% if category and search %}
+	Sorry, you don't have any documents yet in '{{ category }}' for '{{ search }}'.
+	{% elif category %}
+	Sorry, you don't have any documents yet in category: '{{ category }}'.
+	{% else %}
+	Sorry, you don't have any documents defined at all!
+	{% endif %}
+    </div>
 {% endif %}
 
 </div>

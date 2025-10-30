@@ -6,11 +6,12 @@ from urllib.parse import urljoin, urlparse
 
 import flask_login
 import mongoengine
+from box import Box
 from secure import Secure
 
 from app.blueprints.auth import bp
 from app.blueprints.auth.forms import LoginForm, RegistrationForm
-from app.models.user import User, query_user
+from app.models.user_rdb import User, query_user
 
 
 def is_safe_url(target):
@@ -91,7 +92,17 @@ def register(template: str = "auth/register.html"):
                 last_login=datetime.utcnow().isoformat(),
                 password=form.password.data,
             )
+            # Set some defaults...
+            user.payload = Box(
+                {
+                    "user_state": {
+                        "last_category": "Recipes",
+                        "last_sort": {"by": "title", "order": "asc"},
+                    }
+                }
+            )
             user.save()
+
             flask_login.login_user(user)
             f.flash("Congratulations, you are now a registered user!", "is-primary")
             return f.redirect(f.url_for("main.render_display"))

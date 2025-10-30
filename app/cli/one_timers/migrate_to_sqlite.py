@@ -3,22 +3,18 @@
 
 import argparse
 import logging as log
-import os
-import re
 import sys
 import time
-import tomllib
 from io import BytesIO
 from pathlib import Path
 
-import tomli_w
 from botocore.exceptions import ClientError
 from mongoengine.context_managers import switch_collection
 from peewee import IntegrityError
 
-from app import create_app, db
+from app import create_app
 from app.cli import setup_logging
-from app.models import Category, categories_available
+from app.models import categories_available
 from app.models.document import Document
 from app.models.documents import CategoryField, Documents
 from app.models.user import User
