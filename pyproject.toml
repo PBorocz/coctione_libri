@@ -30,7 +30,6 @@ dependencies = [
     "jinja2>=3.1.6,<4",
     "peewee>=3.18.2",
     "python-box>=7.3.2",
-    "sqids>=0.5.2",
 ]
 
 [dependency-groups]

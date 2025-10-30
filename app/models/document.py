@@ -18,7 +18,7 @@ class Document(Model):
     category     = CharField(help_text="Document category",choices=[(c.value, c.name) for c in Category])
     created      = DateTimeField(default=dt.datetime.now(), help_text="Datetime first saved.")
 
-    public_id    = CharField(null=True, help_text="Public slug/sqid")
+    public_id    = CharField(null=True, help_text="Public slug & file name")
     updated      = DateTimeField(null=True, help_text="Datetime last updated.")
     filesize     = IntegerField(null=True)
     mimetype     = CharField(default="application/pdf")
