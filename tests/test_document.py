@@ -120,7 +120,7 @@ def test_document_queries(app, document_and_user):
         Document.get(Document.title == "does NOT exist!")
 
 
-def test_document_listfield_basic(app, document_and_user):
+def test_document_tags(app, document_and_user):
     """Test ability to update json list field."""
     document, user = document_and_user
     # Setup
@@ -130,91 +130,97 @@ def test_document_listfield_basic(app, document_and_user):
     ############################################################################
     # Test 1 - Single entry, make sure it's lowercase.
     ############################################################################
-    document.tags.append("aTestTag")
+    document.tags_add("aTestTag")
     document.save()
 
     # Confirm
     assert document.updated  # We did a REAL update now!
     q_document = Document.get(Document.id == document.id)
-    assert ["atesttag"] == q_document.tags
+    assert "atesttag" == q_document.tags
 
     ############################################################################
     # Test 2 - Second entry, before current one!
     ############################################################################
-    document.tags.append("anothertag")
+    document.tags_add("AnotherTag")
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert ["anothertag", "atesttag"] == q_document.tags
+    assert "atesttag|anothertag" == q_document.tags
+    assert ["anothertag", "atesttag"] == q_document.tags_split
+    assert ["Anothertag", "Atesttag"] == q_document.tags_display
+
+    # Confirm
+    q_document = Document.get(Document.id == document.id)
+    assert "atesttag|anothertag" == q_document.tags
+    assert ["anothertag", "atesttag"] == q_document.tags_split
+    assert ["Anothertag", "Atesttag"] == q_document.tags_display
 
     ############################################################################
-    # Test 3 - Remove an entry
+    # Test 3 - Query by tag
     ############################################################################
-    document.tags.remove("anothertag")
+    assert 0 == len(Document.select().where(Document.tags % "*not_in_there*"))
+    assert 0 == len(Document.select().where(Document.tags % "*anotherTag*"))
+    assert 1 == len(Document.select().where(Document.tags % "*anothertag*"))
+
+    ############################################################################
+    # Test 4 - Duplicate tag entry
+    ############################################################################
+    document.tags_add("AThirdTag")
+    document.tags_add("AThirdTag")
+    document.save()
+    q_document = Document.get(Document.id == document.id)
+    assert "anothertag|atesttag|athirdtag" == q_document.tags
+
+    ############################################################################
+    # Test 5 - Remove an entry
+    ############################################################################
+    document.tags_remove("aTestTag")
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert ["atesttag"] == q_document.tags
+    assert "anothertag|athirdtag" == q_document.tags
 
 
-def test_document_listfield_advanced(app, document_and_user):
-    """Test ability to json list field advanced concepts."""
-    document, user = document_and_user
-
-    # Setup
-    document.save()
-    assert not document.tags
-
-    ############################################################################
-    # Test 1 - We don't allow duplicates
-    ############################################################################
-    document.tags.append("atesttag")
-    document.tags.append("atesttag")
-    document.save()
-
-    # Confirm
-    q_document = Document.get(Document.id == document.id)
-    assert ["atesttag"] == q_document.tags
-
-
-def test_document_datetimelistfield(app, document_and_user):
+def test_document_dates_cooked(app, document_and_user):
     """Test ability to update json datetimelist field."""
     document, user = document_and_user
 
     # Setup
     document.save()
+    assert not document.dates_cooked
 
     ############################################################################
     # Test 1 - Single entry
     ############################################################################
-    now = datetime.now()
-    document.dates_cooked.append(now)
+    date = datetime(2025, 1, 31)
+    document.dates_cooked_add(date)
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert [now] == q_document.dates_cooked
+    date_s = date.strftime("%Y-%m-%d")
+    assert date_s == q_document.dates_cooked
 
     ############################################################################
     # Test 2 - Multiple entries, in sorted order.
     ############################################################################
-    time.sleep(0.5)
-    now_2 = datetime.now()
-    document.dates_cooked.append(now_2)
+    date_2 = datetime(2025, 12, 31)
+    document.dates_cooked_add(date_2)
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert [now, now_2] == q_document.dates_cooked
+    date_2_s = date_2.strftime("%Y-%m-%d")
+    assert f"{date_s}|{date_2_s}" == q_document.dates_cooked
 
-    ############################################################################
-    # Test 3 - Remove an entry
-    ############################################################################
-    document.dates_cooked.remove(now)
+    # ############################################################################
+    # # Test 3 - Remove an entry
+    # ############################################################################
+    document.dates_cooked_remove(date)
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert [now_2] == q_document.dates_cooked
+    assert date_2_s == q_document.dates_cooked

@@ -185,7 +185,7 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 @log_route(path="/view")
 def route_view_document(public_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
+    document = Document.get(Document.public_id == public_id)
 
     # Do we think we have a document to display?
     # if not document.fileid:
@@ -207,18 +207,6 @@ def route_view_document(public_id: str, url: str = "main.render_display") -> Res
         log.error(f"Sorry, unable to serve document for {document.id=}")
 
     return redirect(url_for(url))
-
-    # Ok, we *SHOULD* have a file, pull it and see..
-    # client_storage = current_app.config["STORAGE_FILE"]
-    # contents: BytesIO = BytesIO()
-    # download_name: str = f"{document.fileid}.pdf"
-    # try:
-    #     client_storage.download_fileobj(client_storage.bucket, document.fileid, contents)
-    #     contents.seek(0)
-    #     return send_file(contents, download_name=download_name, mimetype=document.mimetype)
-    # except ClientError as exc:
-    #     log.error(str(exc))
-    #     log.error(f"Sorry, unable to pull document {document.filename}[{document.id!s}] from storage.")
 
 
 ################################################################################
@@ -276,7 +264,7 @@ def render_new_document() -> Response:
 @log_route(path="/edit")
 def render_edit_document(public_id: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
+    document = Document.get(Document.public_id == public_id)
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
         "sources": sources_available(fl.current_user),  # Source pulldown options for user
@@ -293,7 +281,7 @@ def render_edit_document(public_id: str | None, template: str = "main/edit.html"
 @log_route(path="/edit")
 def hx_edit_field(field: str, public_id: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
+    document = Document.get(Document.public_id == public_id)
 
     # Update the specified field in the document based on the inbound request, get doc and optional error msg
     document, error_msg = update_document_attribute(current_app, document, field, request)
@@ -327,5 +315,5 @@ def hx_edit_field(field: str, public_id: str) -> Response:
 @log_route(path="/document/last_updated")
 def hx_last_updated(public_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    document = Document.get(Document.user == fl.current_user, Document.public_id == public_id)
+    document = Document.get(Document.public_id == public_id)
     return render_template(template, document=document)

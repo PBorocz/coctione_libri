@@ -1,116 +1,84 @@
 """Base application document model (in relational form)."""
 
 import datetime as dt
-import json
-import re
-import unicodedata
+import hashlib
 from zoneinfo import ZoneInfo
 
 import humanize
-import sqids
-from peewee import CharField, Check, DateTimeField, ForeignKeyField, Model, SmallIntegerField, TextField
+from peewee import CharField, Check, DateTimeField, ForeignKeyField, IntegerField, Model
 
 from app.models import Category, RatingComplexity, RatingQuality
 from app.models.user_rdb import User
 
 
-class ListField(TextField):
-    def db_value(self, value):
-        if not value:
-            return "[]"
-        # Convert to lower, remove duplicates, and sort
-        unique_values = sorted(dict.fromkeys(str(item).lower() for item in value))
-        return json.dumps(unique_values)
-
-    def python_value(self, value):
-        return json.loads(value) if value else []
-
-
-class DateTimeListField(TextField):
-    def db_value(self, value):
-        if not value:
-            return "[]"
-        # Convert remove duplicates, and sort
-        sorted_values = sorted(dict.fromkeys(item for item in value))
-        return json.dumps([d.isoformat() for d in sorted_values])
-
-    def python_value(self, value):
-        if not value:
-            return []
-        dates_str = json.loads(value)
-        return [dt.datetime.fromisoformat(d) for d in dates_str]
-
-
 class Document(Model):
     # fmt: off
-    id           = SmallIntegerField(primary_key=True, help_text="DB auto increment id")
-    public_id    = CharField(null=True, help_text="Public slug/sqid")
-    user         = ForeignKeyField(User, backref="documents")
+    id           = IntegerField(primary_key=True, help_text="DB auto increment id")
     title        = CharField(help_text="Document title")
     category     = CharField(help_text="Document category",choices=[(c.value, c.name) for c in Category])
     created      = DateTimeField(default=dt.datetime.now(), help_text="Datetime first saved.")
-    updated      = DateTimeField(null=True, help_text="Dt.Datetime last updated.")
-    fileid       = CharField(null=True)
-    filename     = CharField(null=True)
-    filesize     = SmallIntegerField(null=True)
+
+    public_id    = CharField(null=True, help_text="Public slug/sqid")
+    updated      = DateTimeField(null=True, help_text="Datetime last updated.")
+    filesize     = IntegerField(null=True)
     mimetype     = CharField(default="application/pdf")
     source       = CharField(null=True)
     url          = CharField(null=True)
-    tags         = ListField(default=list)
+    tags         = CharField(null=True) # "|" delimited list of lower-case tags
 
     # Recipe category-specific fields
-    dates_cooked = DateTimeListField(default=list)
-    quality      = SmallIntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
-    complexity   = SmallIntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
+    dates_cooked = CharField(null=True) # "|" delimited list of dates in YYYY-MM-DD.
+    quality      = IntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
+    complexity   = IntegerField(null=True, constraints=[Check("0 <= quality <= 5")])
+
+    user         = ForeignKeyField(User, backref="documents")
     # fmt: on
 
     def save(self, *args, **kwargs) -> int:
-        """Override save method to set updated attr on actual updates."""
+        """Override save method to handle updated and public_id attributes."""
         self.updated = dt.datetime.now() if self._pk is not None else None
-        app = None
-        if "app" in kwargs:
-            app = kwargs["app"]
-            del kwargs["app"]  # We need to remove so peewee's save method doesn't bug out on us
+        return super().save(*args, **kwargs)
 
-        count_rows_modified = super().save(*args, **kwargs)
-
-        # Do we need to generate a new public slug?
-        if not self.public_id:
-            assert self.id, "Sorry, just saved a document but don't have an ID yet?"
-            assert app, "Sorry, we need an app instance argument for configuration value: 'SQID_KEY'!"
-            encoder = sqids.Sqids(alphabet=app.config["SQID_KEY"])
-            self.public_id = encoder.encode([self.id])
-            self.save()
-        return count_rows_modified
-
-    def update_sqid(self, app) -> bool:
-        """Update the sqid using the app configuration for the current id."""
-
+    ################################################################################
+    # Tag attribute management
+    ################################################################################
     @property
-    def title_as_file(self) -> str:
-        """Convert title to a file-safe filename when we download/display a pdf."""
-        # Start with the title
-        if not self.title:
-            return "-document-.pdf"  # FIXME: What about other mimetypes?
-        safe_name = self.title
+    def tags_split(self) -> list[str]:
+        if not self.tags:
+            return []
+        tags = set()
+        for tag in self.tags.split("|"):
+            tags.add(tag)
+        return sorted(tags)
 
-        # Normalize unicode characters
-        safe_name = unicodedata.normalize("NFKD", safe_name)
+    def tags_add(self, tag: str):
+        _list_add(self, "tags", self.tags_split, tag)
 
-        # Remove/replace unsafe characters
-        safe_name = re.sub(r'[<>:"/\\|?*]', "", safe_name)  # Windows forbidden chars
-        safe_name = re.sub(r"[^\w\s\-_.]", "", safe_name)  # Keep only word chars, spaces, hyphens, underscores, dots
-        safe_name = re.sub(r"\s+", "_", safe_name)  # Replace spaces with underscores
-        safe_name = re.sub(r"_+", "_", safe_name)  # Collapse multiple underscores
-        safe_name = safe_name.strip("_.")  # Remove leading/trailing underscores and dots
+    def tags_remove(self, tag: str):
+        _list_remove(self, "tags", self.tags_split, tag)
 
-        # Limit length (leave room for .pdf extension)
-        max_length = 90
-        if len(safe_name) > max_length:
-            safe_name = safe_name[:max_length].rstrip("_.")
+    ################################################################################
+    # Dates_Cooked attribute management
+    ################################################################################
+    @property
+    def dates_cooked_split(self) -> list[str]:
+        """Return dates)cooked as a sorted list."""
+        if not self.dates_cooked:
+            return []
+        dates_cooked = set()
+        for s_date in self.dates_cooked.split("|"):
+            dates_cooked.add(s_date)
+        return sorted(dates_cooked)
 
-        return f"{safe_name}.pdf"  # FIXME: What about other mimetypes?
+    def dates_cooked_add(self, date_: dt):
+        _list_add(self, "dates_cooked", self.dates_cooked_split, date_.strftime("%Y-%m-%d"))
 
+    def dates_cooked_remove(self, date_: dt):
+        _list_remove(self, "dates_cooked", self.dates_cooked_split, date_.strftime("%Y-%m-%d"))
+
+    ################################################################################
+    # Extended properties (all read-only)
+    ################################################################################
     @property
     def quality_enum(self) -> RatingQuality | None:
         """Return the uptyped quality field as "Rating" instead of int."""
@@ -130,15 +98,6 @@ class Document(Model):
             return None
 
     @property
-    def tags_for_sort(self) -> list[str] | None:
-        """Convert the list of tags to a lower-case, sorted comma-separated list."""
-        # This is only used for sorting documents by the "tags" column, NOT for display!
-        if not self.tags:
-            return None
-        normalised = [tag.lower() for tag in sorted(self.tags)]
-        return "|".join(normalised)
-
-    @property
     def cooked(self) -> int:
         """Return number of times we've cooked this."""
         return len(self.dates_cooked)
@@ -147,6 +106,16 @@ class Document(Model):
     def created_display(self) -> str:
         """Return created attr in local and nicely formatted."""
         return dt_as_local(self.created)
+
+    @property
+    def tags_display(self) -> list[str]:
+        """Return tags as a nicely formatted, sorted list."""
+        return sorted([tag.title() for tag in self.tags_split])
+
+    @property
+    def dates_cooked_display(self) -> list[(str, str)]:
+        """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
+        return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in self.dates_cooked_split]
 
     @property
     def filesize_display(self) -> str | None:
@@ -164,18 +133,29 @@ class Document(Model):
     def times_cooked(self) -> str | None:
         """Return the number of times we've cooked this."""
         if self.dates_cooked:
-            return str(len(self.dates_cooked))
+            return str(len(self.dates_cooked_as_list()))
         return None
-
-    @property
-    def dates_cooked_display(self) -> list[str]:
-        """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
-        return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in sorted(self.dates_cooked, reverse=True)]
 
 
 ################################################################################
 # Utilities
 ################################################################################
+def _list_add(document: Document, attr: str, existing: list[str], value: str) -> Document:
+    value_ = value.strip().lower()
+    if value_ not in existing:
+        existing.append(value_)
+    setattr(document, attr, "|".join(existing))
+    return document
+
+
+def _list_remove(document: Document, attr: str, existing: list[str], value: str) -> Document:
+    value_ = value.strip().lower()
+    if value_ in existing:
+        existing.remove(value_)
+    setattr(document, attr, "|".join(existing))
+    return document
+
+
 def sources_available(user: User) -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
     docs = Document.select(Document.source).where(Document.user == user)

@@ -2,6 +2,7 @@
 """Migrate documents and users to a sqlite DB from MongoDB."""
 
 import argparse
+import hashlib
 import logging as log
 import sys
 import time
@@ -46,62 +47,79 @@ def migrate_documents(app, user_sql: User, category: str):
     o_category = CategoryField().to_python(category)
     with switch_collection(Documents, Documents.as_user(user_mongo, o_category)) as user_documents:
         for mongo_document in user_documents.objects():
-            sql_document = emit_to_sql(app, user_mongo, user_sql, mongo_document)
-            pull_pdf_from_wasabi(app, mongo_document, sql_document)
-            time.sleep(1)
+            print(f"{mongo_document.title[:35]:<35}...", end="")
+            sql_document = generate(app, user_mongo, user_sql, mongo_document)
+            if public_id := pull_pdf_from_wasabi(app, mongo_document, sql_document):
+                try:
+                    sql_document.public_id = public_id
+                    sql_document.save()
+                    print("✅")
+                except IntegrityError as exc:
+                    print(f"❌ {exc}")
+            else:
+                print()
+            time.sleep(0.5)
 
 
-def emit_to_sql(app, user_mongo, user_sql, mongo_document):
+def generate(app, user_mongo, user_sql, mongo_document):
     # fmt: off
     doc = Document(
-        user         = user_sql,
-        category     = mongo_document.category,
-        title        = mongo_document.title,
-        fileid       = str(mongo_document.id),
-        filename     = mongo_document.filename,
-        filesize     = mongo_document.filesize,
-        mimetype     = mongo_document.mimetype,
-        notes        = mongo_document.notes,
-        source       = mongo_document.source,
-        url          = mongo_document.url_,
-        quality      = mongo_document.quality,
-        complexity   = mongo_document.complexity,
-        tags         = [tag.title() for tag in mongo_document.tags],
-        dates_cooked = mongo_document.dates_cooked,
+        user       = user_sql,
+        category   = mongo_document.category,
+        title      = mongo_document.title,
+        filesize   = mongo_document.filesize,
+        mimetype   = mongo_document.mimetype,
+        notes      = mongo_document.notes,
+        source     = mongo_document.source,
+        url        = mongo_document.url_,
+        quality    = mongo_document.quality,
+        complexity = mongo_document.complexity,
     )
+    for tag in mongo_document.tags:
+        doc.tags_add(tag.lower())
+
+    for dc_ in mongo_document.dates_cooked:
+        doc.dates_cooked_add(dc_)
+
+    return doc
+
     # fmt: on
-    try:
-        doc.save(app=app)
-        print(f"{mongo_document.title[:30]:<30}...✅", end="")
-        return doc
-    except IntegrityError as exc:
-        print(f"{mongo_document.title[:30]:<30}...❌ {exc}")
-        return None
 
 
-def pull_pdf_from_wasabi(app, mongo_document: Documents, sql_document: Document) -> bool:
-    """Pull the pdf document down as well!."""
-    if not mongo_document.id:
-        print("Sorry, no fileid to work from?")
-        return False
-
+def pull_pdf_from_wasabi(app, mongo_document: Documents, sql_document: Document) -> str:
+    """Pull the pdf document down as well and return the public_id/slug for the filename."""
     client_storage = app.config["STORAGE_FILE"]
     download_dir = Path(app.config["PATH_DATA"]) / Path("documents")
     contents: BytesIO = BytesIO()
-    download_name: str = f"{sql_document.id}.pdf"  # NEW NAMING CONVENTION!
-    download_path: Path = download_dir / Path(download_name)
     try:
+        # Download file..
         client_storage.download_fileobj(client_storage.bucket, str(mongo_document.id), contents)
         contents.seek(0)
-        print("✅")
+
+        # Generate hash from content
+        content_data = contents.getvalue()
+        content_hash = hashlib.sha256(content_data).hexdigest()
+
+        # Use hash value as the filename and public_id/slug
+        download_name: str = f"{content_hash}.pdf"
+        download_path: Path = download_dir / Path(download_name)
+
+        # If download already exists, we're done!
+        if download_path.exists():
+            print("∅", end="")
+            return content_hash
+
+        # Otherwise, save it away to local disk.
         with open(download_path, "wb") as f:
             f.write(contents.getvalue())
-        return True
+        print("✅", end="")
+        return content_hash
+
     except ClientError as exc:
         log.error(str(exc))
-        print(f"❌ {exc}")
+        print(f"❌ {exc}", end="")
         log.error(f"Sorry, unable to pull document {mongo_document.filename}[{mongo_document.id!s}] from storage.")
-        return False
+        return None
 
 
 if __name__ == "__main__":

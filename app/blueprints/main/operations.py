@@ -14,6 +14,7 @@ from flask import current_app
 from mongoengine.context_managers import switch_collection
 from mongoengine.queryset.queryset import QuerySet
 from mongoengine.queryset.visitor import QCombination
+from peewee import SQL
 from werkzeug.utils import secure_filename
 
 from app.models import Sort
@@ -54,7 +55,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 ################################################################################
 # Sub-search methods
 ################################################################################
-def _search_by_title(user: User, search: str) -> list[ObjectId]:
+def _sch_by_title(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
     partials = Document.select().where(Document.user == user, Document.title.contains(search))
     if partials:
@@ -62,7 +63,7 @@ def _search_by_title(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _search_by_source(user: User, search: str) -> list[ObjectId]:
+def _sch_by_source(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
     partials = Document.select().where(Document.user == user, Document.source.contains(search))
     if partials:
@@ -70,41 +71,19 @@ def _search_by_source(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _sch_by_tag(user: User, search: str) -> list[ObjectId]:
+def _search_by_tag(user: User, search: str) -> list[int]:
     """Search all documents by tag(s)."""
-    if any(chr.isspace() for chr in search):
-        # Split and "title" the search terms to match those within the database.
-        l_search: list[str] = list(map(str.title, search.split()))
+    l_search: list[str] = [search.lower()] if " " not in search else list(map(str.lower, search.split()))
+    log.debug(f"{l_search=}")
 
-        # Yes..."or" and "and" semantic between the elements provided??
+    partials = Document.select(Document.id).where(Document.user == user.id)
+    for tag in l_search:
+        partials = partials.where(Document.tags % f"*{tag}*")
 
-        ########################################
-        # For an "or" semantic (which is what Raindrop does! :-()
-        # documents = user_documents.objects(tags__in=search.split())
-        ########################################
-        ...
-
-        ########################################
-        # However, for the *and* semantic:
-        ########################################
-        from functools import reduce
-        from operator import and_
-
-        from mongoengine.queryset.visitor import Q
-
-        queries: list[Q] = [Q(tags=tag) for tag in l_search]
-        query: QCombination = reduce(and_, queries)
-        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-            partials: QuerySet = user_documents.objects(query).only("id")
-        if partials:
-            log.debug(f"{len(partials):3d} documents matched against multiple search terms")
-
+    if len(l_search) > 1:
+        log.debug(f"{len(partials):3d} documents matched against multiple search terms {l_search}")
     else:
-        # No, use as is..
-        with switch_collection(Documents, Documents.as_user(user)) as user_documents:
-            partials: QuerySet = user_documents.objects(tags=search.title()).only("id")
-        if partials:
-            log.debug(f"{len(partials):4d} documents matched against single search")
+        log.debug(f"{len(partials):4d} documents matched against single search: {l_search}")
 
     return [doc.id for doc in partials]
 
@@ -256,7 +235,7 @@ def _sort(user: User, documents: list[Document]) -> tuple[list[Document], dict]:
             "quality"               : lambda doc: (doc.quality               is None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is None, doc.source                ),
-            "tags"                  : lambda doc: (doc.tags_for_sort         is None, doc.tags_for_sort         ),
+            "tags"                  : lambda doc: (doc.tags                  is None, doc.tags                  ),
             "url"                   : lambda doc: (doc.url                   is None, doc.url                   ),
             "title"                 : lambda doc:  doc.title,
         }
@@ -267,7 +246,7 @@ def _sort(user: User, documents: list[Document]) -> tuple[list[Document], dict]:
             "quality"               : lambda doc: (doc.quality               is not None, doc.quality               ),
             "quality_by_complexity" : lambda doc: (doc.quality_by_complexity is not None, doc.quality_by_complexity ),
             "source"                : lambda doc: (doc.source                is not None, doc.source                ),
-            "tags"                  : lambda doc: (doc.tags_for_sort         is not None, doc.tags_for_sort         ),
+            "tags"                  : lambda doc: (doc.tags                  is not None, doc.tags                  ),
             "url"                   : lambda doc: (doc.url                   is not None, doc.url                   ),
             "title"                 : lambda doc:  doc.title,
         }
