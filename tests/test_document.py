@@ -48,6 +48,27 @@ def test_document_save(app, document_and_user):
     assert get_current_row_count() == row_count + 1
 
 
+def test_document_get_safe(app, document_and_user):
+    """Test that we can lookup a document by either public_id or by id."""
+    document, user = document_and_user
+    document.save()
+
+    # Test 1: Non-existent
+    assert Document.get_safe("non_existent") is None
+
+    # Test 2: By id
+    q_document = Document.get_safe(document.id)
+    assert document.id == q_document.id
+
+    # Test 3: By public_id
+    a_public_id = "ads;lkasd23jk3hk23j"
+    document.public_id = a_public_id
+    document.save()
+    q_document = Document.get_safe(a_public_id)
+    assert q_document is not None
+    assert a_public_id == q_document.public_id
+
+
 def test_document_delete_non_existing(app, document_and_user):
     """Test that delete an instance that hasn't been saved yet is OK."""
     _, user = document_and_user
@@ -194,26 +215,24 @@ def test_document_dates_cooked(app, document_and_user):
     ############################################################################
     # Test 1 - Single entry
     ############################################################################
-    date = datetime(2025, 1, 31)
+    date = "2025-01-31"
     document.dates_cooked_add(date)
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    date_s = date.strftime("%Y-%m-%d")
-    assert date_s == q_document.dates_cooked
+    assert date == q_document.dates_cooked
 
     ############################################################################
     # Test 2 - Multiple entries, in sorted order.
     ############################################################################
-    date_2 = datetime(2025, 12, 31)
+    date_2 = "2025-12-31"
     document.dates_cooked_add(date_2)
     document.save()
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    date_2_s = date_2.strftime("%Y-%m-%d")
-    assert f"{date_s}|{date_2_s}" == q_document.dates_cooked
+    assert f"{date}|{date_2}" == q_document.dates_cooked
 
     # ############################################################################
     # # Test 3 - Remove an entry
@@ -223,4 +242,4 @@ def test_document_dates_cooked(app, document_and_user):
 
     # Confirm
     q_document = Document.get(Document.id == document.id)
-    assert date_2_s == q_document.dates_cooked
+    assert date_2 == q_document.dates_cooked

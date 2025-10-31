@@ -1,7 +1,10 @@
 """Base application document model (in relational form)."""
 
+from __future__ import annotations
+
 import datetime as dt
 import hashlib
+import logging as log
 from zoneinfo import ZoneInfo
 
 import humanize
@@ -40,6 +43,19 @@ class Document(Model):
         self.updated = dt.datetime.now() if self._pk is not None else None
         return super().save(*args, **kwargs)
 
+    @classmethod
+    def get_safe(cls: Document, public_id_safe: str) -> Document | None:
+        """Return a document query using EITHER public_id or id (if public_id not set yet)."""
+        try:
+            document = Document.get(Document.public_id == public_id_safe)
+        except Document.DoesNotExist:
+            try:
+                document = Document.get(Document.id == public_id_safe)
+            except Document.DoesNotExist:
+                log.error("Internal error: unable to find document using *either* public_id or id!.")
+                return None
+        return document
+
     ################################################################################
     # Tag attribute management
     ################################################################################
@@ -71,15 +87,23 @@ class Document(Model):
             dates_cooked.add(s_date)
         return sorted(dates_cooked)
 
-    def dates_cooked_add(self, date_: dt):
-        _list_add(self, "dates_cooked", self.dates_cooked_split, date_.strftime("%Y-%m-%d"))
+    def dates_cooked_add(self, s_date: str):
+        _list_add(self, "dates_cooked", self.dates_cooked_split, s_date)
 
-    def dates_cooked_remove(self, date_: dt):
-        _list_remove(self, "dates_cooked", self.dates_cooked_split, date_.strftime("%Y-%m-%d"))
+    def dates_cooked_remove(self, s_date: str):
+        _list_remove(self, "dates_cooked", self.dates_cooked_split, s_date)
 
     ################################################################################
     # Extended properties (all read-only)
     ################################################################################
+    @property
+    def public_id_safe(self) -> str:
+        """Return either public_id if available or simply id."""
+        # Sometimes we need to use the public_id before it's actually
+        # available (for instance when creating a new meta document
+        # entry).
+        return self.public_id if self.public_id else self.id
+
     @property
     def quality_enum(self) -> RatingQuality | None:
         """Return the uptyped quality field as "Rating" instead of int."""
@@ -106,7 +130,7 @@ class Document(Model):
     @property
     def created_display(self) -> str:
         """Return created attr in local and nicely formatted."""
-        return dt_as_local(self.created)
+        return humanize_datetime(self.created)
 
     @property
     def tags_display(self) -> list[str]:
@@ -116,7 +140,10 @@ class Document(Model):
     @property
     def dates_cooked_display(self) -> list[(str, str)]:
         """Return a list of tuples of dates last cooked, eg. [("2024-02-01", "Monday, February 2nd 2024")...]."""
-        return [(lc_.strftime("%Y-%m-%d"), dt_as_date(lc_)) for lc_ in self.dates_cooked_split]
+        return_ = []
+        for s_date in self.dates_cooked_split:
+            return_.append((s_date, humanize_date(s_date)))
+        return return_
 
     @property
     def filesize_display(self) -> str | None:
@@ -128,14 +155,14 @@ class Document(Model):
     @property
     def updated_display(self) -> str:
         """Return updated attr in local and nicely formatted if available."""
-        return dt_as_local(self.updated) if self.updated else ""
+        return humanize_datetime(self.updated) if self.updated else ""
 
     @property
-    def times_cooked(self) -> str | None:
+    def times_cooked(self) -> str:
         """Return the number of times we've cooked this."""
         if self.dates_cooked:
-            return str(len(self.dates_cooked_as_list()))
-        return None
+            return str(len(self.dates_cooked_split))
+        return ""
 
 
 ################################################################################
@@ -172,30 +199,25 @@ def tags_available() -> list[str]:
     return sorted(tags)
 
 
-def dt_as_local(datetime_naive: dt.datetime, timezone_: str = "America/Los_Angeles", date_only: bool = False) -> str:
-    """Return naive datetime as a nicely formatted local date-time (`Wednesday, February 21st 02:15pm 2024`)."""
-    datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)
-    datetime_local = datetime_utc.astimezone(ZoneInfo(timezone_))
-
-    day = int(datetime_local.strftime("%d"))
-    suffix = ["th", "st", "nd", "rd", "th"][min(day % 10, 4)]
-    if 11 <= (day % 100) <= 13:  # noqa: PLR2004
-        suffix = "th"
-
-    strftime_ = f"%A, %B {day}{suffix} %Y" if date_only else f"%A, %B {day}{suffix} %I:%M%p %Y"
-    return datetime_local.strftime(strftime_)
-
-
-def dt_as_date(datetime_naive: dt.datetime) -> str:
+def humanize_date(yyyymmdd: str, timezone_: str = "America/Los_Angeles") -> str:
     """Return naive datetime as a nicely formatted date (`Wednesday, February 21st 2024`)."""
-    datetime_utc = datetime_naive.replace(tzinfo=dt.UTC)
+    date_ = dt.datetime.strptime(yyyymmdd, "%Y-%m-%d")
+    day = int(date_.strftime("%d"))
+    suffix = ["th", "st", "nd", "rd", "th"][min(day % 10, 4)]
+    if 11 <= (day % 100) <= 13:  # noqa: PLR2004
+        suffix = "th"
+    return date_.strftime(f"%A, %B {day}{suffix} %Y")
 
-    day = int(datetime_utc.strftime("%d"))
+
+def humanize_datetime(datetime_naive: dt.Datetime, timezone_: str = "America/Los_Angeles") -> str:
+    """Return datetime as a nicely formatted local date-time (`Wednesday, February 21st 02:15pm 2024`)."""
+    day = int(datetime_naive.strftime("%d"))
     suffix = ["th", "st", "nd", "rd", "th"][min(day % 10, 4)]
     if 11 <= (day % 100) <= 13:  # noqa: PLR2004
         suffix = "th"
 
-    return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
+    strftime_ = f"%A, %B {day}{suffix} %I:%M%p %Y"
+    return datetime_naive.strftime(strftime_)
 
 
 def generate_public_id(content_data: bytes, title: str) -> str:

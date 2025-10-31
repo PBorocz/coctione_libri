@@ -225,7 +225,8 @@ def route_view_document(public_id: str, url: str = "main.render_display") -> Res
 @log_route(path="/document/delete")
 def render_delete_document(url: str = "main.render_display") -> Response:
     """Delete the specified Document."""
-    delete_document(current_app, fl.current_user, request.values["public_id"])
+    log.debug(f"{request.values=}")
+    delete_document(current_app, fl.current_user, request.values["doc_id"])
     return redirect(url_for(url))
 
 
@@ -264,17 +265,17 @@ def render_new_document() -> Response:
     document = Document(
         user=fl.current_user, title=request.form.get("title"), category=fl.current_user.payload.user_state.last_category
     )
-    document.save(app=current_app)
-    return redirect(url_for("main.render_edit_document", public_id=document.public_id))
+    document.save()
+    return redirect(url_for("main.render_edit_document", public_id_safe=document.public_id_safe))
 
 
 ################################################################################
-@bp.get("/edit/<public_id>")
+@bp.get("/edit/<public_id_safe>")
 @login_required
 @log_route(path="/edit")
-def render_edit_document(public_id: str | None, template: str = "main/edit.html") -> Response:
+def render_edit_document(public_id_safe: str | None, template: str = "main/edit.html") -> Response:
     """Display the Document edit page (and nothing else, updates come in partial_edit_field!)."""
-    document = Document.get(Document.public_id == public_id)
+    document = Document.get_safe(public_id_safe)
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
         "sources": sources_available(),  # Source pulldown options for user
@@ -286,12 +287,12 @@ def render_edit_document(public_id: str | None, template: str = "main/edit.html"
 
 
 ################################################################################
-@bp.route("/edit/<field>/<public_id>", methods=["POST", "DELETE"])
+@bp.route("/edit/<field>/<public_id_safe>", methods=["POST", "DELETE"])
 @login_required
 @log_route(path="/edit")
-def hx_edit_field(field: str, public_id: str) -> Response:
+def hx_edit_field(field: str, public_id_safe: str) -> Response:
     """Edit an particular field/attribute of an Document."""
-    document = Document.get(Document.public_id == public_id)
+    document = Document.get_safe(public_id_safe)
 
     # Update the specified field in the document based on the inbound request, get doc and optional error msg
     document, error_msg = update_document_attribute(current_app, document, field, request)
@@ -320,10 +321,10 @@ def hx_edit_field(field: str, public_id: str) -> Response:
 
 
 ################################################################################
-@bp.get("/document/last_updated/<public_id>")
+@bp.get("/document/last_updated/<public_id_safe>")
 @login_required
 @log_route(path="/document/last_updated")
-def hx_last_updated(public_id: str, template: str = "main/hx/edit_last_updated.html") -> Response:
+def hx_last_updated(public_id_safe: str, template: str = "main/hx/edit_last_updated.html") -> Response:
     """Partial render of particular document id's last update value."""
-    document = Document.get(Document.public_id == public_id)
+    document = Document.get_safe(public_id_safe)
     return render_template(template, document=document)

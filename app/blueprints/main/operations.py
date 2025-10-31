@@ -14,7 +14,7 @@ from flask import current_app
 from werkzeug.utils import secure_filename
 
 from app.models import Sort
-from app.models.document import Document
+from app.models.document import Document, generate_public_id
 from app.models.user_rdb import User
 
 
@@ -83,14 +83,14 @@ def _search_by_tag(user: User, search: str) -> list[int]:
     return [doc.id for doc in partials]
 
 
-def delete_document(app, user: User, public_id: str) -> None:
+def delete_document(app, user: User, id: str) -> None:
     """Delete the document with specified id."""
-    document = Document.get(Document.public_id == public_id)
-    file_path = app.config["PATH_DATA"] / Path("documents") / Path(f"{document.id}.pdf")
+    document = Document.get_safe(id)
+    file_path = app.config["PATH_DATA"] / Path("documents") / Path(f"{document.public_id}.pdf")
     try:
         if file_path.exists() and file_path.is_file():
             file_path.unlink()
-            document.delete()
+            document.delete_instance()
             return True
         else:
             log.error(f"Sorry, unable to find {file_path=}?")
@@ -126,13 +126,18 @@ def update_document_attribute(app, document: Document, field: str, request) -> [
         case "file_":
             # Yes, there's no error handling here....sue me
             file = request.files["file_"]
-            document.fileid = str(document.id)
-            document.filename = secure_filename(file.filename)  # Important! cleanse to remove bad characters!
             document.filesize = get_file_size(file)
-            document.mimetype = mimetypes.guess_type(document.filename)[0]
-            app.config["STORAGE_FILE"].upload_fileobj(
-                file.stream, current_app.config["STORAGE_FILE_BUCKET"], str(document.id)
-            )
+            document.mimetype = mimetypes.guess_type(file.filename)[0]
+
+            # Read the file's contents so we can use for a unique hash-key identifier
+            contents = file.read()
+            document.public_id = generate_public_id(contents, document.title)
+
+            # With the identifier available, save the file away!
+            download_name: str = f"{document.public_id}.pdf"
+            download_path: Path = Path(app.config["PATH_DATA"]) / Path("documents") / Path(download_name)
+            with open(download_path, "wb") as f:
+                f.write(contents)
 
         ##############################
         # Special Attribute: List of string obo Tag
@@ -164,10 +169,7 @@ def _update_document_tags(document: Document, request) -> [Document, str | None]
     if request.method == "POST":
         # NEW tag to be added to the document
         tag = request.form.get("tag")
-        if tag.title() not in document.tags:
-            document.tags_add(tag.title())
-        else:
-            return document, "Tag already appears for this document."
+        document.tags_add(tag.title())  # Takes care of both duplicates and if this is the first one.
     elif request.method == "DELETE":
         # DELETE existing tag from the document
         tag = request.values.get("tag")
@@ -182,12 +184,7 @@ def _update_document_dates_cooked(document: Document, request) -> [Document, str
     if request.method == "POST":
         # NEW date to be added to the document
         date_cooked = request.form.get("date_cooked")
-        date_cooked = datetime.strptime(date_cooked, "%Y-%m-%d")
-        if date_cooked not in document.dates_cooked:
-            document.dates_cooked_add(date_cooked)
-        else:
-            return document, "Sorry, your already have this date entered."
-
+        document.dates_cooked_add(date_cooked)  # Takes care of both duplicates and if this is the first one.
     elif request.method == "DELETE":
         # DELETE existing date from the document
         date_cooked = request.values.get("date_cooked")

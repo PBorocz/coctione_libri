@@ -1,4 +1,4 @@
-<form hx-post="/edit/file_/{{ document.public_id }}"
+<form hx-post="/edit/file_/{{ document.public_id_safe }}"
       hx-trigger="change from:#file_"
       enctype="multipart/form-data"
       class="mb-3"> {# Roughly match the bottom margins of div elements on this page #}

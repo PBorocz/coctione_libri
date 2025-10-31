@@ -7,7 +7,7 @@
       <input class="input mr-4 form-input"
 	     name="url"
 	     value="{{ document.url|default("", true) }}"
-	     hx-post="/edit/url/{{ document.public_id }}"
+	     hx-post="/edit/url/{{ document.public_id_safe }}"
 	     hx-swap="outerHTML"
 	     hx-target="#field_url"
       >

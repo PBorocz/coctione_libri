@@ -19,7 +19,7 @@
 	       hx-swap="outerHTML"
 	       hx-trigger="blur"
 	       hx-target="#div_dates_cooked"
-	       hx-post="/edit/dates_cooked/{{ document.public_id }}">
+	       hx-post="/edit/dates_cooked/{{ document.public_id_safe }}">
 	<br/>
 	{% include "main/hx/_status_icon.html" %}
       </div>
@@ -37,7 +37,7 @@
 	<span class="content">
 	  {{ date_cooked_display }}
 	  <span class="icon"
-		       hx-delete="/edit/dates_cooked/{{ document.public_id}}"
+		       hx-delete="/edit/dates_cooked/{{ document.public_id_safe}}"
 		       hx-swap="outerHTML"
 		       hx-target="#div_dates_cooked"
 		       hx-vals='{"date_cooked": "{{ date_cooked_yyyymmdd }}"}'>

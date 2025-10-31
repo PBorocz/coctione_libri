@@ -25,7 +25,7 @@
   # if render_display_column(current_user.payload.user_state.last_category, "title"):
   <td style="vertical-align: middle;">
 
-      <a href="/view/{{ document.public_id }}" target="_new">
+      <a href="/view/{{ document.public_id_safe }}" target="_new">
       {{ document.title }}
       </a>
 

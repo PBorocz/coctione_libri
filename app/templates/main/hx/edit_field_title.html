@@ -10,7 +10,7 @@
 	     name="title"
 	     class="input mr-4 form-input"
 	     value="{{ document.title }}"
-  	     hx-post="/edit/title/{{ document.public_id }}"
+  	     hx-post="/edit/title/{{ document.public_id_safe }}"
 	     hx-target="#field_title"
 	     hx-swap="outerHTML"
       >
