@@ -185,7 +185,13 @@ def hx_search(template="main/hx/display_table.html") -> Response:
 @log_route(path="/view")
 def route_view_document(public_id: str, url: str = "main.render_display") -> Response:
     """Render a file (usually a pdf but could be a link/url as well)."""
-    document = Document.get(Document.public_id == public_id)
+    import flask as f  # noqa: PLC0415
+
+    try:
+        document = Document.get(Document.public_id == public_id)
+    except Document.DoesNotExist:
+        f.flash("Sorry, no document exists at the specified address.")
+        return redirect(url_for(url))
 
     # Do we think we have a document to display?
     # if not document.fileid:
@@ -197,14 +203,18 @@ def route_view_document(public_id: str, url: str = "main.render_display") -> Res
     #     return redirect(url_for(url))
 
     # Return from our "local" file directory...
-    file_path = current_app.config["PATH_DATA"] / Path("documents") / Path(f"{document.id}.pdf")
+    file_path = current_app.config["PATH_DATA"] / Path("documents") / Path(f"{public_id}.pdf")
+    download_name = f"{document.id}.pdf"  # Better than the slug and any other options!
     try:
-        return send_file(file_path, download_name=document.title_as_file, mimetype=document.mimetype)
+        return send_file(file_path, download_name=download_name, mimetype=document.mimetype)
     except FileNotFoundError:
-        log.error(f"Sorry, unable to find document file {file_path}")
+        log.error(f"Sorry, unable to find the file associated with that document [{file_path}]")
+        f.flash("Sorry, unable to find the file associated with that document.")
     except Exception as exc:
         log.error(str(exc))
-        log.error(f"Sorry, unable to serve document for {document.id=}")
+        msg = "Sorry, we encountered an error serving that particular document's file."
+        log.error(msg)
+        f.flash(msg)
 
     return redirect(url_for(url))
 
@@ -267,8 +277,8 @@ def render_edit_document(public_id: str | None, template: str = "main/edit.html"
     document = Document.get(Document.public_id == public_id)
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
-        "sources": sources_available(fl.current_user),  # Source pulldown options for user
-        "tags": tags_available(fl.current_user),  # Tag pulldown options for user
+        "sources": sources_available(),  # Source pulldown options for user
+        "tags": tags_available(),  # Tag pulldown options
         "no_search": True,
         "document": document,
     }
@@ -288,8 +298,8 @@ def hx_edit_field(field: str, public_id: str) -> Response:
 
     return_args = {
         "document": document,
-        "sources": sources_available(fl.current_user),
-        "tags": tags_available(fl.current_user),
+        "sources": sources_available(),
+        "tags": tags_available(),
         "form": FlaskForm(),  # Need for CSRF rendering obo the "file" field (rest don't use form)
     }
 

@@ -9,7 +9,6 @@ from box import Box
 from peewee import CharField, DateField, Model, SmallIntegerField
 from werkzeug.security import check_password_hash, generate_password_hash
 
-
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 

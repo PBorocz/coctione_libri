@@ -15,7 +15,7 @@ from app.models.user_rdb import User, query_user
 
 
 def is_safe_url(target):
-    import flask as f
+    import flask as f  # noqa: PLC0415
 
     ref_url = urlparse(f.request.host_url)
     test_url = urlparse(urljoin(f.request.host_url, target))
@@ -33,7 +33,7 @@ def set_secure_headers(response):
 @flask_login.login_required
 def logout():
     """Logout the current user and go back to main (unless next provided)."""
-    import flask as f
+    import flask as f  # noqa: PLC0415
 
     flask_login.logout_user()
     next_ = f.request.args.get("next")
@@ -45,7 +45,7 @@ def logout():
 @bp.route("/login", methods=["GET", "POST"])
 def login(template: str = "auth/login.html"):
     """Process a request to either render the login page (GET) or handle login request (POST)."""
-    import flask as f
+    import flask as f  # noqa: PLC0415
 
     if flask_login.current_user.is_authenticated:
         # User already logged in? Easy, take 'em directly to home page..
@@ -82,7 +82,7 @@ def login(template: str = "auth/login.html"):
 @bp.route("/register", methods=["GET", "POST"])
 def register(template: str = "auth/register.html"):
     """Register a new user, redirect to main/home page if successful."""
-    import flask as f
+    import flask as f  # noqa: PLC0415
 
     form = RegistrationForm()
     if form.validate_on_submit():

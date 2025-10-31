@@ -84,7 +84,7 @@ class Sort:
     @classmethod
     def factory_from_user(cls, user):
         instance = cls()  # Will set defaults if nothing on the user record..
-        if user.payload.state_last_sort:
-            instance.by = user.payload.state_last_sort.get("by", instance.by)
-            instance.order = user.payload.state_last_sort.get("order", instance.order)
+        payload = user.payload  # Unpack payload
+        instance.by = payload.user_state.last_sort.by
+        instance.order = payload.user_state.last_sort.order
         return instance

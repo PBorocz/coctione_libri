@@ -3,7 +3,6 @@
 import logging as log
 import shutil
 import warnings
-from pathlib import Path
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -66,7 +65,7 @@ def _create_app_logging(logging: bool, log_level: str | None, application: Flask
             "boto3",
             "s3transfer",
             "urllib3",
-            # "peewee",  # Take out if we want actual sql statements logged...
+            "peewee",  # Take out if we want actual sql statements logged...
         ):
             log.getLogger(module).setLevel(log.WARNING)
 
@@ -95,7 +94,7 @@ def _create_app_login(application: Flask) -> Flask:
     return application
 
 
-def _create_app_extensions(application: Flask) -> Flask:
+def _create_app_htmx(application: Flask) -> Flask:
     htmx.init_app(application)  # HTMX environment (for selected endpoints)
     log.info("...initialised extension: htmx")
     return application
@@ -106,7 +105,7 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # MongoDB "Document" metadata first...
     ################################################################################
-    if 1:
+    if 0:
         vendor = application.config["STORAGE_META_VENDOR"]
         app_db_settings = application.config["STORAGE_META_URL"]
         connect(host=app_db_settings, uuidRepresentation="standard")
@@ -126,7 +125,7 @@ def _create_app_connections(application: Flask) -> Flask:
     ################################################################################
     # "Document" file/object store next...
     ################################################################################
-    if 1:
+    if 0:
         vendor = application.config["STORAGE_FILE_VENDOR"]
         endpoint_url = application.config["STORAGE_FILE_ENDPOINT_URL"]
         region_name = application.config["STORAGE_FILE_REGION_NAME"]
@@ -167,7 +166,7 @@ def _create_app_blueprints(application: Flask) -> Flask:
     return application
 
 
-def _create_app_context_processors(application: Flask) -> Flask:
+def _create_app_ctx_prcssrs(application: Flask) -> Flask:
     @application.context_processor
     def inject_watermark():
         match application.config["ENV"]:
@@ -190,7 +189,7 @@ def _create_app_context_processors(application: Flask) -> Flask:
         if not db.is_closed():
             db.close()
 
-    log.info("...defined context processors")
+    log.info("...context processors")
 
     return application
 
@@ -216,11 +215,11 @@ def create_app(logging=True, log_level: str | None = log.INFO, config_overrides:
         # Setup Logging
         application = _create_app_logging(logging, log_level, application)
 
-        # Initialise our login/authentication extension
+        # Initialise our login/authentication environment
         application = _create_app_login(application)
 
-        # Configure extensions (if necessary)
-        application = _create_app_extensions(application)
+        # Configure HTMX extension
+        application = _create_app_htmx(application)
 
         # Connect and setup our database environments
         application = _create_app_connections(application)
@@ -229,7 +228,7 @@ def create_app(logging=True, log_level: str | None = log.INFO, config_overrides:
         application = _create_app_blueprints(application)
 
         # Add our "context processers"
-        application = _create_app_context_processors(application)
+        application = _create_app_ctx_prcssrs(application)
 
         log.info("Ready...")  # , done=True)
 

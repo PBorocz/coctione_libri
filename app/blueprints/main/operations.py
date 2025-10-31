@@ -11,15 +11,10 @@ from pathlib import Path
 
 from bson.objectid import ObjectId
 from flask import current_app
-from mongoengine.context_managers import switch_collection
-from mongoengine.queryset.queryset import QuerySet
-from mongoengine.queryset.visitor import QCombination
-from peewee import SQL
 from werkzeug.utils import secure_filename
 
 from app.models import Sort
 from app.models.document import Document
-from app.models.documents import Documents
 from app.models.user_rdb import User
 
 
@@ -55,7 +50,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 ################################################################################
 # Sub-search methods
 ################################################################################
-def _sch_by_title(user: User, search: str) -> list[ObjectId]:
+def _search_by_title(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "title"."""
     partials = Document.select().where(Document.user == user, Document.title.contains(search))
     if partials:
@@ -63,7 +58,7 @@ def _sch_by_title(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _sch_by_source(user: User, search: str) -> list[ObjectId]:
+def _search_by_source(user: User, search: str) -> list[ObjectId]:
     """Search all documents by "source"."""
     partials = Document.select().where(Document.user == user, Document.source.contains(search))
     if partials:
@@ -170,13 +165,13 @@ def _update_document_tags(document: Document, request) -> [Document, str | None]
         # NEW tag to be added to the document
         tag = request.form.get("tag")
         if tag.title() not in document.tags:
-            document.tags.append(tag.title())
+            document.tags_add(tag.title())
         else:
             return document, "Tag already appears for this document."
     elif request.method == "DELETE":
         # DELETE existing tag from the document
         tag = request.values.get("tag")
-        document.tags.remove(tag.title())
+        document.tags_remove(tag.title())
 
     document.save()
     return document, None
@@ -189,14 +184,14 @@ def _update_document_dates_cooked(document: Document, request) -> [Document, str
         date_cooked = request.form.get("date_cooked")
         date_cooked = datetime.strptime(date_cooked, "%Y-%m-%d")
         if date_cooked not in document.dates_cooked:
-            document.dates_cooked.append(date_cooked)
+            document.dates_cooked_add(date_cooked)
         else:
             return document, "Sorry, your already have this date entered."
 
     elif request.method == "DELETE":
         # DELETE existing date from the document
         date_cooked = request.values.get("date_cooked")
-        document.dates_cooked.remove(date_cooked)
+        document.dates_cooked_remove(date_cooked)
 
     document.save()
     return document, None

@@ -23,8 +23,9 @@ class Document(Model):
     filesize     = IntegerField(null=True)
     mimetype     = CharField(default="application/pdf")
     source       = CharField(null=True)
-    url          = CharField(null=True)
     tags         = CharField(null=True) # "|" delimited list of lower-case tags
+    url          = CharField(null=True)
+    notes        = CharField(null=True)
 
     # Recipe category-specific fields
     dates_cooked = CharField(null=True) # "|" delimited list of dates in YYYY-MM-DD.
@@ -156,17 +157,17 @@ def _list_remove(document: Document, attr: str, existing: list[str], value: str)
     return document
 
 
-def sources_available(user: User) -> list[str]:
+def sources_available() -> list[str]:
     """Return the current list of sources across all documents as a Choice list."""
-    docs = Document.select(Document.source).where(Document.user == user)
+    docs = Document.select(Document.source)
     return sorted({doc.source for doc in docs if doc.source})
 
 
-def tags_available(user: User) -> list[str]:
-    """Return a sorted list of all current tags (ie. those attached to documents)."""
+def tags_available() -> list[str]:
+    """Return a sorted list of *all* current tags (ie. those attached to documents)."""
     tags = set()
-    for document in Document.select(Document.tags).where(Document.user == user):
-        for tag in document.tags:
+    for document in Document.select(Document.tags):
+        for tag in document.tags_split:
             tags.add(tag)
     return sorted(tags)
 
@@ -195,3 +196,15 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
         suffix = "th"
 
     return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
+
+
+def generate_public_id(content_data: bytes, title: str) -> str:
+    """Generate combined hash from content and title (32 chars each = 64 total)."""
+    # Content hash - first 32 characters of SHA-256
+    content_hash = hashlib.sha256(content_data).hexdigest()[:32]
+
+    # Title hash - first 32 characters of SHA-256
+    title_hash = hashlib.sha256(title.encode("utf-8")).hexdigest()[:32]
+
+    # Combine: content_title
+    return f"{content_hash}.{title_hash}"

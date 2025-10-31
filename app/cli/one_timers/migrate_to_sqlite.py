@@ -16,7 +16,7 @@ from peewee import IntegrityError
 from app import create_app
 from app.cli import setup_logging
 from app.models import categories_available
-from app.models.document import Document
+from app.models.document import Document, generate_public_id
 from app.models.documents import CategoryField, Documents
 from app.models.user import User
 from app.models.user_rdb import User as UserRDB
@@ -75,6 +75,7 @@ def generate(app, user_mongo, user_sql, mongo_document):
         quality    = mongo_document.quality,
         complexity = mongo_document.complexity,
     )
+    # fmt: on
     for tag in mongo_document.tags:
         doc.tags_add(tag.lower())
 
@@ -82,8 +83,6 @@ def generate(app, user_mongo, user_sql, mongo_document):
         doc.dates_cooked_add(dc_)
 
     return doc
-
-    # fmt: on
 
 
 def pull_pdf_from_wasabi(app, mongo_document: Documents, sql_document: Document) -> str:
@@ -96,24 +95,24 @@ def pull_pdf_from_wasabi(app, mongo_document: Documents, sql_document: Document)
         client_storage.download_fileobj(client_storage.bucket, str(mongo_document.id), contents)
         contents.seek(0)
 
-        # Generate hash from content
+        # Generate hash from content + title (there may be pdf's shared across entries)
         content_data = contents.getvalue()
-        content_hash = hashlib.sha256(content_data).hexdigest()
+        public_id = generate_public_id(content_data, sql_document.title)
 
         # Use hash value as the filename and public_id/slug
-        download_name: str = f"{content_hash}.pdf"
+        download_name: str = f"{public_id}.pdf"
         download_path: Path = download_dir / Path(download_name)
 
         # If download already exists, we're done!
         if download_path.exists():
             print("∅", end="")
-            return content_hash
+            return public_id
 
         # Otherwise, save it away to local disk.
         with open(download_path, "wb") as f:
             f.write(contents.getvalue())
         print("✅", end="")
-        return content_hash
+        return public_id
 
     except ClientError as exc:
         log.error(str(exc))
