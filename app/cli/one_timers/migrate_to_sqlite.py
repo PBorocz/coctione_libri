@@ -88,7 +88,7 @@ def generate(app, user_mongo, user_sql, mongo_document):
 def pull_pdf_from_wasabi(app, mongo_document: Documents, sql_document: Document) -> str:
     """Pull the pdf document down as well and return the public_id/slug for the filename."""
     client_storage = app.config["STORAGE_FILE"]
-    download_dir = Path(app.config["PATH_DATA"]) / Path("documents")
+    download_dir = Path(app.config["PATH_DATA"]) / Path(app.config["STORAGE_DOCS_DIR_NAME"])
     contents: BytesIO = BytesIO()
     try:
         # Download file..

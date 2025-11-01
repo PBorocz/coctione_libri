@@ -3,6 +3,7 @@
 import logging as log
 import shutil
 import warnings
+from pathlib import Path
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -100,49 +101,49 @@ def _create_app_htmx(application: Flask) -> Flask:
     return application
 
 
-def _create_app_connections(application: Flask) -> Flask:
-    """Connect to our external service connections."""
-    ################################################################################
-    # MongoDB "Document" metadata first...
-    ################################################################################
+def _create_app_db_connection(application: Flask) -> Flask:
+    """Connect to our database."""
     if 0:
-        vendor = application.config["STORAGE_META_VENDOR"]
-        app_db_settings = application.config["STORAGE_META_URL"]
-        connect(host=app_db_settings, uuidRepresentation="standard")
-        db_name = app_db_settings.split("?")[0].split("/")[-1]
-        log.info(f"...connected to {vendor}: {db_name}")
+        ...
+        ################################################################################
+        # MongoDB "Document" metadata first...
+        ################################################################################
+        # vendor = application.config["STORAGE_META_VENDOR"]
+        # app_db_settings = application.config["STORAGE_META_URL"]
+        # connect(host=app_db_settings, uuidRepresentation="standard")
+        # db_name = app_db_settings.split("?")[0].split("/")[-1]
+        # log.info(f"...connected to {vendor}: {db_name}")
+
+        ################################################################################
+        # "Document" file/object store next...
+        ################################################################################
+        # vendor = application.config["STORAGE_FILE_VENDOR"]
+        # endpoint_url = application.config["STORAGE_FILE_ENDPOINT_URL"]
+        # region_name = application.config["STORAGE_FILE_REGION_NAME"]
+        # access_key_id = application.config["STORAGE_FILE_ACCESS_KEY_ID"]
+        # secret_access_key = application.config["STORAGE_FILE_SECRET_ACCESS_KEY"]
+        # boto_client = boto3.client(
+        #     "s3",
+        #     endpoint_url=endpoint_url,
+        #     region_name=region_name,
+        #     aws_access_key_id=access_key_id,
+        #     aws_secret_access_key=secret_access_key,
+        # )
+        # # Workaround, stuff the name of the bucket onto the boto client so we don't have
+        # # to look it up everwhere else..
+        # boto_client.bucket = application.config["STORAGE_FILE_BUCKET"]
+        # application.config["STORAGE_FILE"] = boto_client
+        # log.info(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
 
     ################################################################################
     # Sqlite "Document" metadata...
     ################################################################################
     global db  # noqa: PLW0603 (sue me)
     models = [User, Document]
-    driver, path_ = application.config["SQLITE_DB"].split("://")
-    db = SqliteDatabase(path_, pragmas={"autocommit": True, "check_same_thread": False})
+    db_path = Path(application.config["PATH_DATA"]) / Path(application.config["STORAGE_META_DB_NAME"])
+    db = SqliteDatabase(db_path, pragmas={"autocommit": True, "check_same_thread": False})
     db.bind(models)
-    log.info(f"...connected to SQLite: {path_} with {len(models)} models.")
-
-    ################################################################################
-    # "Document" file/object store next...
-    ################################################################################
-    if 0:
-        vendor = application.config["STORAGE_FILE_VENDOR"]
-        endpoint_url = application.config["STORAGE_FILE_ENDPOINT_URL"]
-        region_name = application.config["STORAGE_FILE_REGION_NAME"]
-        access_key_id = application.config["STORAGE_FILE_ACCESS_KEY_ID"]
-        secret_access_key = application.config["STORAGE_FILE_SECRET_ACCESS_KEY"]
-        boto_client = boto3.client(
-            "s3",
-            endpoint_url=endpoint_url,
-            region_name=region_name,
-            aws_access_key_id=access_key_id,
-            aws_secret_access_key=secret_access_key,
-        )
-        # Workaround, stuff the name of the bucket onto the boto client so we don't have
-        # to look it up everwhere else..
-        boto_client.bucket = application.config["STORAGE_FILE_BUCKET"]
-        application.config["STORAGE_FILE"] = boto_client
-        log.info(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
+    log.info(f"...connected to {db_path.name=} with {len(models)} models defined.")
 
     return application
 
@@ -222,7 +223,7 @@ def create_app(logging=True, log_level: str | None = log.INFO, config_overrides:
         application = _create_app_htmx(application)
 
         # Connect and setup our database environments
-        application = _create_app_connections(application)
+        application = _create_app_db_connection(application)
 
         # Setup and register all our application blueprints
         application = _create_app_blueprints(application)

@@ -1,6 +1,7 @@
 import logging as log
 import os
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -15,13 +16,13 @@ log.getLogger("peewee").setLevel(log.INFO)  # or log.WARNING
 @pytest.fixture(scope="session")
 def app(request):
     # Setup test database path
-    test_db_path = "/tmp/coctione_libri_testing.sqlite3"
-    test_db_url = f"sqlite://{os.path.abspath(test_db_path)}"
-    os.makedirs(os.path.dirname(test_db_path), exist_ok=True)
+    path_data = Path("/tmp")
+    storage_meta_db_name = "coctione_libri_testing.sqlite3"
+    storage_meta_db_path = path_data / Path(storage_meta_db_name)
 
     # Run dbmate to create schema
     env = os.environ.copy()
-    env["DATABASE_URL"] = test_db_url
+    env["DATABASE_URL"] = f"sqlite://{storage_meta_db_path}"
     env["DBMATE_MIGRATIONS_DIR"] = "./app/db/migrations"
     env["DBMATE_SCHEMA_FILE"] = "/tmp/coctione_libri_testing.schema.sql"
     try:
@@ -31,15 +32,19 @@ def app(request):
         pytest.fail(f"dbmate up failed: {e.stderr.decode()}")
 
     # application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
-    application = create_app(logging=False, config_overrides={"SQLITE_DB": test_db_url})
+    config_testing = {
+        "PATH_DATA": "/tmp",
+        "STORAGE_META_DB_NAME": "coctione_libri_testing.sqlite3",
+    }
+    application = create_app(logging=False, config_overrides=config_testing)
     application.app_context().push()
 
     yield application
 
     # Cleanup!
-    if os.path.exists(test_db_path):
+    if os.path.exists(storage_meta_db_path):
         os.unlink(env["DBMATE_SCHEMA_FILE"])
-        os.unlink(test_db_path)
+        os.unlink(storage_meta_db_path)
 
 
 ################################################################################

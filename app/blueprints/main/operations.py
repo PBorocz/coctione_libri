@@ -86,7 +86,9 @@ def _search_by_tag(user: User, search: str) -> list[int]:
 def delete_document(app, user: User, id: str) -> None:
     """Delete the document with specified id."""
     document = Document.get_safe(id)
-    file_path = app.config["PATH_DATA"] / Path("documents") / Path(f"{document.public_id}.pdf")
+    file_path = (
+        Path(app.config["PATH_DATA"]) / Path(app.config["STORAGE_DOCS_DIR_NAME"]) / Path(f"{document.public_id}.pdf")
+    )
     try:
         if file_path.exists() and file_path.is_file():
             file_path.unlink()
@@ -135,7 +137,9 @@ def update_document_attribute(app, document: Document, field: str, request) -> [
 
             # With the identifier available, save the file away!
             download_name: str = f"{document.public_id}.pdf"
-            download_path: Path = Path(app.config["PATH_DATA"]) / Path("documents") / Path(download_name)
+            download_path: Path = (
+                Path(app.config["PATH_DATA"]) / Path(app.config["STORAGE_DOCS_DIR_NAME"]) / Path(download_name)
+            )
             with open(download_path, "wb") as f:
                 f.write(contents)
 

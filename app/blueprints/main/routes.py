@@ -203,7 +203,11 @@ def route_view_document(public_id: str, url: str = "main.render_display") -> Res
     #     return redirect(url_for(url))
 
     # Return from our "local" file directory...
-    file_path = current_app.config["PATH_DATA"] / Path("documents") / Path(f"{public_id}.pdf")
+    file_path = (
+        Path(current_app.config["PATH_DATA"])
+        / Path(current_app.config["STORAGE_DOCS_DIR_NAME"])
+        / Path(f"{public_id}.pdf")
+    )
     download_name = f"{document.id}.pdf"  # Better than the slug and any other options!
     try:
         return send_file(file_path, download_name=download_name, mimetype=document.mimetype)
