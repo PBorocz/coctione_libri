@@ -9,12 +9,10 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import flask as f
 
-import boto3
 from dotenv import dotenv_values
 from flask.app import Flask  # Typing
 from flask_htmx import HTMX
 from flask_login import LoginManager
-from mongoengine import connect
 from peewee import SqliteDatabase
 from secure import Secure
 
@@ -138,7 +136,7 @@ def _create_app_db_connection(application: Flask) -> Flask:
     ################################################################################
     # Sqlite "Document" metadata...
     ################################################################################
-    # global db  # noqa: PLW0603 (sue me)
+    global db  # noqa: PLW0603 (sue me)
     models = [User, Document]
     db_path = Path(application.config["PATH_DATA"]) / Path(application.config["STORAGE_META_DB_NAME"])
     db = SqliteDatabase(db_path, pragmas={"autocommit": True, "check_same_thread": False})

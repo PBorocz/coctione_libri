@@ -5,13 +5,8 @@ import mimetypes
 import shlex
 import sys
 from collections.abc import Callable
-from datetime import datetime
 from functools import reduce
 from pathlib import Path
-
-from bson.objectid import ObjectId
-from flask import current_app
-from werkzeug.utils import secure_filename
 
 from app.models import Sort
 from app.models.document import Document, generate_public_id
@@ -50,7 +45,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 ################################################################################
 # Sub-search methods
 ################################################################################
-def _search_by_title(user: User, search: str) -> list[ObjectId]:
+def _search_by_title(user: User, search: str) -> list[Document]:
     """Search all documents by "title"."""
     partials = Document.select().where(Document.user == user, Document.title.contains(search))
     if partials:
@@ -58,7 +53,7 @@ def _search_by_title(user: User, search: str) -> list[ObjectId]:
     return [doc.id for doc in partials]
 
 
-def _search_by_source(user: User, search: str) -> list[ObjectId]:
+def _search_by_source(user: User, search: str) -> list[Document]:
     """Search all documents by "source"."""
     partials = Document.select().where(Document.user == user, Document.source.contains(search))
     if partials:
