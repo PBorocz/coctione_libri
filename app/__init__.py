@@ -138,7 +138,7 @@ def _create_app_db_connection(application: Flask) -> Flask:
     ################################################################################
     # Sqlite "Document" metadata...
     ################################################################################
-    global db  # noqa: PLW0603 (sue me)
+    # global db  # noqa: PLW0603 (sue me)
     models = [User, Document]
     db_path = Path(application.config["PATH_DATA"]) / Path(application.config["STORAGE_META_DB_NAME"])
     db = SqliteDatabase(db_path, pragmas={"autocommit": True, "check_same_thread": False})

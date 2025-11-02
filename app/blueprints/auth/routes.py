@@ -5,8 +5,8 @@ from datetime import datetime
 from urllib.parse import urljoin, urlparse
 
 import flask_login
-import mongoengine
 from box import Box
+from peewee import IntegrityError
 from secure import Secure
 
 from app.blueprints.auth import bp
@@ -102,11 +102,10 @@ def register(template: str = "auth/register.html"):
                 }
             )
             user.save()
-
             flask_login.login_user(user)
             f.flash("Congratulations, you are now a registered user!", "is-primary")
             return f.redirect(f.url_for("main.render_display"))
-        except mongoengine.NotUniqueError:
+        except IntegrityError:
             f.flash("Sorry, that email address has already been used! Please try another one.")
 
     return f.render_template(template, title="Register", form=form)

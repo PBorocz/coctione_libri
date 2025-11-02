@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import logging as log
-from zoneinfo import ZoneInfo
+from pathlib import Path
 
 import humanize
 from peewee import CharField, Check, DateTimeField, ForeignKeyField, IntegerField, Model
@@ -220,7 +220,7 @@ def humanize_datetime(datetime_naive: dt.Datetime, timezone_: str = "America/Los
     return datetime_naive.strftime(strftime_)
 
 
-def generate_public_id(content_data: bytes, title: str) -> str:
+def generate_public_id(content_data: bytes, title: str, delimiter="_") -> str:
     """Generate combined hash from content and title (32 chars each = 64 total)."""
     # Content hash - first 32 characters of SHA-256
     content_hash = hashlib.sha256(content_data).hexdigest()[:32]
@@ -228,5 +228,13 @@ def generate_public_id(content_data: bytes, title: str) -> str:
     # Title hash - first 32 characters of SHA-256
     title_hash = hashlib.sha256(title.encode("utf-8")).hexdigest()[:32]
 
-    # Combine: content_title
-    return f"{content_hash}.{title_hash}"
+    # Combine to get our public_id/filestem.
+    return delimiter.join((content_hash, title_hash))
+
+
+def generate_file_storage_path(app, document: Document) -> Path:
+    file_path = Path(app.config["PATH_DATA"]) / Path(app.config["STORAGE_DOCS_DIR_NAME"]) / Path(document.public_id)
+    if document.mimetype == "application/pdf":
+        return file_path.with_suffix(".pdf")
+    log.error("Sorry, unsupported mimetype encountered!: {document.mimetype}")
+    return file_path

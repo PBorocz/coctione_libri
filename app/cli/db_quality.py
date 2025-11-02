@@ -1,31 +1,21 @@
 #!/usr/bin/env python
-"""Import a set of pdf's, in 2 passes."""
-
-# from mongoengine.context_managers import switch_collection
 
 import argparse
 import os
+from pathlib import Path
 
 import app.constants as c
 from app import create_app
 from app.cli import setup_logging
 from app.models import categories
-from app.models.document import Document
+from app.models.document import Document, generate_file_storage_path
 from app.models.user_rdb import User
 
-FILE_STORAGE_ENTRIES = {}
 
-
-def get_file_storage(app) -> int:
-    storage_client = app.config["STORAGE_FILE"]
-    response = storage_client.list_objects_v2(Bucket=storage_client.bucket)
-    for entry in response["Contents"]:
-        FILE_STORAGE_ENTRIES[entry["Key"]] = entry
-    return len(FILE_STORAGE_ENTRIES)
-
-
-def file_in_file_storage(app, document: Document) -> dict:
-    return FILE_STORAGE_ENTRIES.get(str(document.fileid))
+def get_file_public_ids(app) -> set[str]:
+    path_file_storage = Path(app.config["PATH_DATA"]) / Path(app.config["STORAGE_DOCS_DIR_NAME"])
+    assert path_file_storage.exists()
+    return {path_.stem for path_ in path_file_storage.glob("*")}
 
 
 def _report_issues(issues: dict) -> None:
@@ -45,45 +35,47 @@ def _check_document_attributes(app, doc: Document) -> list[str]:
     return issues
 
 
-def _check_document_file_storage(app, doc: Document) -> list[str]:
+def _check_document_file_storage(app, file_public_ids: set[str], doc: Document) -> list[str]:
     """Check if the file has appropriate file storage attributes."""
     issues = []
-    if not (file_entry := file_in_file_storage(app, doc)):
-        if doc.url:
-            issues.append("FYI, entry only has a URL stored for it and not a file, can we find one?")
-        else:
-            issues.append("Sorry, entry doesn't have a file OR a URL stored for it.")
-    else:
-        if not doc.filename:
-            issues.append("Sorry, entry has a file in storage but NO filename.")
-
+    if doc.public_id in file_public_ids:
         if not doc.mimetype:
             issues.append("Sorry, entry has a file in storage but NO mimetype.")
 
         if not doc.filesize:
             issues.append("Sorry, entry has a file in storage but NO filesize.")
-        elif file_entry["Size"] != doc.filesize:
-            issues.append(
-                f"Sorry, entry's filesize: {doc.filesize} doesn't match with storage filesize: {file_entry['Size']}."
-            )
+        else:
+            file_path = generate_file_storage_path(app, doc)
+            if file_path.stat().st_size != doc.filesize:
+                msg = (
+                    f"Sorry, entry's filesize: {doc.filesize} ",
+                    "doesn't match with storage filesize: {file_path.stat().st_size}",
+                )
+                issues.append(msg)
+    elif doc.url:
+        issues.append("FYI, entry only has a URL stored for it and not a file, can we find one?")
+    else:
+        breakpoint()
+
+        issues.append("Sorry, entry doesn't have a file OR a URL stored for it.")
     return issues
 
 
-def _db_quality_for_a_document(app, document: Document) -> list[str]:
+def _db_quality_for_a_document(app, file_public_ids: set[str], document: Document) -> list[str]:
     issues = []
     if doc_issues := _check_document_attributes(app, document):
         issues.extend(doc_issues)
-    if doc_issues := _check_document_file_storage(app, document):
+    if doc_issues := _check_document_file_storage(app, file_public_ids, document):
         issues.extend(doc_issues)
     return issues
 
 
-def _db_quality_for_a_collection(app, user: User, collection: str):
+def _db_quality_for_a_collection(app, user: User, collection: str, file_public_ids: set[str]):
     results = {}
     print(f"\n{collection!s}:")
     for document in Document.select().where(Document.user == user, Document.category == collection):
         print(".", flush=True, end="")
-        if issues := _db_quality_for_a_document(app, document):
+        if issues := _db_quality_for_a_document(app, file_public_ids, document):
             results[document] = issues
     print()
     if results:
@@ -92,19 +84,17 @@ def _db_quality_for_a_collection(app, user: User, collection: str):
         print(f"✅ No issues found in '{collection!s}'")
 
 
-def _db_quality_file_storage(app, user: User):
+def _db_quality_file_storage(app, user: User, file_public_ids: set[str]):
     """See if we have any "orphaned" file storage entries with no associated entries!."""
     # We already have the list of file_storage entries in FILE_STORAGE_ENTRIES, now get
     # the list of all the document entries to cross match across *ALL* collections:
-    document_fileids = []
+    document_public_ids = []
     print("\nChecking for unknown file storage entries...", flush=True, end="")
     for collection in categories():
-        docs = Document.select().where(Document.user == user, Document.category == collection)
-        document_fileids.extend([str(doc.fileid) for doc in docs])
+        docs = Document.select(Document.public_id).where(Document.user == user, Document.category == collection)
+        document_public_ids.extend([str(doc.public_id) for doc in docs])
 
-    file_storage_ids = {key for key in FILE_STORAGE_ENTRIES.keys() if not key.startswith("cl-dev--")}
-    missing_docs = file_storage_ids - set(document_fileids)
-
+    missing_docs = file_public_ids - set(document_public_ids)
     if missing_docs:
         print(f"❌ Found {len(missing_docs)} file storage entries with NO matching document entries!")
     else:
@@ -122,12 +112,12 @@ def main(args: argparse.Namespace):
         user = User.get(User.email == "peter.borocz@gmail.com")
 
         # Get a listing of all the current entries in our file storage..
-        get_file_storage(app)
+        file_public_ids = get_file_public_ids(app)
 
         for collection in categories():
-            _db_quality_for_a_collection(app, user, collection)
+            _db_quality_for_a_collection(app, user, collection, file_public_ids)
 
-        _db_quality_file_storage(app, user)
+        _db_quality_file_storage(app, user, file_public_ids)
 
 
 if __name__ == "__main__":
