@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from app.models.document import Document
-from app.models.user_rdb import User
+from app.models.user import User
 
 matplotlib.use("agg")
 

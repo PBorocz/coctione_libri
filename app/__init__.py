@@ -23,7 +23,7 @@ import app.constants as c
 db = None
 
 from app.models.document import Document
-from app.models.user_rdb import User
+from app.models.user import User
 
 TERM_SIZE = shutil.get_terminal_size(fallback=(80, 24))
 

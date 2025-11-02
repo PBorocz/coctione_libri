@@ -169,7 +169,8 @@ shell = """
   """
 
 [tool.poe.tasks.pytest]
-cmd = "uv run pytest -s -x -v --pdb"
+# -v for verbose, test-by-test listing
+cmd = "uv run pytest -s -x --pdb"
 
 # [tool.poe.tasks.dev_run_production]
 # interpreter = "fish"

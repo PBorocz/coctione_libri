@@ -5,50 +5,51 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 
-from mongoengine import DateTimeField, DictField, Document, EmailField, ListField, StringField
+from box import Box
+from peewee import CharField, DateField, Model, SmallIntegerField
 from werkzeug.security import check_password_hash, generate_password_hash
-
-from app.models import Category
 
 PASSWORD_HASH_METHOD = "pbkdf2:sha256"
 
 
-class User(Document):
+class User(Model):
     """User model."""
 
-    # ---------------------
-    # Required attributes:
-    # ---------------------
     # fmt: off
-    email         = EmailField(required=True, unique=True) # Model primary/unique key, eg. foo@bar.com
-    user_id       = StringField(required=True)             # Email hash (used as a "private" user_id on UI and for Flask UI)
-    password_hash = StringField(required=True)             # Password *HASH*
-    created       = DateTimeField(required=True, default=datetime.utcnow)  # When user was first saved to database.
-
-    # ---------------------
-    # State attributes:
-    # ---------------------
-    state_last_search   = StringField()   # Last search term used
-    state_last_searches = ListField(StringField())                             # Last 10 search terms used
-    state_last_sort     = DictField(default={"by": "title", "order": "desc"})  # Last sort selected
-    state_last_category = StringField(
-        required=True, choices=[d.value for d in Category], default=Category.COOKING_RECIPES
-    )  # Current category user is working on.
-
-    # ---------------------
-    # Other attributes:
-    # ---------------------
-    updated    = DateTimeField() # When user was last updated (None if just created)
-    last_login = DateTimeField() # Last login time, eg. # 2022-02-02T03:00:00+00:00
+    id            = SmallIntegerField(primary_key=True, help_text="DB auto increment id")
+    email         = CharField(unique=True, help_text="Model primary/unique key, eg. foo@bar.com")
+    user_id       = CharField(help_text="Email hash (used as a 'private' user_id on UI and for Flask UI)")
+    password_hash = CharField(help_text="Password *HASH*")
+    created       = DateField(default=datetime.now(), help_text="Datetime first saved.")
+    updated       = DateField(null=True, help_text="Datetime last updated.")
+    last_login    = DateField(null=True, help_text="Datetime user last logged in.")
+    s_payload     = CharField(null=True, help_text="JSON payload")
     # fmt: on
 
-    @classmethod
-    def get_or_create(cls, key: str, **kwargs) -> tuple[User, bool]:
-        """."""
-        try:
-            return User.objects.get(email=kwargs.get("email")), False
-        except User.DoesNotExist:
-            return User(**kwargs).save(), True
+    def save(self, *args, **kwargs):
+        """Override save method to set updated attr on actual updates."""
+        self.updated = datetime.now() if self._pk is not None else None
+        return super().save(*args, **kwargs)
+
+    def set_email(self, new_email: str) -> bool:
+        self.email = new_email
+        self.user_id = email_to_hash(new_email)
+
+    def set_password(self, new_password: str) -> bool:
+        self.password_hash = generate_password_hash(new_password, method=PASSWORD_HASH_METHOD)
+
+    ################################################################################
+    # Payload Properties
+    ################################################################################
+    @property
+    def payload(self):
+        """Essentially, 'unpack' our string json payload."""
+        return Box.from_json(self.s_payload, default_box=True) if self.s_payload else Box(default_box=True)
+
+    @payload.setter
+    def payload(self, b_payload):
+        """Essentially, 'repack' our string json payload."""
+        self.s_payload = b_payload.to_json()
 
     ################################################################################
     # Flask Login Methods
@@ -73,64 +74,49 @@ class User(Document):
         """Is the user anonymous?."""
         return False
 
-    def save(self, *args, **kwargs):
-        """Override to get updated attr set."""
-        self.updated = datetime.utcnow()
-        return super().save(*args, **kwargs)
-
-    def update_search(self, search_term: str) -> bool:
-        """Update the user's search state."""
-        # Minimally, update the last search the user performed.
-        update_user(self, "state_last_search", search_term)
-
-        # If this is the first search performed, easy!
-        if not self.state_last_searches:
-            update_user(self, "state_last_searches", [search_term])
-            return True
-
-        # Convert from string to list...
-        print(f"{self.state_last_searches=}")
-        print(f"{type(self.state_last_searches)=}")
-
-        # If it's already there, delete it first, then push to the top.
-        if search_term in self.state_last_searches:
-            self.state_last_searches.remove(search_term)
-
-        # Push the most recent search to the front of the list.
-        self.state_last_searches.insert(0, search_term)
-
-        # Save the most recent 10 searches performed.
-        update_user(self, "state_last_searches", self.state_last_searches[0:10])
-
-        return True
-
+    ################################################################################
     @classmethod
     def factory(cls, **kwargs) -> User:
         """Do a bit massaging on inbound kwargs before creating a persistable user, specifically:.
 
         - Create a unique id from a hash of the user's email address (used for url management).
-        - Set created timestamp accordingly.
         - Don't store the actual password but a *hash* of it (and delete the password attribute)
         """
-        # Required fields:
         kwargs["user_id"] = email_to_hash(kwargs.get("email"))
-        kwargs["created"] = datetime.utcnow()
         kwargs["password_hash"] = generate_password_hash(kwargs.get("password"), method=PASSWORD_HASH_METHOD)
-        del kwargs["password"]
-
-        # Fields that can only come from updates...
-        kwargs["updated"] = None
-        kwargs["last_login"] = None
-
-        kwargs["state_last_search"] = None
-        kwargs["state_last_searches"] = []
-        kwargs["state_last_sort"] = {}
+        del kwargs["password"]  # Insurance...make sure this *NEVER* gets anywhere else!
 
         return cls(**kwargs)
 
+    ################################################################################
+    def update_search(self, search_term: str) -> bool:
+        """Update the user's search state, add if not duplicate and limit to last 10."""
+        payload = self.payload
+
+        # Minimally, update the last search the user performed.
+        payload.user_state.last_search = search_term
+
+        # If this is the first search performed, easy
+        if not payload.user_state.last_searches:
+            payload.user_state.last_searches = [search_term]
+        else:
+            # If it's already there, delete it first, then push to the top.
+            if search_term in payload.user_state.last_searches:
+                payload.user_state.last_searches.remove(search_term)
+
+            # Push the most recent search to the front of the list.
+            payload.user_state.last_searches.insert(0, search_term)
+
+            # Limit to the most recent 10 searches performed.
+            payload.user_state.last_searches = payload.user_state.last_searches[0:10]
+
+        self.payload = payload
+        self.save()
+        return True
+
 
 ################################################################################
-# Utility Methods
+# Utility methods
 ################################################################################
 def email_to_hash(email: str) -> str:
     """Return the hash of the specified email address."""
@@ -142,48 +128,9 @@ def query_user(email: str | None = None, user_id: str | None = None) -> User | N
     assert email or user_id, "Sorry, at least one of email or user_id must be provided!"
     try:
         if email:
-            return User.objects.get(email=email)
+            return User.get(User.email == email)
         else:
-            return User.objects.get(user_id=user_id)
+            return User.get(User.user_id == user_id)
     except User.DoesNotExist:
         ...
     return None
-
-
-def query_users() -> list[User]:
-    """Return all users."""
-    return User.objects()
-
-
-def update_user(user: User, attr, value) -> User:
-    """Update the specified user's attribute with the specified new value."""
-    if attr == "password":
-        # Password update needs to calculate and store a hash, ie. *not* the password itself!
-        user.password_hash = generate_password_hash(value, method=PASSWORD_HASH_METHOD)
-        user.updated = datetime.utcnow
-        user.save()
-
-    else:
-        # All other attributes..
-        setattr(user, attr, value)
-        user.updated = datetime.utcnow
-        user.save()
-
-    if attr == "email":
-        # Since we use email hash as our core internal ID, we *also* need
-        # to calculate a new user id and save it away as well.
-        user.email = value
-        user.user_id = email_to_hash(user.email)
-        user.updated = datetime.utcnow
-        user.save()
-
-    return user
-
-
-def delete_user(email: str) -> int:
-    """Delete the user with given email address, return 1 if successfully done."""
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return 0
-    return user.delete()  # Returns the number of rows deleted

@@ -2,7 +2,6 @@
 """Migrate documents and users to a sqlite DB from MongoDB."""
 
 import argparse
-import hashlib
 import logging as log
 import sys
 import time
@@ -19,7 +18,7 @@ from app.models import categories_available
 from app.models.document import Document, generate_public_id
 from app.models.documents import CategoryField, Documents
 from app.models.user import User
-from app.models.user_rdb import User as UserRDB
+from app.models.user_mongo import User as UserMongo
 
 EMAIL = "peter.borocz@gmail.com"
 
@@ -33,8 +32,8 @@ def main(args: argparse.Namespace):
     # Setup our application/db connection
     app = create_app()
     try:
-        user_sql = UserRDB.get(UserRDB.email == EMAIL)
-    except UserRDB.DoesNotExist:
+        user_sql = User.get(User.email == EMAIL)
+    except User.DoesNotExist:
         print(f"Sorry, you didn't create account for {EMAIL=} yet!")
         sys.exit(1)
     with app.app_context():
@@ -43,7 +42,7 @@ def main(args: argparse.Namespace):
 
 
 def migrate_documents(app, user_sql: User, category: str):
-    user_mongo = User.objects.get(email=EMAIL)
+    user_mongo = UserMongo.objects.get(email=EMAIL)
     o_category = CategoryField().to_python(category)
     with switch_collection(Documents, Documents.as_user(user_mongo, o_category)) as user_documents:
         for mongo_document in user_documents.objects():

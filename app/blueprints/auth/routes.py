@@ -11,7 +11,7 @@ from secure import Secure
 
 from app.blueprints.auth import bp
 from app.blueprints.auth.forms import LoginForm, RegistrationForm
-from app.models.user_rdb import User, query_user
+from app.models.user import User, query_user
 
 
 def is_safe_url(target):

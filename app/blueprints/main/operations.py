@@ -15,7 +15,7 @@ from werkzeug.utils import secure_filename
 
 from app.models import Sort
 from app.models.document import Document, generate_public_id
-from app.models.user_rdb import User
+from app.models.user import User
 
 
 def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Document]]:

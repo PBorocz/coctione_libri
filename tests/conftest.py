@@ -8,7 +8,7 @@ import pytest
 from app import create_app
 from app.models import Category
 from app.models.document import Document
-from app.models.user_rdb import User
+from app.models.user import User
 
 log.getLogger("peewee").setLevel(log.INFO)  # or log.WARNING
 

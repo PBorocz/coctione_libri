@@ -12,7 +12,7 @@ from box import Box
 from app import constants as c
 from app import create_app
 from app.models import categories
-from app.models.user_rdb import User
+from app.models.user import User
 
 logging.getLogger("peewee").setLevel(logging.INFO)  # or logging.WARNING
 

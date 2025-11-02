@@ -11,7 +11,7 @@ import humanize
 from peewee import CharField, Check, DateTimeField, ForeignKeyField, IntegerField, Model
 
 from app.models import Category, RatingComplexity, RatingQuality
-from app.models.user_rdb import User
+from app.models.user import User
 
 
 class Document(Model):

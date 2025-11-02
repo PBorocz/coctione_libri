@@ -4,7 +4,7 @@
 from box import Box
 from werkzeug.security import check_password_hash
 
-from app.models.user_rdb import User
+from app.models.user import User
 
 
 ################################################################################

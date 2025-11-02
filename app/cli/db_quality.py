@@ -9,7 +9,7 @@ from app import create_app
 from app.cli import setup_logging
 from app.models import categories
 from app.models.document import Document, generate_file_storage_path
-from app.models.user_rdb import User
+from app.models.user import User
 
 
 def get_file_public_ids(app) -> set[str]:
