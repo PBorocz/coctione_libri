@@ -55,8 +55,6 @@ def _check_document_file_storage(app, file_public_ids: set[str], doc: Document) 
     elif doc.url:
         issues.append("FYI, entry only has a URL stored for it and not a file, can we find one?")
     else:
-        breakpoint()
-
         issues.append("Sorry, entry doesn't have a file OR a URL stored for it.")
     return issues
 
