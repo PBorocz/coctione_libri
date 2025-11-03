@@ -42,7 +42,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
-[tool.poe.tasks.deploy]
+[tool.poe.tasks.Deploy]
 help = "Deploy to github on behalf of a production release."
 shell = """
   jj bookmark set --revision  @- trunk
@@ -137,24 +137,21 @@ filterwarnings = [
 [tool.poe]
 verbosity = -1
 
-[tool.poe.tasks]
-import = "uv run python ./app/cli/import_pdf.py"
-dynaconf_list = "dynaconf -i config.settings list"
-build_css = " sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
-sass_watch = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
-db_quality = "uv run python ./app/cli/db_quality.py"
+[tool.poe.tasks.build_css]
+cmd = "sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+help = "Build the coctione_libri.css file from styles.scss"
+
+[tool.poe.tasks.sass_watch]
+cmd = "sass --watch  app/static/css/sass/styles.scss app/static/css/coctione_libri.css"
+help = "Run sass AUTOMATICALLY when our styles.scss changes."
+
+[tool.poe.tasks.db_quality]
+cmd = "uv run python ./app/cli/db_quality.py"
+help = "Run data quality script to compare document db with file storage."
 
 [tool.poe.tasks.dbm]
 cmd = "dbmate --env SQLITE_DB_MATE --migrations-dir ./app/db/migrations --no-dump-schema"
 help = "Run arbitrary dbmate on the local development database"
-
-[tool.poe.tasks.import_recipes_development]
-interpreter = "fish"
-shell = """
-  uv run python -c "import tomli_w"
-  uv run python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
-  uv run python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
-"""
 
 [tool.poe.tasks.dev_run_local]
 interpreter = "fish"
@@ -164,84 +161,76 @@ shell = """
   sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
   uv run flask run --debug --host localhost --port $FLASK_RUN_PORT --cert=../https_local/cert.pem --key=../https_local/key.pem
   """
+help = "Run development server against ./data (port 6022)."
 
 [tool.poe.tasks.pytest]
 # -v for verbose, test-by-test listing
 cmd = "uv run pytest -s -x --pdb"
+help = "Run pytest with stdout and pdb on first error."
 
 [tool.poe.tasks.rsync_data_to_production]
 shell = """
-  sudo rsync --archive --verbose --delete ./data/ /Users/service/services/coctione_libri/data/
+  sudo rsync --archive --delete --stats ./data/ /Users/service/services/coctione_libri/data/
   sudo chown -R service /Users/service/services/coctione_libri/data/
   """
+help = "Run rsync from local .data TO production! (CAREFUL!)"
 
 [tool.poe.tasks.rsync_data_from_production]
 shell = """
-  sudo rsync --archive --verbose --delete ./data/ /Users/service/services/coctione_libri/data/
-  sudo chown -R service /Users/service/services/coctione_libri/data/
+  sudo rsync --archive --delete --stats /Users/service/services/coctione_libri/data/ ./data/
   """
+help = "Run rsync from production to local (safe)"
 
 [tool.poe.tasks.rsync_data_to_testing]
 shell = """
-  rsync --archive --verbose --delete ./data/ "/Users/peter/Repository/10-19 Development/10 Development/10.00 deployment/deployment/testing/coctione_libri/data/"
+  rsync --archive --delete --stats ./data/ "/Users/peter/Repository/10-19 Development/10 Development/10.00 deployment/deployment/testing/coctione_libri/data/"
   """
+help = "Run rsync from local .data to deployment testing environment (safe)"
 
-
-[tool.poe.tasks.push_data_to_testing]
-shell = """
-  rsync --archive --verbose --delete ./data/ "/Users/peter/Repository/10-19 Development/10 Development/10.00 deployment/deployment/testing/coctione_libri/data/"
-  """
-
-
-[tool.poe.tasks.backup_local]
-interpreter = "fish"
-shell = """
-  echo "Doing dump from local database..."
-  mkdir -p ./__backups__/working
-  mongodump --db=coctione_libri_development --out=./__backups__/working
-
-  echo "Compressing to single backup file..."
-  set backup_filename (date +"backup_local_%Y%m%dT%H%M.tar.gz")
-  tar -czf ./__backups__/$backup_filename ./__backups__/working
-  rm                                      ./__backups__/working
-  """
-
-[tool.poe.tasks.backup_production]
+# [tool.poe.tasks.backup_production]
 #
 # Alternatively: const command = `mongodump --uri "${process.env.BACKUP_MONGO_URI}" --gzip --archive=${path}`;
 # as taken from: https://github.com/andresfiloso/mongo-s3-backup/blob/main/src/backup.ts
 #
-interpreter = "fish"
-shell = """
-  mkdir -p ./__backups__/working
-  if not set -q mongodb; or not string length -q $mongodb
-	  echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
-	  exit 1
-  end
+# interpreter = "fish"
+# shell = """
+#   mkdir -p ./__backups__/working
+#   if not set -q mongodb; or not string length -q $mongodb
+#	  echo "Sorry, environment variable: 'mongodb' is either not set or is empty...please check .envrc!"
+#	  exit 1
+#   end
 
-  echo "Doing dump from PRODUCTION database..."
-  mongodump --db=coctione_libri --out=./__backups__/working --uri=$mongodb
+#   echo "Doing dump from PRODUCTION database..."
+#   mongodump --db=coctione_libri --out=./__backups__/working --uri=$mongodb
 
-  # echo "Compressing to single backup file..."
-  # set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
-  # tar -czf ./__backups__/$backup_filename ./__backups__/working
-  # rm                                      ./__backups__/working
-"""
+#   # echo "Compressing to single backup file..."
+#   # set backup_filename (date +"backup_production_%Y%m%dT%H%M.tar.gz")
+#   # tar -czf ./__backups__/$backup_filename ./__backups__/working
+#   # rm                                      ./__backups__/working
+# """
 
-[tool.poe.tasks.restore]
-interpreter = "fish"
-args = ["db_from", "db_to", "backup_directory_path"]
-shell = """
-  # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__backups__/working
-  mkdir -p ./__backups__/working
-  tar -xzf {$backup_directory_path} -C ./__backups__/working
-  mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* {$backup_directory_path}
-  echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
-  mongorestore --gzip --archive="./backup_production_20250330T1654.tar.gz" --nsFrom="coctione_libri.*" --nsTo="coctione_libri_wasabi.*"
-  mongorestore --verbose --dir="./working"
+# [tool.poe.tasks.restore]
+# interpreter = "fish"
+# args = ["db_from", "db_to", "backup_directory_path"]
+# shell = """
+#   # Example: poe restore --db_from coctione_libri --db_to coctione_libri_development --backup_directory_path ./__backups__/working
+#   mkdir -p ./__backups__/working
+#   tar -xzf {$backup_directory_path} -C ./__backups__/working
+#   mongorestore --nsInclude={$db_from}.\\* --nsFrom={$db_from}.\\* --nsTo={$db_to}.\\* {$backup_directory_path}
+#   echo Restoring from {$backup_directory_path}/{$db_from} into {$db_to}.
+#   mongorestore --gzip --archive="./backup_production_20250330T1654.tar.gz" --nsFrom="coctione_libri.*" --nsTo="coctione_libri_wasabi.*"
+#   mongorestore --verbose --dir="./working"
 
-  # 2025-04-16: Finally got this work AFTER:
-  # $ tar -xzf {$backup_directory_path} -C ./__backups__/working
-  # and running from the shell instead from here in Poe.
-  # $ mongorestore --verbose --dir=./working --nsFrom=coctione_libri.\\* --nsTo=coctione_libri_wasabi.\\*"
-  """
+#   # 2025-04-16: Finally got this work AFTER:
+#   # $ tar -xzf {$backup_directory_path} -C ./__backups__/working
+#   # and running from the shell instead from here in Poe.
+#   # $ mongorestore --verbose --dir=./working --nsFrom=coctione_libri.\\* --nsTo=coctione_libri_wasabi.\\*"
+#   """
+
+# [tool.poe.tasks.import_recipes_development]
+# interpreter = "fish"
+# shell = """
+#   uv run python -c "import tomli_w"
+#   uv run python ./app/cli/import_from_raindrop.py -d development -a import_existing_pdfs
+#   uv run python ./app/cli/import_from_raindrop.py -d development -a import_new_pdfs
+# """
