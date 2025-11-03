@@ -16,7 +16,6 @@ dependencies = [
     "wtforms>=3.1.2,<4",
     "flask-wtf>=1.2.1,<2",
     "email-validator>=2.1.0.post1,<3",
-    "dynaconf>=3.2.4,<4",
     "flask-debugtoolbar>=0.14.1,<0.15",
     "tomli-w>=1.0.0,<2",
     "pandas>=2.2.2,<3",

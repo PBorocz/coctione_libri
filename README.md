@@ -11,9 +11,9 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
 
 ## Salient Features:
 
-- Uses [MongoDB](https://www.mongodb.com/) for both storage (of both meta data *and* uploaded files).
+- Uses [SQLite](https://docs.python.org/3/library/sqlite3.html) for storage of meta data.
 
-- Uses [MongoEngine](http://mongoengine.org/) for python bindings.
+- Uses [peewee](https://github.com/coleifer/peewee) as ORM wrapper.
 
 - Uses [Flask / gunicorn](https://flask.palletsprojects.com/en/3.0.x/) for web server.
 
@@ -36,16 +36,14 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
   - Scoring metrics obo "Quality" of the respective dish and "Complexity" associated with it's preparation.
   - Any number of "dates cooked" (I like to track when and how often I've cooked something).
 
-- Developed with 12-Factor app model in mind, ie. private settings.toml and .envrc with [DynaConf](https://www.dynaconf.com/) library).
+- Developed with 12-Factor app model in mind.
 
-- My personal production deployment is:
-  - Server hosting on [Render](https://render.com) (primarily due to it's trivially simple deployment model and reasonable pricing model).
-  - Database hosting on [Atlas](https://www.mongodb.com/products/platform/atlas-database).
+- Deployed on a self-hosted server using [CloudFlare ZeroTrust](https://www.cloudflare.com/zero-trust/products/access/).
 
 - Internal development tools used:
   - [PreCommit](https://pre-commit.com/)
   - [Ruff](https://docs.astral.sh/ruff/)
-  - [Poetry](https://python-poetry.org/)
+  - [uv](https://github.com/astral-sh/uv)
   - [Poe](https://poethepoet.natn.io/)
 
 ## Screen Shot
