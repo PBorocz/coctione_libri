@@ -11,11 +11,11 @@ from flask_htmx import make_response
 from flask_login import login_required
 from flask_wtf import FlaskForm
 
-from app.blueprints.admin.operations import get_all_tags
 from app.blueprints.main import bp
 from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
 from app.models import Sort, categories_available
-from app.models.document import Document, sources_available, tags_available
+from app.models.document import Document
+from app.models.documents import Documents
 
 
 def log_route(path=""):
@@ -51,7 +51,8 @@ def render_display() -> Response:
         sort=sort,
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
-        tags=get_all_tags(fl.current_user),
+        tags=Documents.tag_counts(fl.current_user),
+        sources=Documents.source_counts(fl.current_user),
     )
 
 
@@ -79,7 +80,8 @@ def hx_query() -> Response:
         public_ids=public_ids,
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
-        tags=get_all_tags(fl.current_user),
+        tags=Documents.tag_counts(fl.current_user),
+        sources=Documents.source_counts(fl.current_user),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
 
@@ -285,8 +287,8 @@ def render_edit_document(public_id_safe: str | None, template: str = "main/edit.
     document = Document.get_safe(public_id_safe)
     return_ = {
         "form": FlaskForm(),  # Needed for CSRF rendering on file input widget.
-        "sources": sources_available(),  # Source pulldown options for user
-        "tags": tags_available(),  # Tag pulldown options
+        "sources": Documents.sources(fl.current_user),  # Source pulldown options for user
+        "tags": Documents.tags(fl.current_user),  # Tag pulldown options
         "no_search": True,
         "document": document,
     }
@@ -306,8 +308,8 @@ def hx_edit_field(field: str, public_id_safe: str) -> Response:
 
     return_args = {
         "document": document,
-        "sources": sources_available(),
-        "tags": tags_available(),
+        "sources": Documents.sources(fl.current_user),
+        "tags": Documents.tags(fl.current_user),
         "form": FlaskForm(),  # Need for CSRF rendering obo the "file" field (rest don't use form)
     }
 

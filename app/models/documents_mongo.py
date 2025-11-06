@@ -225,17 +225,17 @@ def dt_as_date(datetime_naive: dt.datetime) -> str:
     return datetime_utc.strftime(f"%A, %B {day}{suffix} %Y")
 
 
-# def sources_available(user: User) -> list[str]:
+# def sources(user: User) -> list[str]:
 #     """Return the current list of sources across all documents as a Choice list."""
-#     sources_available = []
+#     sources = []
 #     with switch_collection(Documents, Documents.as_user(user)) as user_documents:
 #         docs = user_documents.objects(source__ne=None).only("source")
 #         sources = sorted({doc.source for doc in docs})
-#         sources_available.extend(sources)
-#     return sources_available
+#         sources.extend(sources)
+#     return sources
 
 
-# def tags_available(user: User) -> list[str]:
+# def tags(user: User) -> list[str]:
 #     """Return a sorted list of all current tags (ie. those attached to documents)."""
 #     tags = set()
 #     with switch_collection(Documents, Documents.as_user(user)) as user_documents:

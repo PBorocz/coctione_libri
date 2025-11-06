@@ -25,7 +25,7 @@ def manage_st(entity: str, template: str = "admin/st.html") -> Response:
     order = request.args.get("order", "asc")
 
     # Query all the current values of the respective entity..
-    method_get_all = operations.get_all_tags if entity == TAG else operations.get_all_sources
+    method_get_all = operations.tag_counts if entity == TAG else operations.get_all_sources
     entities = method_get_all(fl.current_user, sort, order)
 
     return f.render_template(

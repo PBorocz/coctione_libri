@@ -41,19 +41,6 @@ def update_source(user: User, old: str, new: str) -> int:
 ################################################################################
 # Tag Operations
 ################################################################################
-def get_all_tags(user: User, sort: str = "tag", order: str = "asc") -> list[str, int]:
-    """Return a sorted list of all current tags & counts (ie. those attached to documents)."""
-    tags = defaultdict(int)
-    for document in Document.select().where(Document.user == user):
-        if document.tags:
-            for tag in document.tags_split:
-                tags[tag.title()] += 1
-
-    log.info(f"{len(tags):,d} unique tags found.")
-    offset = 0 if sort == "tag" else 1
-    return sorted(tags.items(), key=lambda entry: entry[offset], reverse=(order == "desc"))
-
-
 def get_tag_count(user: User, tag: str) -> int:
     """Return the count of documents that have the specified tag."""
     docs = [

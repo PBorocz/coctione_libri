@@ -5,10 +5,10 @@ import flask_login as fl
 from flask.wrappers import Response
 from flask_login import login_required
 
-from app.blueprints.admin.operations import get_all_tags
 from app.blueprints.stats import bp
 from app.blueprints.stats.operations import create_bar_chart, get_all_reviews, get_all_sources, top_files
 from app.models import categories_available
+from app.models.documents import Documents
 
 
 ################################################################################
@@ -22,14 +22,14 @@ def statistics(template: str = "stats/stats.html") -> Response:
         "title": "Tag Popularity",
     }
 
-    fn_tag_chart = create_bar_chart(get_all_tags(fl.current_user), config)
+    fn_tag_chart = create_bar_chart(Documents.tag_counts(fl.current_user), config)
 
     # Get the figure associated with the distribution/count of SOURCES:
     config = {
         "data_name": "source",
         "title": "Source Popularity",
     }
-    fn_source_chart = create_bar_chart(get_all_sources(fl.current_user), config)
+    fn_source_chart = create_bar_chart(Documents.source_counts(fl.current_user), config)
 
     # Get the figure associated with the distribution/count of REVIEWS:
     d_reviews = get_all_reviews(fl.current_user)

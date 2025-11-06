@@ -184,21 +184,6 @@ def _list_remove(document: Document, attr: str, existing: list[str], value: str)
     return document
 
 
-def sources_available() -> list[str]:
-    """Return the current list of sources across all documents as a Choice list."""
-    docs = Document.select(Document.source)
-    return sorted({doc.source for doc in docs if doc.source})
-
-
-def tags_available() -> list[str]:
-    """Return a sorted list of *all* current tags (ie. those attached to documents)."""
-    tags = set()
-    for document in Document.select(Document.tags):
-        for tag in document.tags_split:
-            tags.add(tag)
-    return sorted(tags)
-
-
 def humanize_date(yyyymmdd: str, timezone_: str = "America/Los_Angeles") -> str:
     """Return naive datetime as a nicely formatted date (`Wednesday, February 21st 2024`)."""
     date_ = dt.datetime.strptime(yyyymmdd, "%Y-%m-%d")
