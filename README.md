@@ -7,7 +7,7 @@ Several years ago, our family needed a single place to store links and pdf's of 
 
 After trying Evernote, Notion and a few others, I picked Raindrop due to its pricing model, simple tagging scheme and multi-platform support. However, after a few years, I became disenchanted (inability to export my own data, ui inconsistencies et cetera).
 
-Now...how hard could it *really* be to store a set of pdf's with some meta-data access through a simple web front-end? Thus was `Coctione Libri` (literally *cooking books* in Latin) conceived and developed.
+Now...how hard could it *really* be to store a set of pdf's with some meta-data access through a simple web front-end? Thus was `Coctione Libri` (literally *Cooking* *Books* in Latin) conceived and developed.
 
 ## Salient Features:
 
@@ -41,10 +41,10 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
 - Deployed on a self-hosted server using [CloudFlare ZeroTrust](https://www.cloudflare.com/zero-trust/products/access/).
 
 - Internal development tools used:
-  - [PreCommit](https://pre-commit.com/)
-  - [Ruff](https://docs.astral.sh/ruff/)
+  - [preCommit](https://pre-commit.com/)
+  - [ruff](https://docs.astral.sh/ruff/)
   - [uv](https://github.com/astral-sh/uv)
-  - [Poe](https://poethepoet.natn.io/)
+  - [poe](https://poethepoet.natn.io/)
 
 ## Screen Shot
 

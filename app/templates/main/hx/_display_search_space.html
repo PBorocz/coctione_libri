@@ -1,0 +1,48 @@
+<div class="content">
+    <br/>
+    <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
+	# for tag, count in tags:
+	<style>
+	 .tag-style {
+	     background-color: #bfefff;
+	     border-radius: 4px;
+	     cursor: pointer;
+	     padding: 3px 6px;
+	     font-size: 0.7em;
+	     margin: 2px;
+	     display: inline-flex;
+	     align-items: center;
+	     justify-content: center;
+	     min-height: 1.5em;  /* ensures consistent height */
+	 }
+	</style>
+	<span class="tag-style"
+	      name="tag"
+	      hx-post="/search"
+	      hx-target="#id_documents_div"
+	      hx-vals='{"search": "{{ tag }}"}'
+	      style="font-size: {{ 0.7 + (count ** 0.5) * 0.05 }}em;"
+	      >
+	{{ tag.title() }}
+	</span>
+	# endfor
+    </div>
+
+    <!-- <br/> -->
+    <!--
+	 <table class="table is-narrow responsive-font">
+	 <tbody>
+	 <tr>
+	 <th>
+	 </th>
+	 </tr>
+	 </tbody>
+	 </table> -->
+    <!-- {% if category and search %}
+	 Sorry, you don't have any documents yet in '{{ category }}' for '{{ search }}'.
+	 {% elif category %}
+	 Sorry, you don't have any documents yet in category: '{{ category }}'.
+	 {% else %}
+	 Sorry, you don't have any documents defined at all!
+	 {% endif %} -->
+</div>

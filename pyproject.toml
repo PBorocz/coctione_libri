@@ -48,6 +48,12 @@ shell = """
   jj git push     --revisions @-
   """
 
+[tool.poe.tasks.db]
+help = "Start an interactive session against our sqlite3 meta database."
+shell = """
+  litecli data/meta.sqlite3
+  """
+
 [tool.pborocz.deploy.production]
 environment_files = [
   ["coctione_libri.env", ".env"],

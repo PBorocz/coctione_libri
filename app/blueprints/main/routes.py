@@ -11,6 +11,7 @@ from flask_htmx import make_response
 from flask_login import login_required
 from flask_wtf import FlaskForm
 
+from app.blueprints.admin.operations import get_all_tags
 from app.blueprints.main import bp
 from app.blueprints.main.operations import delete_document, get_documents, update_document_attribute
 from app.models import Sort, categories_available
@@ -50,6 +51,7 @@ def render_display() -> Response:
         sort=sort,
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
+        tags=get_all_tags(fl.current_user),
     )
 
 
@@ -68,7 +70,7 @@ def hx_query() -> Response:
     public_ids = [str(doc.public_id) for doc in documents]
 
     rendered_template: str = render_template(
-        "main/hx/display_table.html",
+        "main/hx/display_body.html",
         documents=documents,
         search=fl.current_user.payload.user_state.last_search,
         sort=sort,
@@ -77,6 +79,7 @@ def hx_query() -> Response:
         public_ids=public_ids,
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
+        tags=get_all_tags(fl.current_user),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
 
@@ -100,7 +103,7 @@ def reset() -> Response:
 @bp.get("/sort")
 @login_required
 @log_route(path="/sort")
-def hx_display(template="main/hx/display_table.html") -> Response:
+def hx_display(template="main/hx/display_body.html") -> Response:
     """Re-render just our partial/main table for new sort field or direction."""
     sort = Sort.factory_from_request(request)
     payload = fl.current_user.payload
@@ -145,7 +148,7 @@ def hx_update_search(template="main/hx/display_search_history.html") -> Response
 @bp.post("/search")
 @login_required
 @log_route(path="/search")
-def hx_search(template="main/hx/display_table.html") -> Response:
+def hx_search(template="main/hx/display_body.html") -> Response:
     """Render the results table (only) based on a *SEARCH* request."""
     # Search could come in directly from the search dialog box (ie. request.form)
     # *or*

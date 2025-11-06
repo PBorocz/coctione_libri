@@ -3,7 +3,6 @@
 import logging as log
 from collections import defaultdict
 
-
 from app.models.document import Document
 from app.models.user import User
 
@@ -46,8 +45,9 @@ def get_all_tags(user: User, sort: str = "tag", order: str = "asc") -> list[str,
     """Return a sorted list of all current tags & counts (ie. those attached to documents)."""
     tags = defaultdict(int)
     for document in Document.select().where(Document.user == user):
-        for tag in document.tags:
-            tags[tag] += 1
+        if document.tags:
+            for tag in document.tags_split:
+                tags[tag.title()] += 1
 
     log.info(f"{len(tags):,d} unique tags found.")
     offset = 0 if sort == "tag" else 1

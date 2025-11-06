@@ -1,0 +1,11 @@
+<div id="id_documents_div" class="table-container">
+
+{% include "main/display_search_nav.html" %}
+
+{% if documents %}
+    {% include "main/hx/_display_table.html" %}
+{% else %}
+    {% include "main/hx/_display_search_space.html" %}
+{% endif %}
+
+</div>

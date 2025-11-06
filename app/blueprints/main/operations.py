@@ -20,7 +20,7 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
     """
     # We do an implicit "AND", thus, we want to capture the set of ids for each search term
     # and then "AND" them together.
-    ids_to_query = None
+    ids_to_query = []
     if search:
         id_sets: list[set[str]] = []
         for search_term in shlex.split(search):
@@ -29,14 +29,16 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
                 ids.update(search_method(user, search_term))
             id_sets.append(ids)
         ids_to_query = reduce(lambda a, b: a & b, id_sets)
+    else:
+        ids_to_query = []
 
-    # Return either *ALL* the documents or just those associated with the search matching id's:
+    # Return either ALL the documents or just those associated with the search matching id's:
     documents = Document.select().where(
-        Document.user == user, Document.category == user.payload.user_state.last_category
+        Document.user == user,
+        Document.category == user.payload.user_state.last_category,
+        Document.id.in_(ids_to_query),
     )
 
-    if ids_to_query:
-        documents = documents.where(Document.id.in_(ids_to_query))
     log.debug(f"{len(documents):4d} documents found.")
 
     return _sort(user, documents)

@@ -3,8 +3,8 @@
 {% block content %}
 
 {# --------------------------------------------------------------------------- #}
-{# Render the display table of all/searched documents
+{# Render the display table of all/searched documents                          #}
 {# --------------------------------------------------------------------------- #}
-{% include "main/hx/display_table.html" %} {# Separated out for partial loading #}
+{% include "main/hx/display_body.html" %} {# Separated out to support for partial/htmx-based loading #}
 
 {% endblock %}
