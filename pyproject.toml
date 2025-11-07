@@ -173,20 +173,20 @@ help = "Run development server against ./data (port 6022)."
 cmd = "uv run pytest -s -x --pdb"
 help = "Run pytest with stdout and pdb on first error."
 
-[tool.poe.tasks.rsync_data_to_production]
+[tool.poe.tasks.rsync_local_to_production]
 shell = """
   sudo rsync --archive --delete --stats ./data/ /Users/service/services/coctione_libri/data/
   sudo chown -R service /Users/service/services/coctione_libri/data/
   """
 help = "Run rsync from local .data TO production! (CAREFUL!)"
 
-[tool.poe.tasks.rsync_data_from_production]
+[tool.poe.tasks.rsync_production_to_local]
 shell = """
   sudo rsync --archive --delete --stats /Users/service/services/coctione_libri/data/ ./data/
   """
 help = "Run rsync from production to local (safe)"
 
-[tool.poe.tasks.rsync_data_to_testing]
+[tool.poe.tasks.rsync_local_to_testing]
 shell = """
   rsync --archive --delete --stats ./data/ "/Users/peter/Repository/10-19 Development/10 Development/10.00 deployment/deployment/testing/coctione_libri/data/"
   """
