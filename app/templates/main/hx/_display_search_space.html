@@ -1,76 +1,73 @@
 <div class="content">
+    <style>
+     .search-checkbox {
+	 background-color: #fffafa;
+	 border-radius: 4px;
+	 cursor: pointer;
+	 padding: 6px 12px;
+	 margin: 0px;
+	 display: inline-flex;
+	 align-items: center;
+	 justify-content: center;
+	 border: 2px solid #f0e6e6;
+	 min-height: 1.5em;
+	 transition: all 0.2s;
+	 user-select: none;
+     }
+     .search-checkbox:hover {
+	 background-color: #f5f0f0;
+	 border-color: #e8d8d8;
+     }
+     .search-checkbox input[type="checkbox"] {
+	 display: none;
+     }
+     .search-checkbox:has(input[type="checkbox"]:checked) {
+	 background-color: #f0e0e0;
+	 border-color: #d0b0b0;
+	 box-shadow: 0 2px 4px rgba(208, 176, 176, 0.3);
+     }
+     .search-checkbox span {
+	 pointer-events: none;  /* ensures clicks go to label */
+     }
+    </style>
+
     <br/>
+
+    <!-- Tags Section -->
     <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
 	# for tag, count in tags:
-	<style>
-	 .tag-style {
-	     background-color: #fffafa;
-	     border-radius: 4px;
-	     cursor: pointer;
-	     padding: 3px 3px;
-	     font-size: 0.7em;
-	     margin: 0px;
-	     display: inline-flex;
-	     align-items: center;
-	     justify-content: center;
-	     min-height: 1.5em;  /* ensures consistent height */
-	 }
-	</style>
-	<span class="tag-style"
-	      name="tag"
-	      hx-post="/search"
-	      hx-target="#id_documents_div"
-	      hx-vals='{"search": "{{ tag }}"}'
-	      style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;"
-	>
-	{{ tag.title() }}
-	</span>
-	# endfor
-    </div>
-    <br/>
-    <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
-	# for source, count in sources:
-	<style>
-	 .source-style {
-	     background-color: #fffafa;
-	     border-radius: 4px;
-	     cursor: pointer;
-	     padding: 3px 3px;
-	     font-size: 0.7em;
-	     margin: 0px;
-	     display: inline-flex;
-	     align-items: center;
-	     justify-content: center;
-	     min-height: 1.5em;  /* ensures consistent height */
-	 }
-	</style>
-	<span class="source-style"
-	      name="source"
-	      hx-post="/search"
-	      hx-target="#id_documents_div"
-	      hx-vals='{"search": "{{ source }}"}'
-	      style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;"
-	>
-	{{ source }}
-	</span>
+	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;">
+	    <input type="checkbox" name="selected_tags" value="{{ tag }}">
+	    <span>{{ tag.title() }}</span>
+	</label>
 	# endfor
     </div>
 
-    <!-- <br/> -->
-    <!--
-	 <table class="table is-narrow responsive-font">
-	 <tbody>
-	 <tr>
-	 <th>
-	 </th>
-	 </tr>
-	 </tbody>
-	 </table> -->
-    <!-- {% if category and search %}
-	 Sorry, you don't have any documents yet in '{{ category }}' for '{{ search }}'.
-	 {% elif category %}
-	 Sorry, you don't have any documents yet in category: '{{ category }}'.
-	 {% else %}
-	 Sorry, you don't have any documents defined at all!
-	 {% endif %} -->
+    <br/>
+
+    <!-- Sources Section -->
+    <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
+	# for source, count in sources:
+	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;">
+	    <input type="checkbox" name="selected_sources" value="{{ source }}">
+	    <span>{{ source }}</span>
+	</label>
+	# endfor
+    </div>
+
+    <br/>
+
+    <!-- Search Button -->
+    <button class="button is-primary"
+	    style="display: none;"
+		   _="on change from <input/>
+		   if <input:checked/> exists
+		   then show me
+		   else hide me"
+	    hx-post="/search"
+	    hx-target="#id_documents_div"
+	    hx-include="[name='selected_tags']:checked, [name='selected_sources']:checked">
+    Search Selected
+    </button>
+
 </div>

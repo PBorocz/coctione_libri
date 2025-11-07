@@ -21,7 +21,7 @@ class Documents:
         return [tag_ for tag_, _ in Documents.tag_counts(user)]
 
     @classmethod
-    def tag_counts(cls, user: User, sort: str = "tag", order: str = "asc") -> list[str, int]:
+    def tag_counts(cls, user: User, sort: str = "count", order: str = "desc") -> list[str, int]:
         """Return a list of (tag,counts) of all tags for the specified user."""
         tags = defaultdict(int)
         for document in Document.select(Document.tags).where(Document.user == user):
@@ -33,7 +33,7 @@ class Documents:
         return sorted(tags.items(), key=lambda entry: entry[offset], reverse=(order == "desc"))
 
     @classmethod
-    def source_counts(cls, user: User, sort: str = "source", order: str = "asc") -> list[str, int]:
+    def source_counts(cls, user: User, sort: str = "count", order: str = "desc") -> list[str, int]:
         """Return a list of (source,counts) of all sources for the specified user."""
         sources = defaultdict(int)
         for document in Document.select(Document.source).where(Document.user == user):

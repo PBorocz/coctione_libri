@@ -152,10 +152,18 @@ def hx_update_search(template="main/hx/display_search_history.html") -> Response
 @log_route(path="/search")
 def hx_search(template="main/hx/display_body.html") -> Response:
     """Render the results table (only) based on a *SEARCH* request."""
-    # Search could come in directly from the search dialog box (ie. request.form)
-    # *or*
-    # from clicking a selected tag or source (ie. request.values)
-    if request.values.get("search"):
+    # Check for multi-select values first
+    selected_tags = request.form.getlist("selected_tags")
+    selected_sources = request.form.getlist("selected_sources")
+
+    if selected_tags or selected_sources:
+        log.debug(f"  multi-select search - tags: {selected_tags}, sources: {selected_sources}")
+        # Combine selected items into search terms
+        search_terms = selected_tags + selected_sources
+        search_term_s = " ".join(search_terms)  # or however you want to combine them
+
+    # Fall back to single search (your existing logic)
+    elif request.values.get("search"):
         search_term_s = request.values.get("search")
         log.debug(f"  direct search: {search_term_s}")
     else:
