@@ -36,7 +36,7 @@
     <!-- Tags Section -->
     <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
 	# for tag, count in tags:
-	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;">
+	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.6) * 0.05 }}em;">
 	    <input type="checkbox" name="selected_tags" value="{{ tag }}">
 	    <span>{{ tag.title() }}</span>
 	</label>
