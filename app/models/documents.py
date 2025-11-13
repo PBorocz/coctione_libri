@@ -21,7 +21,7 @@ class Documents:
         return [tag_ for tag_, _ in Documents.tag_counts(user)]
 
     @classmethod
-    def tag_counts(cls, user: User, sort: str = "count", order: str = "desc") -> list[str, int]:
+    def tag_counts(cls, user: User, sort: str = "tag", order: str = "asc") -> list[str, int]:
         """Return a list of (tag,counts) of all tags for the specified user."""
         tags = defaultdict(int)
         for document in Document.select(Document.tags).where(Document.user == user):

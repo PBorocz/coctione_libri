@@ -1,6 +1,5 @@
 """Test User data type."""
 
-
 from box import Box
 from werkzeug.security import check_password_hash
 
@@ -20,8 +19,6 @@ def get_current_row_count():
 def test_user_init_missing_attrs(app):
     """Test that a simple class instantiation won't work as there ARE required fields."""
     User()
-    # with pytest.raises(pydantic.ValidationError):
-    #     User()
 
 
 def test_user_factory(app, user):

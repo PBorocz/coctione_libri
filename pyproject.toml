@@ -155,7 +155,7 @@ cmd = "uv run python ./app/cli/db_quality.py"
 help = "Run data quality script to compare document db with file storage."
 
 [tool.poe.tasks.dbm]
-cmd = "dbmate --env SQLITE_DB_MATE --migrations-dir ./app/db/migrations --no-dump-schema"
+cmd = "dbmate --env STORAGE_META_DB_NAME --migrations-dir ./app/db/migrations --no-dump-schema"
 help = "Run arbitrary dbmate on the local development database"
 
 [tool.poe.tasks.dev_run_local]

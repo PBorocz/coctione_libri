@@ -31,7 +31,6 @@ def app(request):
     except subprocess.CalledProcessError as e:
         pytest.fail(f"dbmate up failed: {e.stderr.decode()}")
 
-    # application = create_app(config_overrides={"SQLITE_DB": f"sqlite://{test_db_path}"})
     config_testing = {
         "PATH_DATA": "/tmp",
         "STORAGE_META_DB_NAME": "coctione_libri_testing.sqlite3",
