@@ -31,7 +31,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "flask-debugtoolbar-mongo>=0.1,<0.2",
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
 ]
 
 [build-system]
