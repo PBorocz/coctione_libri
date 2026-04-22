@@ -192,6 +192,13 @@ shell = """
   """
 help = "Run rsync from local .data to deployment testing environment (safe)"
 
+[tool.poe.tasks.upgrade]
+# For a particular package: uv sync --upgrade-package <foo>
+help = "Update all packages to most current versions"
+shell = """
+  uv sync --upgrade --quiet
+  """
+
 # [tool.poe.tasks.backup_production]
 #
 # Alternatively: const command = `mongodump --uri "${process.env.BACKUP_MONGO_URI}" --gzip --archive=${path}`;
