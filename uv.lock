@@ -93,7 +93,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13.7.0,<14" },
     { name = "secure", specifier = ">=0.3.0,<0.4" },
     { name = "tomli-w", specifier = ">=1.0.0,<2" },
-    { name = "urllib3", specifier = ">=2.5.0,<3" },
+    { name = "urllib3", specifier = ">=2.6.3,<3" },
     { name = "wtforms", specifier = ">=3.1.2,<4" },
 ]
 
