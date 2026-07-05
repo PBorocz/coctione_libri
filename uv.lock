@@ -100,7 +100,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "flask-debugtoolbar-mongo", specifier = ">=0.1,<0.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest", specifier = ">=9.0.3" },
 ]
 
 [[package]]
