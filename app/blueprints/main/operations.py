@@ -34,10 +34,11 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 
     # Return either ALL the documents or just those associated with the search matching id's:
     documents = Document.select().where(
-        Document.user == user,
         Document.category == user.payload.user_state.last_category,
         Document.id.in_(ids_to_query),
     )
+    # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+    # Document.user == user,
 
     log.debug(f"{len(documents):4d} documents found.")
 
@@ -49,7 +50,9 @@ def get_documents(user: User, search: str | None = None) -> tuple[Sort, list[Doc
 ################################################################################
 def _search_by_title(user: User, search: str) -> list[Document]:
     """Search all documents by "title"."""
-    partials = Document.select().where(Document.user == user, Document.title.contains(search))
+    partials = Document.select().where(Document.title.contains(search))
+    # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+    # Document.user == user,
     if partials:
         log.debug(f"{len(partials):4d} documents matched against 'title'")
     return [doc.id for doc in partials]
@@ -57,7 +60,9 @@ def _search_by_title(user: User, search: str) -> list[Document]:
 
 def _search_by_source(user: User, search: str) -> list[Document]:
     """Search all documents by "source"."""
-    partials = Document.select().where(Document.user == user, Document.source.contains(search))
+    partials = Document.select().where(Document.source.contains(search))
+    # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+    # Document.user == user,
     if partials:
         log.debug(f"{len(partials):4d} documents matched against 'source'")
     return [doc.id for doc in partials]
@@ -68,7 +73,9 @@ def _search_by_tag(user: User, search: str) -> list[int]:
     l_search: list[str] = [search.lower()] if " " not in search else list(map(str.lower, search.split()))
     log.debug(f"{l_search=}")
 
-    partials = Document.select(Document.id).where(Document.user == user.id)
+    partials = Document.select(Document.id)
+    # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+    # Document.user == user.id,
     for tag in l_search:
         partials = partials.where(Document.tags % f"*{tag}*")
 

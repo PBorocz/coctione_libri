@@ -2,21 +2,21 @@
 
   <div class="navbar-brand", id="navbar_brand">
 
-	<a class="navbar-item responsive-font-large" href="/">
-	  <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
-	</a>
+        <a class="navbar-item responsive-font-large" href="/">
+          <i class="fas fa-kitchen-set mr-2"></i><span>Coctione Libri</span>
+        </a>
 
-	{# Ref: https://www.marcusahnve.se/posts/2023/hamburger-menu-with-bulma-and-hyperscript/ #}
-	<a role="button"
-	   class="navbar-burger"
-	   aria-label="menu"
-	   aria-expanded="false"
-	   data-target="navbar_menu"
-	   _="on click toggle .is-active on .navbar-menu then toggle .is-active on me">
-	  <span aria-hidden="true"></span>
-	  <span aria-hidden="true"></span>
-	  <span aria-hidden="true"></span>
-	</a>
+        {# Ref: https://www.marcusahnve.se/posts/2023/hamburger-menu-with-bulma-and-hyperscript/ #}
+        <a role="button"
+           class="navbar-burger"
+           aria-label="menu"
+           aria-expanded="false"
+           data-target="navbar_menu"
+           _="on click toggle .is-active on .navbar-menu then toggle .is-active on me">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
 
   </div><!-- navbar-brand -->
 
@@ -24,79 +24,82 @@
 
   <div class="navbar-menu" id="navbar_menu">
 
-	{# The *LEFT* part of the menu, appearing right after navbar-brand #}
-	# if watermark:
-	<div class="navbar-start">
-	  <div class="navbar-item is-hidden-lt-widescreen">
-		<div class="field">
-		  <div class="control has-text-danger-dark responsive-font">
-			{{ watermark|title }}
-		  </div>
-		</div>
-	  </div>
-	</div>
-	# endif
+        {# The *LEFT* part of the menu, appearing right after navbar-brand #}
+        # if watermark:
+        <div class="navbar-start">
+          <div class="navbar-item is-hidden-lt-widescreen">
+                <div class="field">
+                  <div class="control has-text-danger-dark responsive-font">
+                        {{ watermark|title }}
+                  </div>
+                </div>
+          </div>
+        </div>
+        # endif
 
-	{# The *RIGHT* part of the menu, appearing right after navbar-brand #}
-	<div class="navbar-end">
+        {# The *RIGHT* part of the menu, appearing right after navbar-brand #}
+        <div class="navbar-end">
 
-	  <nav class="navbar" role="navigation" aria-label="dropdown navigation">
+          <nav class="navbar" role="navigation" aria-label="dropdown navigation">
 
-		<a class="navbar-item">
-		  <style>
-		   .select {
-		     font-size: 0.8rem;
-		     border-radius: 6px;
-		   }
-		  </style>
-		  <div class="select">
-			<select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
-			  # for category in categories:
-			  <option {% if current_user.payload.user_state.last_category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
-			  # endfor
-			</select>
-		  </div>
-		</a>
+                <a class="navbar-item">
+                  <style>
+                   .select {
+                     font-size: 0.8rem;
+                     border-radius: 6px;
+                   }
+                  </style>
+                  <div class="select">
+                        <select class="category_option" name="category" hx-post="/user/category" hx-target="#id_documents_div">
+                          # for category in categories:
+                          <option {% if current_user.payload.user_state.last_category == category %}selected{% endif %} value="{{ category }}">{{ category }}</option>
+                          # endfor
+                        </select>
+                  </div>
+                </a>
 
-		<div class="navbar-item has-dropdown is-hoverable">
+                <div class="navbar-item has-dropdown is-hoverable">
 
-		  <a class="navbar-link"></a>
+                  <a class="navbar-link"></a>
 
-		  <style>
-			.smaller-navbar-item {
-			  font-size: 0.75rem;
-			}
-		  </style>
-		  <div class="navbar-dropdown is-right smaller-navbar-item">
+                  <style>
+                   .smaller-navbar-item {
+                     font-size: 0.75rem;
+                   }
+                  </style>
+                  <div class="navbar-dropdown is-right smaller-navbar-item">
 
-			<a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
-			  <i class="fas fa-plus"></i>&nbsp;Add New Doc
-			</a>
+                        <a class="navbar-item" href="{{ url_for('main.render_new_document') }}">
+                          <i class="fas fa-plus"></i>&nbsp;Add New Doc
+                        </a>
 
-			<a class="navbar-item" href="{{ url_for('admin.manage_st', entity='source') }}">
-			  <i class="fas fa-book"></i>&nbsp;Manage Sources
-			</a>
+                        <a class="navbar-item" href="{{ url_for('admin.manage_st', entity='source') }}">
+                          <i class="fas fa-book"></i>&nbsp;Manage Sources
+                        </a>
 
-			<a class="navbar-item" href="{{ url_for('admin.manage_st', entity='tag') }}">
-			  <i class="fas fa-tags"></i>&nbsp;Manage Tags
-			</a>
+                        <a class="navbar-item" href="{{ url_for('admin.manage_st', entity='tag') }}">
+                          <i class="fas fa-tags"></i>&nbsp;Manage Tags
+                        </a>
 
-			<a class="navbar-item" href="{{ url_for('stats.statistics') }}">
-			  <i class="far fa-chart-bar"></i>&nbsp;Statistics
-			</a>
+                        <a class="navbar-item" href="{{ url_for('stats.statistics') }}">
+                          <i class="far fa-chart-bar"></i>&nbsp;Statistics
+                        </a>
 
-			<hr class="navbar-divider">
+                        <hr class="navbar-divider">
 
-			<a class="navbar-item" href="{{ url_for('auth.logout') }}">
-			  <i class="fas fa-arrow-right-from-bracket"></i>&nbsp;Logout
-			</a>
+                        <a class="navbar-item" href="{{ url_for('auth.logout') }}">
+                          <i class="fas fa-arrow-right-from-bracket"></i>&nbsp;Logout
+                        </a>
 
-		  </div>
-		</div>
+                        <div class="navbar-item is-static">
+                          {{current_user.email }}
+                        </div>
+                  </div>
+                </div>
 
-	  </nav>
+          </nav>
 
-	</div><!-- navbar-end -->
+        </div><!-- navbar-end -->
 
   </div><!-- navbar-menu -->
 

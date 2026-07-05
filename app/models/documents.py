@@ -24,7 +24,9 @@ class Documents:
     def tag_counts(cls, user: User, sort: str = "tag", order: str = "asc") -> list[str, int]:
         """Return a list of (tag,counts) of all tags for the specified user."""
         tags = defaultdict(int)
-        for document in Document.select(Document.tags).where(Document.user == user):
+        # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+        # .where(Document.user == user)
+        for document in Document.select(Document.tags):
             for tag in document.tags_split:
                 tags[tag.title()] += 1
 
@@ -36,7 +38,9 @@ class Documents:
     def source_counts(cls, user: User, sort: str = "count", order: str = "desc") -> list[str, int]:
         """Return a list of (source,counts) of all sources for the specified user."""
         sources = defaultdict(int)
-        for document in Document.select(Document.source).where(Document.user == user):
+        # 2026-07-05 Removed to allow Denise to have her own user and share the same docs.
+        # .where(Document.user == user)
+        for document in Document.select(Document.source):
             if document.source:
                 sources[document.source] += 1
 

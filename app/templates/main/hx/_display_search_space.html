@@ -1,73 +1,57 @@
 <div class="content">
-    <style>
-     .search-checkbox {
-	 background-color: #fffafa;
-	 border-radius: 4px;
-	 cursor: pointer;
-	 padding: 6px 12px;
-	 margin: 0px;
-	 display: inline-flex;
-	 align-items: center;
-	 justify-content: center;
-	 border: 2px solid #f0e6e6;
-	 min-height: 1.5em;
-	 transition: all 0.2s;
-	 user-select: none;
-     }
-     .search-checkbox:hover {
-	 background-color: #f5f0f0;
-	 border-color: #e8d8d8;
-     }
-     .search-checkbox input[type="checkbox"] {
-	 display: none;
-     }
-     .search-checkbox:has(input[type="checkbox"]:checked) {
-	 background-color: #f0e0e0;
-	 border-color: #d0b0b0;
-	 box-shadow: 0 2px 4px rgba(208, 176, 176, 0.3);
-     }
-     .search-checkbox span {
-	 pointer-events: none;  /* ensures clicks go to label */
-     }
-    </style>
+  <style>
+   .search-checkbox {
+     background-color: #fffafa;
+     border-radius: 4px;
+     cursor: pointer;
+     padding: 6px 12px;
+     margin: 0px;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     border: 2px solid #f0e6e6;
+     min-height: 1.5em;
+     transition: all 0.2s;
+     user-select: none;
+   }
+   .search-checkbox:hover {
+     background-color: #f5f0f0;
+     border-color: #e8d8d8;
+   }
+   .search-checkbox input[type="checkbox"] {
+     display: none;
+   }
+   .search-checkbox:has(input[type="checkbox"]:checked) {
+     background-color: #f0e0e0;
+     border-color: #d0b0b0;
+     box-shadow: 0 2px 4px rgba(208, 176, 176, 0.3);
+   }
+   .search-checkbox span {
+     pointer-events: none;  /* ensures clicks go to label */
+   }
+  </style>
 
-    <br/>
-
-    <!-- Tags Section -->
-    <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
-	# for tag, count in tags:
-	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.6) * 0.05 }}em;">
-	    <input type="checkbox" name="selected_tags" value="{{ tag }}">
-	    <span>{{ tag.title() }}</span>
-	</label>
-	# endfor
-    </div>
-
-    <br/>
-
-    <!-- Sources Section -->
-    <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
-	# for source, count in sources:
-	<label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.5) * 0.05 }}em;">
-	    <input type="checkbox" name="selected_sources" value="{{ source }}">
-	    <span>{{ source }}</span>
-	</label>
-	# endfor
-    </div>
-
-    <br/>
-
-    <!-- Search Button -->
-    <button class="button is-primary"
-	    style="display: none;"
-		   _="on change from <input/>
-		   if <input:checked/> exists
-		   then show me
-		   else hide me"
-	    hx-post="/search"
-	    hx-target="#id_documents_div"
-	    hx-include="[name='selected_tags']:checked, [name='selected_sources']:checked">
+  <!-- Search Button -->
+  <button class="button is-primary mb-4"
+          style="display: none"
+          _="on change from <input/>
+                 if <input:checked/> exists
+                 then show me
+                 else hide me"
+          hx-post="/search"
+          hx-target="#id_documents_div"
+          hx-include="[name='selected_tags']:checked, [name='selected_sources']:checked">
     Search Selected
-    </button>
+  </button>
+
+  <!-- Tags Section -->
+  <div class="is-flex is-flex-wrap-wrap" style="gap: 0.5rem;">
+    # for tag, count in tags:
+    <label class="search-checkbox" style="font-size: {{ 0.6 + (count ** 0.6) * 0.05 }}em;">
+      <input type="checkbox" name="selected_tags" value="{{ tag }}">
+      <span>{{ tag.title() }}</span>
+    </label>
+    # endfor
+  </div>
 
 </div>

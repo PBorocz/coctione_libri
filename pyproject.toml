@@ -199,6 +199,9 @@ shell = """
   uv sync --upgrade --quiet
   """
 
+[tool.uv]
+exclude-newer = "P3D"  # "3 days" in RFC 3339 format
+
 # [tool.poe.tasks.backup_production]
 #
 # Alternatively: const command = `mongodump --uri "${process.env.BACKUP_MONGO_URI}" --gzip --archive=${path}`;

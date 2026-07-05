@@ -41,7 +41,10 @@ def log_route(path=""):
 def render_display() -> Response:
     """Render our main page on a full page/refresh basis."""
     # Query & sort the documents..
-    sort, documents = get_documents(fl.current_user, fl.current_user.payload.user_state.last_search)
+    sort, documents = get_documents(
+        fl.current_user,
+        fl.current_user.payload.user_state.last_search,
+    )
 
     return render_template(
         "main/display.html",
@@ -52,7 +55,7 @@ def render_display() -> Response:
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
         tags=Documents.tag_counts(fl.current_user),
-        sources=Documents.source_counts(fl.current_user),
+        can_delete=fl.current_user.can_delete(),
     )
 
 
@@ -81,7 +84,7 @@ def hx_query() -> Response:
         category=fl.current_user.payload.user_state.last_category,
         categories=categories_available(),
         tags=Documents.tag_counts(fl.current_user),
-        sources=Documents.source_counts(fl.current_user),
+        can_delete=fl.current_user.can_delete(),
     )
     return make_response(rendered_template, trigger="refresh-document-count")
 
@@ -118,7 +121,11 @@ def hx_display(template="main/hx/display_body.html") -> Response:
 
     # Render our partial template of the main display table:
     return render_template(
-        template, documents=documents, sort=sort, search=fl.current_user.payload.user_state.last_search
+        template,
+        documents=documents,
+        sort=sort,
+        search=fl.current_user.payload.user_state.last_search,
+        can_delete=fl.current_user.can_delete(),
     )
 
 
@@ -187,6 +194,7 @@ def hx_search(template="main/hx/display_body.html") -> Response:
         "form": FlaskForm(),
         "public_ids": "|".join(public_ids),
         "num_docs": len(documents),
+        "can_delete": fl.current_user.can_delete(),
     }
     rendered_template = render_template(template, **render_args)
     return make_response(rendered_template, trigger="refresh-document-count")

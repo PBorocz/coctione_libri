@@ -25,16 +25,16 @@
   # if render_display_column(current_user.payload.user_state.last_category, "title"):
   <td style="vertical-align: middle;">
 
-      <a href="/view/{{ document.public_id_safe }}" target="_new">
+      <a href="/view/{{ document.public_id_safe }}">
       {{ document.title }}
       </a>
 
       # if document.url
       &nbsp;
-      <a href="{{ document.url }}" target="_new">
-	  <span class="icon is-small is-right responsive-font">
-	      <i class="fa-light fa-link"></i>
-	  </span>
+      <a href="{{ document.url }}">
+          <span class="icon is-small is-right responsive-font">
+              <i class="fa-light fa-link"></i>
+          </span>
       </a>
       # endif
 
@@ -56,10 +56,10 @@
     </style>
     # for tag in document.tags_display:
     <span class="tag-style"
-	  name="tag"
-	  hx-post="/search"
-	  hx-target="#id_documents_div"
-	  hx-vals='{"search": "{{ tag.title() }}"}'
+          name="tag"
+          hx-post="/search"
+          hx-target="#id_documents_div"
+          hx-vals='{"search": "{{ tag.title() }}"}'
     >
       {{ tag }}
     </span>
@@ -77,10 +77,10 @@
      }
     </style>
     <span class="source-style"
-	  name="source"
-	  hx-post="/search"
-	  hx-target="#id_documents_div"
-	  hx-vals='{"search": "{{ document.source }}"}'
+          name="source"
+          hx-post="/search"
+          hx-target="#id_documents_div"
+          hx-vals='{"search": "{{ document.source }}"}'
     >
       {{ document.source | default("", true) }}
     </span>
@@ -99,7 +99,7 @@
   <td class="has-text-centered" style="vertical-align: middle;">
     <a href="/edit/{{ document.public_id }}">
       <span class="icon is-small is-right responsive-font">
-	<i class="fa-regular fa-pen-to-square"></i>
+        <i class="fa-regular fa-pen-to-square"></i>
       </span>
     </a>
   </td>

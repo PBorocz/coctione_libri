@@ -114,6 +114,12 @@ class User(Model):
         self.save()
         return True
 
+    ################################################################################
+    def can_delete(self) -> bool:
+        if "peter" in self.email.casefold():
+            return True
+        return False
+
 
 ################################################################################
 # Utility methods
