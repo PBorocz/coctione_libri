@@ -6,7 +6,7 @@ authors = [{ name = "Peter Borocz", email = "680893+PBorocz@users.noreply.github
 requires-python = ">=3.11.0,<4.0"
 readme = "README.md"
 dependencies = [
-    "flask>=3.0.0,<4",
+    "flask>=3.1.3,<4",
     "flask-htmx>=0.3.2,<0.4",
     "flask-login>=0.6.3,<0.7",
     "pydantic>=2.5.3,<3",
