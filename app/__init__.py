@@ -9,7 +9,7 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     import flask as f
 
-from dotenv import dotenv_values
+from environs import Env
 from flask.app import Flask  # Typing
 from flask_htmx import HTMX
 from flask_login import LoginManager
@@ -30,10 +30,30 @@ secure_headers = Secure()  # Secure headers
 
 
 def _create_app_configuration(application: Flask, config_overrides: dict | None = None) -> Flask:
-    application.config.update(**dotenv_values(".env", verbose=True))
+    env = Env(expand_vars=True)
+    env.read_env()
+
+    for env_var in [
+            "DEBUG_TB_ENABLED",
+            "DEBUG_TB_INTERCEPT_REDIRECTS",
+            "ENV",
+            "FLASK_DEBUG",
+            "FLASK_RUN_PORT",
+            "LOG_LEVEL",
+            "PATH_DATA",
+            "REMEMBER_COOKIE_SECURE",
+            "SECRET_KEY",
+            "SESSION_COOKIE_SECURE",
+            "STORAGE_DOCS_DIR_NAME",
+            "STORAGE_META_DB_NAME",
+    ]:
+        application.config[env_var]  = env.str(env_var)
+        print(f"...environment, set {env_var:30s} to {application.config[env_var]}")
+
     if config_overrides:
         application.config.update(**config_overrides)
-    # print(f"...configuration environment: {application.config.get('ENV')}")
+        print(f"...config_overrides: {config_overrides}")
+    print(f"...configuration environment: {application.config.get('ENV')}")
     return application
 
 

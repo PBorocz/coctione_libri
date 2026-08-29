@@ -44,7 +44,7 @@ Now...how hard could it *really* be to store a set of pdf's with some meta-data 
   - [preCommit](https://pre-commit.com/)
   - [ruff](https://docs.astral.sh/ruff/)
   - [uv](https://github.com/astral-sh/uv)
-  - [poe](https://poethepoet.natn.io/)
+  - [just](https://just.systems/)
 
 ## Screen Shot
 

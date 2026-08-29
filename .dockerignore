@@ -1,0 +1,92 @@
+# Skip local data (the environment will have it's own)
+data/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+.pytype/
+*.cover
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Virtual environments (shouldn't exist if using uv, but just in case)
+venv/
+env/
+ENV/
+.venv/
+
+# uv
+.uv/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Documentation
+# README.md
+LICENSE
+*.md
+docs/
+
+# Testing
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+
+# Environment files (these should NEVER be in images)
+.env
+.env.*
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+temp/
+tmp/
