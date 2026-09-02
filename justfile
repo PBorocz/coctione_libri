@@ -43,8 +43,8 @@ dev-run-raw:
 	set -x FLASK_RUN_PORT        "6022"
 	set -x STORAGE_DOCS_DIR_NAME "documents"
 	set -x STORAGE_META_DB_NAME  "meta.sqlite3"
-	just env-development
-	# sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
+	cat .env.common .env.development > .env
+	sass --update app/static/css/sass/styles.scss app/static/css/coctione_libri.css
 	uv run flask run --debug --host localhost --port $FLASK_RUN_PORT
 
 ################################################################################

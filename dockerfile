@@ -38,7 +38,8 @@ COPY --chown=appuser:appuser pyproject.toml uv.lock* ./
 RUN echo "${BUILD_TIMESTAMP}" > /app/VERSION
 
 # Install Python 3.14 and dependencies via uv
-RUN uv python install 3.14 && \
+RUN --mount=type=cache,target=/root/cache \
+    uv python install 3.14 && \
     uv sync --frozen --no-dev --no-editable
 
 # Copy application code and fix ownership

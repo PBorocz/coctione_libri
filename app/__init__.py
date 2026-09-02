@@ -13,6 +13,7 @@ from environs import Env
 from flask.app import Flask  # Typing
 from flask_htmx import HTMX
 from flask_login import LoginManager
+from flask_talisman import Talisman
 from peewee import SqliteDatabase
 from secure import Secure
 
@@ -48,12 +49,10 @@ def _create_app_configuration(application: Flask, config_overrides: dict | None 
             "STORAGE_META_DB_NAME",
     ]:
         application.config[env_var]  = env.str(env_var)
-        print(f"...environment, set {env_var:30s} to {application.config[env_var]}")
 
     if config_overrides:
         application.config.update(**config_overrides)
-        print(f"...config_overrides: {config_overrides}")
-    print(f"...configuration environment: {application.config.get('ENV')}")
+
     return application
 
 
@@ -120,42 +119,7 @@ def _create_app_htmx(application: Flask) -> Flask:
 
 
 def _create_app_db_connection(application: Flask) -> Flask:
-    """Connect to our database."""
-    if 0:
-        ...
-        ################################################################################
-        # MongoDB "Document" metadata first...
-        ################################################################################
-        # vendor = application.config["STORAGE_META_VENDOR"]
-        # app_db_settings = application.config["STORAGE_META_URL"]
-        # connect(host=app_db_settings, uuidRepresentation="standard")
-        # db_name = app_db_settings.split("?")[0].split("/")[-1]
-        # log.info(f"...connected to {vendor}: {db_name}")
-
-        ################################################################################
-        # "Document" file/object store next...
-        ################################################################################
-        # vendor = application.config["STORAGE_FILE_VENDOR"]
-        # endpoint_url = application.config["STORAGE_FILE_ENDPOINT_URL"]
-        # region_name = application.config["STORAGE_FILE_REGION_NAME"]
-        # access_key_id = application.config["STORAGE_FILE_ACCESS_KEY_ID"]
-        # secret_access_key = application.config["STORAGE_FILE_SECRET_ACCESS_KEY"]
-        # boto_client = boto3.client(
-        #     "s3",
-        #     endpoint_url=endpoint_url,
-        #     region_name=region_name,
-        #     aws_access_key_id=access_key_id,
-        #     aws_secret_access_key=secret_access_key,
-        # )
-        # # Workaround, stuff the name of the bucket onto the boto client so we don't have
-        # # to look it up everwhere else..
-        # boto_client.bucket = application.config["STORAGE_FILE_BUCKET"]
-        # application.config["STORAGE_FILE"] = boto_client
-        # log.info(f"...connected to {vendor}: {endpoint_url} -> {boto_client.bucket} ")
-
-    ################################################################################
-    # Sqlite "Document" metadata...
-    ################################################################################
+    """Connect to our sqlLite "document" metadata database."""
     global db  # noqa: PLW0603 (sue me)
     models = [User, Document]
     db_path = Path(application.config["PATH_DATA"]) / Path(application.config["STORAGE_META_DB_NAME"])
@@ -212,10 +176,50 @@ def _create_app_ctx_prcssrs(application: Flask) -> Flask:
 
     return application
 
-
 def create_app(logging=True, log_level: str | None = log.INFO, config_overrides: dict | None = None) -> Flask:
     """Create and return our core Flask application object instance."""
     application = f.Flask(__name__, template_folder="templates")
+
+    # Before anything else, setup our secure-header environment
+    Talisman(
+        application,
+        force_https=True,
+        strict_transport_security=True,
+        strict_transport_security_max_age=31536000,
+        referrer_policy='strict-origin-when-cross-origin',
+        content_security_policy={
+            'default-src': "'self'",
+            'script-src': [
+                "'self'",
+                "'unsafe-inline'",              # Allow inline scripts
+                "unpkg.com",                    # HTMX
+                "kit.fontawesome.com",          # Font Awesome library
+                "cdn.jsdelivr.net",             # Other JS libraries
+            ],
+            'style-src': [
+                "'self'",
+                "'unsafe-inline'",              # Allow inline styles
+                "unpkg.com",                    # Flatpicker's CSS
+                "fonts.googleapis.com",         # Google Fonts CSS
+                "fonts.bunny.net",              # Bunny CDN delivered font(s)
+            ],
+            'font-src': [
+                "'self'",
+                "fonts.bunny.net",              # Bunny CDN delivered font(s)
+                "https://ka-p.fontawesome.com",  # Explicit HTTPS
+            ],
+            'img-src': [
+                "'self'",
+                "data:",                        # For inline images
+            ],
+            'connect-src': [
+                "'self'",
+                "ka-p.fontawesome.com",         # Font Awesome dynamic loading
+                "unpkg.com",                    # Hyperscript source maps
+            ],
+        }
+    )
+
     application.jinja_env.line_statement_prefix = "#"  # Simplify our templates!
     with application.app_context():
         # Setup initial logging configuration to get us going
