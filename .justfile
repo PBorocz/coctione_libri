@@ -90,6 +90,11 @@ deploy-to-prod:
 	echo "  sudo -u service -i"
 	echo "  cd ~/services && ./manage deploy coctione_libri"
 
+# Push current code to github.
+push:
+	jj bookmark set --revision  @- trunk
+	jj git push     --revisions @-
+
 # Cleanup old image tars (keep last 3)
 cleanup-prod-images:
 	#!/usr/bin/env fish
